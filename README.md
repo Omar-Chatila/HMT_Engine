@@ -1,6 +1,8 @@
 # DistanceMeasures_HMT
 
-
+- goto src
+- run 'make'
+- run ./run.exe
 
 ## Getting started
 
