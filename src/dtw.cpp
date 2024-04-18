@@ -66,7 +66,6 @@ std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *co
     std::vector<int> alignment;
     double cost = cost_matrix[index];
 
-    // Trace back to find the optimal alignment path
     while (index != 0) {
         alignment.push_back(index); // Record the current index in the alignment path
 
@@ -90,6 +89,82 @@ std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *co
 
     // Return the computed total cost and the alignment path
     return {cost, alignment};
+}
+
+vector<vector<double>> Dtw::get_curves_from_csv() {
+    vector<vector<double>> curves;
+    std::ifstream movement_data("../bvh_parser/walk1.csv");
+    std::string myline;
+    int index = 0;
+    if (movement_data.is_open()) {
+        while (movement_data) {
+            std::getline(movement_data, myline);
+            std::stringstream ss(myline);
+            std::string token;
+            std::vector<std::string> line;
+
+            while (std::getline(ss, token, ',')) {
+                line.push_back(token);
+                // No rotation data for now
+            }
+
+            if (!line[0].contains("rot") && !line[0].contains("Frames")) {
+                index++;
+                vector<double> curve_points;
+                for (int i = 1; i < line.size(); i++) {
+                    double num = std::stod(line[i]);
+                    curve_points.push_back(num);
+                }
+                curves.push_back(curve_points);
+            }
+        }
+    } else {
+        std::cerr << "Error opening file\n";
+    }
+    return curves;
+}
+
+pair<double, vector<int>> Dtw::run_example(double *vals1, double *vals2, int n, int m, double (*func)(double, double)) {
+    auto *matrix = Dtw::dtw(vals1, vals2, n, m, func);
+    for (int i = 0; i < (n + 1) * (m + 1); i++) {
+        auto num = matrix[i];
+        // if (i % (m + 1) != 0 && (i / (m + 1)) != 0)
+        std::cout << num << ", ";
+        if (i % (m + 1) == m) {
+            std::cout << '\n';
+        }
+    }
+    auto pair = Dtw::get_cost_and_alignment(matrix, m, n);
+    std::cout << "Alignment: " << std::endl;
+    for (auto num : pair.second) {
+        std::cout << num << " ";
+    }
+    std::cout << "\nCost: " << pair.first << std::endl;
+    delete[] matrix;
+    return pair;
+}
+
+void Dtw::set_frames(double *vals1, double *vals2, int m, int n, vector<double *> &frames1, vector<double *> &frames2) {
+    srand(time(NULL));
+    for (int i = 0; i < 360; i++) {
+        double *curve1 = (double *)(malloc(n * sizeof(double)));
+        double *curve2 = (double *)(malloc(m * sizeof(double)));
+
+        for (int i = 0; i < n; i++) {
+            int deviation = rand() % 100;
+            int v = vals1[i] + static_cast<double>(deviation / 50.0);
+            curve1[i] = vals1[i] + static_cast<double>(deviation / 50.0);
+        }
+
+        for (int i = 0; i < m; i++) {
+            int deviation = rand() % 100;
+            int v = vals2[i] + static_cast<double>(deviation / 50.0);
+            curve2[i] = vals2[i] + static_cast<double>(deviation / 50.0);
+        }
+
+        frames1.push_back(curve1);
+        frames2.push_back(curve2);
+    }
 }
 
 
