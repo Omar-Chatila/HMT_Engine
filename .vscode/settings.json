@@ -62,6 +62,7 @@
         "ratio": "cpp",
         "regex": "cpp",
         "fstream": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "iostream": "cpp"
     }
 }
