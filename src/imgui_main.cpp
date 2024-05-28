@@ -116,7 +116,7 @@ int display()
 }
 
 int main() {
-    // display();
+    display();
     std::string file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
     std::cout << "File: " << file << std::endl;
     Input_parser* input = new Input_parser(file.c_str());
