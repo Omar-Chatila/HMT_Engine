@@ -4,19 +4,24 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "Shader.h"
 #include "Sphere.h"
+#include "input_parser.h"
 
-const char* vertexShaderPath = "src/shader/vertex_shader.glsl";
-const char* fragmentShaderPath = "src/shader/fragment_shader.glsl";
+const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
+const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
     glViewport(0, 0, width, height);
 }
 
-int main() {
+int display()
+{
     // Initialize GLFW
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
@@ -25,8 +30,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Sphere", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(800, 600, "OpenGL Sphere", nullptr, nullptr);
+    if (!window)
+    {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -36,7 +42,8 @@ int main() {
 
     // Initialize GLEW
     glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
+    if (glewInit() != GLEW_OK)
+    {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
@@ -50,21 +57,21 @@ int main() {
     // Define sphere positions
     std::vector<glm::vec3> spherePositions = {
         glm::vec3(-1.5f, 0.0f, -1.5f),
-        glm::vec3( 0.4f, 0.6f, -1.5f),
-        glm::vec3( 0.0f,  0.0f,  1.0f),
+        glm::vec3(0.4f, 0.6f, -1.5f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
         glm::vec3(-1.1f, 0.0f, -1.5f),
-        glm::vec3( 1.4f, 0.8f, -1.5f),
-        glm::vec3( 0.0f,  0.2f,  0.5f),
+        glm::vec3(1.4f, 0.8f, -1.5f),
+        glm::vec3(0.0f, 0.2f, 0.5f),
         glm::vec3(-0.9f, 0.1f, -1.3f),
-        glm::vec3( 0.5f, -0.3f, -1.2f),
-        glm::vec3( 0.25f,  0.0f,  1.5f)
-    };
+        glm::vec3(0.5f, -0.3f, -1.2f),
+        glm::vec3(0.25f, 0.0f, 1.5f)};
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
     srand(0);
     // Render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         // Input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -88,7 +95,8 @@ int main() {
         shader.setUniformVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 
         // Render spheres
-        for (glm::vec3 position : spherePositions) {
+        for (glm::vec3 position : spherePositions)
+        {
             glm::mat4 model = glm::mat4(1.0f);
             position.x += rand() % 10 / 10.0;
             position.y += rand() % 10 / 10.0;
@@ -102,8 +110,21 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
     // Cleanup
     glfwTerminate();
+    return 0;
+}
+
+int main() {
+    // display();
+    std::string file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
+    std::cout << "File: " << file << std::endl;
+    Input_parser* input = new Input_parser(file.c_str());
+    std::vector<Frame> frames = input->get_trajectories();
+
+    Frame first = frames[0];
+    std::cout << first << std::endl;
+
+    delete input;
     return 0;
 }
