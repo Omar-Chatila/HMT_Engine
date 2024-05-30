@@ -1,10 +1,10 @@
 #include "edit_distance.h"
 
-bool EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, double (*func)(Vec3D, Vec3D)) {
+bool EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<double(const Vec3D&, const Vec3D&)> func) {
     return func(vec1, vec2) < epsilon;
 }
 
-double EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, double epsilon, double (*func)(Vec3D, Vec3D)) {
+double EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, double epsilon, std::function<double(const Vec3D&, const Vec3D&)> func) {
     const int n = size_v1 + 1;
     const int m = size_v2 + 1;
 

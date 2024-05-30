@@ -9,6 +9,7 @@
 #include "Sphere.h"
 #include "input_parser.h"
 #include "trajectories.h"
+#include "trajectory_analysis.h"
 
 const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
 const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
@@ -112,21 +113,22 @@ int display() {
 
 int main() {
     //display();
-    std::string file = R"(resources\fb_41_pre_splitted_1.txt)";
-    std::cout << "File: " << file << std::endl;
-    
-    Input_parser* input = new Input_parser(file.c_str());
-    std::vector<Frame> frames = input->get_frames();
-    Frame first = frames[120];
-    std::cout << first << std::endl;
+    std::string input_file = R"(resources\fb_41_pre_splitted_1.txt)";
+    Input_parser* input = new Input_parser(input_file.c_str());
+    std::vector<Frame> input_frames = input->get_frames();
+    const Trajectories* input_trajectories = new Trajectories(input_frames);
 
-    Trajectories* trajectories = new Trajectories(frames);
-    auto positions = trajectories->get_positionsTrajectory(Joint::l_hip);
-    for (int i = 0; i < trajectories->size(); i++) {
-        std::cout << positions[i] << std::endl;
-    }    
+    std::string reference_file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
+    Input_parser* reference = new Input_parser(reference_file.c_str());
+    std::vector<Frame> reference_frames = reference->get_frames();
+    const Trajectories* reference_trajectories = new Trajectories(reference_frames);
+
+    Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *reference_trajectories);
+    analysis->perform_DTW(Joint::l_hip, EUCLID);
+    analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 
     delete input;
-    delete trajectories;
+    delete input_trajectories;
+    delete reference_trajectories;
     return 0;
 }

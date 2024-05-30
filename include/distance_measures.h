@@ -4,18 +4,6 @@
 #include <cmath>
 #include "util.h"
 
-inline double squared_euclid(double a, double b) {
-    return std::pow(b - a, 2);
-}
-
-inline double diff(double a, double b) {
-    return b - a;
-}
-
-inline double abs(double a, double b) {
-    return std::abs(a - b);
-}
-
 inline double abs(const Vec3D &a) {
     return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
@@ -32,10 +20,8 @@ inline double manhattan(const Vec3D &a, const Vec3D &b) {
     return std::abs(a.x - b.x) + std::abs(a.y - b.y) + std::abs(a.z - b.z);
 }
 
-inline double minkowski(const Vec3D &a, const Vec3D &b, int p) {
-    return pow(std::abs(pow(a.x - b.x, p) +
-                                std::abs(pow(a.y -b.y, p)) +
-                                std::abs(pow(a.z -b.z, p))), static_cast<double>(1.0 / p));
+inline double minkowski(const Vec3D &a, const Vec3D &b, double p = 2) {
+    return std::pow(std::pow(std::abs(a.x - b.x), p) + std::pow(std::abs(a.y - b.y), p) + std::pow(std::abs(a.z - b.z), p), 1/p);
 }
 
 inline double maximum_norm(const Vec3D &a, const Vec3D &b) {

@@ -9,6 +9,7 @@ private:
     int length;
     std::array<Vec3D*, JOINT_COUNT> positions_per_joint;
     std::array<Quaternion*, JOINT_COUNT> angles_per_joint;
+    Vec3D* root_trajectory;
     std::vector<Frame>& frames;
 
 public:
@@ -19,6 +20,7 @@ public:
         for (auto& joint_angles : angles_per_joint) {
             joint_angles = new Quaternion[length];
         }
+        root_trajectory = new Vec3D[length];
         for (const auto joint : Joint::All) {
             set_trajectory(joint);
         }
@@ -31,6 +33,10 @@ public:
         for (auto joint_angles : angles_per_joint) {
             delete[] joint_angles;
         }
+    }
+
+    Vec3D* get_rootTrajectory() {
+        return this->root_trajectory;
     }
 
     Vec3D* get_positionsTrajectory(Joint::Type joint) {
@@ -46,6 +52,12 @@ public:
     }
 
 private:
+    void set_rootTrajectory() {
+        for (int current_frame = 0; current_frame < this->length; ++current_frame) {
+            root_trajectory[current_frame] = this->frames[current_frame].root_translation;
+        }
+    }
+    
     void set_trajectory(Joint::Type joint) {
         for (int current_frame = 0; current_frame < this->length; ++current_frame) {
             positions_per_joint[joint][current_frame] = this->frames[current_frame].joint_translations[joint];

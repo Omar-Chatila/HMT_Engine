@@ -4,7 +4,7 @@
 
 #include "dtw.h"
 
-double *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, double (*func)(Vec3D, Vec3D)) {
+double *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std::function<double(const Vec3D&, const Vec3D&)> func) {
     const int n = size_v1 + 1;
     const int m = size_v2 + 1;
 
@@ -30,7 +30,7 @@ double *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, dou
     return matrix;
 }
 
-std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *cost_matrix, int m, int n) {
+std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *cost_matrix, int n, int m) {
     // Initialize variables
     int index = (m + 1) * (n + 1) - 1;
     std::vector<int> alignment;
@@ -56,7 +56,6 @@ std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *co
 
     // Reverse the alignment vector to get the correct order
     std::reverse(alignment.begin(), alignment.end());
-
     // Return the computed total cost and the alignment path
     return {cost, alignment};
 }
