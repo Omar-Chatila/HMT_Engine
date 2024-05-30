@@ -59,8 +59,3 @@ std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *co
     // Return the computed total cost and the alignment path
     return {cost, alignment};
 }
-
-
-
-
-

@@ -53,9 +53,9 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 void update_SpherePositions(Frame &frame) {
     for (int i = 0; i < JOINT_COUNT; i++) {
-        spherePositions[i].x = frame.joint_translations[i].x;
-        spherePositions[i].y = frame.joint_translations[i].y;
-        spherePositions[i].z = frame.joint_translations[i].z;
+        spherePositions[i].x = frame.joint_translations[i].x * 1.2;
+        spherePositions[i].y = frame.joint_translations[i].y * 1.2;
+        spherePositions[i].z = frame.joint_translations[i].z * 1.2;
     }
 }
 
@@ -160,7 +160,7 @@ int main() {
     analysis->perform_DTW(Joint::l_hip, EUCLID);
     analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 
-    Vec3D root_position = reference_frames[0].root_translation;
+    Vec3D root_position = reference_frames[100].root_translation;
     std::cout << reference_frames[0] << std::endl;
     update_SpherePositions(reference_frames[0]);
     display(spherePositions, sphereColors);
