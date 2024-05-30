@@ -8,10 +8,11 @@
 #include <sstream>
 #include <algorithm>
 
-const int JOINT_COUNT = 18;
+const int JOINT_COUNT = 19;
 
 namespace Joint {
     enum Type {
+        HumanoidRoot,
         vl5, vt10, vc7, skullbase, 
         l_sternoclavicular, l_shoulder, l_elbow, l_wrist, 
         r_sternoclavicular, r_shoulder, r_elbow, r_wrist, 
@@ -19,7 +20,7 @@ namespace Joint {
         r_hip, r_knee, r_ankle
     };
 
-    static const Type All[] = { vl5, vt10, vc7, skullbase, 
+    static const Type All[] = { HumanoidRoot, vl5, vt10, vc7, skullbase, 
         l_sternoclavicular, l_shoulder, l_elbow, l_wrist, 
         r_sternoclavicular, r_shoulder, r_elbow, r_wrist, 
         l_hip, l_knee, l_ankle, 

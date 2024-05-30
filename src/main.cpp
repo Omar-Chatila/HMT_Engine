@@ -14,11 +14,52 @@
 const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
 const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
 
+std::vector<glm::vec3> spherePositions;
+// Define sphere colors for each joint type
+std::vector<glm::vec3> sphereColors = {
+    glm::vec3(1.0f, 0.5f, 1.0f), 
+
+    glm::vec3(1.0f, 0.0f, 0.0f), 
+    glm::vec3(1.0f, 0.0f, 0.0f), 
+    glm::vec3(1.0f, 0.0f, 0.0f),  
+    glm::vec3(1.0f, 0.0f, 0.0f),  
+
+    glm::vec3(0.0f, 1.0f, 0.0f),  
+
+    glm::vec3(0.0f, 1.0f, 0.0f),  
+    glm::vec3(0.0f, 1.0f, 0.0f),  
+    glm::vec3(0.0f, 1.0f, 0.0f),  
+
+    glm::vec3(0.0f, 1.0f, 0.0f),  
+
+    glm::vec3(0.0f, 1.0f, 0.0f), 
+    glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
+
+    glm::vec3(1.0f, 1.0f, 0.0f), 
+
+    glm::vec3(1.0f, 0.8f, 0.4f),  
+    glm::vec3(0.4f, 0.2f, 0.8f), 
+
+    glm::vec3(1.0f, 1.0f, 0.0f), 
+
+    glm::vec3(1.0f, 0.8f, 0.4f), 
+    glm::vec3(0.4f, 0.2f, 0.8f)   
+};
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-int display() {
+void update_SpherePositions(Frame &frame) {
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        spherePositions[i].x = frame.joint_translations[i].x;
+        spherePositions[i].y = frame.joint_translations[i].y;
+        spherePositions[i].z = frame.joint_translations[i].z;
+    }
+}
+
+int display(const std::vector<glm::vec3>& spherePositions, const std::vector<glm::vec3>& sphereColors) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -49,19 +90,7 @@ int display() {
     Shader shader(vertexShaderPath, fragmentShaderPath);
 
     // Create a sphere
-    Sphere sphere(0.05f, 128, 64);
-
-    // Define sphere positions
-    std::vector<glm::vec3> spherePositions = {
-        glm::vec3(-1.5f, 0.0f, -1.5f),
-        glm::vec3(0.4f, 0.6f, -1.5f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(-1.1f, 0.0f, -1.5f),
-        glm::vec3(1.4f, 0.8f, -1.5f),
-        glm::vec3(0.0f, 0.2f, 0.5f),
-        glm::vec3(-0.9f, 0.1f, -1.3f),
-        glm::vec3(0.5f, -0.3f, -1.2f),
-        glm::vec3(0.25f, 0.0f, 1.5f)};
+    Sphere sphere(0.04f, 128, 64);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -89,14 +118,15 @@ int display() {
         shader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
         shader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
         shader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        shader.setUniformVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 
         // Render spheres
-        for (glm::vec3 position : spherePositions) {   
+        for (size_t i = 0; i < spherePositions.size(); i++) {
+            glm::vec3 position = spherePositions[i];
+            glm::vec3 color = sphereColors[i];
+            
+            shader.setUniformVec3("objectColor", color);
+
             glm::mat4 model = glm::mat4(1.0f);
-            position.x += rand() % 10 / 10.0;
-            position.y += rand() % 10 / 10.0;
-            position.z += rand() % 10 / 10.0;
             model = glm::translate(model, position);
             shader.setUniformMat4("model", model);
             sphere.draw();
@@ -112,7 +142,10 @@ int display() {
 }
 
 int main() {
-    //display();
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+    }
+
     std::string input_file = R"(resources\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();
@@ -126,6 +159,11 @@ int main() {
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *reference_trajectories);
     analysis->perform_DTW(Joint::l_hip, EUCLID);
     analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
+
+    Vec3D root_position = reference_frames[0].root_translation;
+    std::cout << reference_frames[0] << std::endl;
+    update_SpherePositions(reference_frames[0]);
+    display(spherePositions, sphereColors);
 
     delete input;
     delete input_trajectories;

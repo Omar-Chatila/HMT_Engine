@@ -51,13 +51,35 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     auto root_string = split(parts[1], ' ');
 
     // Extract root translation
-    float x = std::stod(root_string[0]);
-    float y = std::stod(root_string[1]);
-    float z = std::stod(root_string[2]);
+    const float x = std::stod(root_string[0]);
+    const float y = std::stod(root_string[1]);
+    const float z = std::stod(root_string[2]);
     Vec3D root_translation{x, y, z};
 
+    if (time_frame == 0) {
+        std::cout << "root" << root_translation << std::endl;
+    }
+
+    if (time_frame == 0) {
+        auto beg = parts.begin();
+        std::cout << "timeframe" <<parts.begin()[0] << std::endl;
+    }
+
+    // delete timeframe part
     parts.erase(parts.begin());
+    //delete root translation part
+
+    if (time_frame == 0) {
+        auto beg = parts.begin();
+        std::cout << "root tr" << parts.begin()[0] << std::endl;
+    }
+
     parts.erase(parts.begin());
+
+    if (time_frame == 0) {
+        auto beg = parts.begin();
+        std::cout << "first joint" << parts.begin()[0] << std::endl;
+    }
 
     int joint_index = 0;
     Quaternion* joint_rotations = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
@@ -68,21 +90,27 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
         std::string component = parts[joint_index];
         std::vector<std::string> coords = split(component, ' ');
         float w = std::stod(coords[0]);
-        x = std::stod(coords[1]);
-        y = std::stod(coords[2]);
-        z = std::stod(coords[3]);
-        joint_rotations[joint_index] = Quaternion{w, x, y, z};
+        float x1 = std::stod(coords[1]);
+        float y1 = std::stod(coords[2]);
+        float z1 = std::stod(coords[3]);
+        joint_rotations[joint_index] = Quaternion{w, x1, y1, z1};
     }
 
     // Extract joint translations 
     joint_index = 0;
-    for (int i = JOINT_COUNT; i < 2 * JOINT_COUNT; i++) {
+    for (int i = JOINT_COUNT; i < 2 * JOINT_COUNT; i++, joint_index++) {
         std::string component = parts[i];
         std::vector<std::string> coords = split(component, ' ');
-        x = std::stod(coords[0]);
-        y = std::stod(coords[1]);
-        z = std::stod(coords[2]);
-        joint_translations[joint_index++] = Vec3D{x, y, z};
+        if (time_frame == 0) {
+            std::cout << i << "\n";
+            std::cout << "x: " << std::stod(coords[0]) << "  ";
+            std::cout << "y: " << std::stod(coords[1]) << "  ";
+            std::cout << "z: " << std::stod(coords[2]) << std::endl;
+        }
+        float x2 = x + std::stod(coords[0]);
+        float y2 = y + std::stod(coords[1]);
+        float z2 = z + std::stod(coords[2]);
+        joint_translations[joint_index] = Vec3D{x2, y2, z2};
     }
 
     // Extract and process meta
