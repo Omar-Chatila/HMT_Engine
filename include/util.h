@@ -6,8 +6,27 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 const int JOINT_COUNT = 18;
+
+namespace Joint {
+    enum Type {
+        vl5, vt10, vc7, skullbase, 
+        l_sternoclavicular, l_shoulder, l_elbow, l_wrist, 
+        r_sternoclavicular, r_shoulder, r_elbow, r_wrist, 
+        l_hip, l_knee, l_ankle, 
+        r_hip, r_knee, r_ankle
+    };
+
+    static const Type All[] = { vl5, vt10, vc7, skullbase, 
+        l_sternoclavicular, l_shoulder, l_elbow, l_wrist, 
+        r_sternoclavicular, r_shoulder, r_elbow, r_wrist, 
+        l_hip, l_knee, l_ankle, 
+        r_hip, r_knee, r_ankle 
+    };
+}
+
 
 struct Vec3D {
     float x, y, z;

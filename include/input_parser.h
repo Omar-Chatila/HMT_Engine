@@ -17,7 +17,7 @@
 
 class Input_parser {
 private:
-    std::vector<Frame> trajectories;
+    std::vector<Frame> frames;
     const char* file;
 
     std::vector<std::string> readAllLines();
@@ -25,7 +25,7 @@ private:
 public:
     Input_parser(const char* path_to_file);
     ~Input_parser();
-    std::vector<Frame> get_trajectories();
+    std::vector<Frame> get_frames();
 };
 
 #endif

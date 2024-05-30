@@ -5,7 +5,7 @@ Input_parser::Input_parser(const char *path_to_file) {
 }
 
 Input_parser::~Input_parser() {
-    for (Frame f : this->trajectories) {
+    for (Frame f : this->frames) {
         free(f.joint_rotations);
         free(f.joint_translations);
     }
@@ -107,11 +107,11 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     return {time_frame, root_translation, joint_rotations, joint_translations, meta_data};
 }
 
-std::vector<Frame> Input_parser::get_trajectories() {
+std::vector<Frame> Input_parser::get_frames() {
     std::vector<std::string> lines = readAllLines();
     int time_frame = 0;
     for (auto& line : lines) {
-        this->trajectories.push_back(line_to_frame(line, time_frame++));
+        this->frames.push_back(line_to_frame(line, time_frame++));
     }
-    return this->trajectories;
+    return this->frames;
 }
