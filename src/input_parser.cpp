@@ -1,6 +1,6 @@
 #include "input_parser.h"
 
-Input_parser::Input_parser(const char *path_to_file) {
+Input_parser::Input_parser(const char *path_to_file) : min_x(0.0f), max_x(0.0f), min_y(0.0f), max_y(0.0f), min_z(0.0f), max_z(0.0f) {
     this->file = path_to_file;
 }
 
@@ -10,7 +10,6 @@ Input_parser::~Input_parser() {
         free(f.joint_translations);
     }
 }
-
 
 std::vector<std::string> Input_parser::readAllLines() {
     std::ifstream file(this->file);
@@ -30,7 +29,6 @@ std::vector<std::string> Input_parser::readAllLines() {
     return lines;
 }
 
-
 std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -47,7 +45,7 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     // separate movement data and meta info
     std::vector<std::string> parts_and_meta = split(line, ';');
     std::vector<std::string> parts = split(parts_and_meta[0], ',');
-    
+
     auto root_string = split(parts[1], ' ');
 
     // Extract root translation
@@ -56,30 +54,10 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     const float z = std::stod(root_string[2]);
     Vec3D root_translation{x, y, z};
 
-    if (time_frame == 0) {
-        std::cout << "root" << root_translation << std::endl;
-    }
-
-    if (time_frame == 0) {
-        auto beg = parts.begin();
-        std::cout << "timeframe" <<parts.begin()[0] << std::endl;
-    }
-
     // delete timeframe part
     parts.erase(parts.begin());
     //delete root translation part
-
-    if (time_frame == 0) {
-        auto beg = parts.begin();
-        std::cout << "root tr" << parts.begin()[0] << std::endl;
-    }
-
     parts.erase(parts.begin());
-
-    if (time_frame == 0) {
-        auto beg = parts.begin();
-        std::cout << "first joint" << parts.begin()[0] << std::endl;
-    }
 
     int joint_index = 0;
     Quaternion* joint_rotations = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
@@ -101,16 +79,18 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     for (int i = JOINT_COUNT; i < 2 * JOINT_COUNT; i++, joint_index++) {
         std::string component = parts[i];
         std::vector<std::string> coords = split(component, ' ');
-        if (time_frame == 0) {
-            std::cout << i << "\n";
-            std::cout << "x: " << std::stod(coords[0]) << "  ";
-            std::cout << "y: " << std::stod(coords[1]) << "  ";
-            std::cout << "z: " << std::stod(coords[2]) << std::endl;
-        }
         float x2 = x + std::stod(coords[0]);
         float y2 = y + std::stod(coords[1]);
         float z2 = z + std::stod(coords[2]);
         joint_translations[joint_index] = Vec3D{x2, y2, z2};
+
+        // Update min and max values
+        if (x2 < min_x) min_x = x2;
+        if (x2 > max_x) max_x = x2;
+        if (y2 < min_y) min_y = y2;
+        if (y2 > max_y) max_y = y2;
+        if (z2 < min_z) min_z = z2;
+        if (z2 > max_z) max_z = z2;
     }
 
     // Extract and process meta

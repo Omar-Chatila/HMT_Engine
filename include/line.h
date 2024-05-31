@@ -5,24 +5,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-using namespace glm;
-using namespace std;
-
 class Line {
     unsigned int VBO, VAO;
     vector<float> vertices;
-    mat4 MVP;
+    glm::mat4 MVP;
 public:
     int shaderProgram;
-    vec3 startPoint;
-    vec3 lineColor;
-    vec3 endPoint;
+    glm::vec3 startPoint;
+    glm::vec3 lineColor;
+    glm::vec3 endPoint;
 
-    Line(vec3 start, vec3 end) {
+    Line(glm::vec3 start, glm::vec3 end) {
         startPoint = start;
         endPoint = end;
-        lineColor = vec3(1,1,1);
-        MVP = mat4(1.0f);
+        lineColor = glm::vec3(1,1,1);
+        MVP = glm::mat4(1.0f);
 
         const char *vertexShaderSource = "#version 330 core\n"
             "layout (location = 0) in vec3 aPos;\n"
@@ -49,7 +46,7 @@ public:
         glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
         }
 
         // fragment shader
@@ -60,7 +57,7 @@ public:
         glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
+            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
         }
 
         // link shaders
@@ -72,7 +69,7 @@ public:
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
+            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         }
 
         glDeleteShader(vertexShader);
@@ -101,12 +98,12 @@ public:
         return 1;
     }
 
-    int setMVP(mat4 mvp) {
+    int setMVP(glm::mat4 mvp) {
         MVP = mvp;
         return 1;
     }
 
-    int setColor(vec3 color) {
+    int setColor(glm::vec3 color) {
         lineColor = color;
         return 1;
     }

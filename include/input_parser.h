@@ -19,6 +19,9 @@ class Input_parser {
 private:
     std::vector<Frame> frames;
     const char* file;
+    float min_x, max_x;
+    float min_y, max_y;
+    float min_z, max_z;
 
     std::vector<std::string> readAllLines();
     Frame line_to_frame(std::string &line, int time_frame);
@@ -26,6 +29,16 @@ public:
     Input_parser(const char* path_to_file);
     ~Input_parser();
     std::vector<Frame> get_frames();
+
+    std::pair<float, float> x_domain() {
+        return {min_x, max_x};
+    }
+    std::pair<float, float> y_domain() {
+        return {min_y, max_y};
+    }
+    std::pair<float, float> z_domain() {
+        return {min_z, max_z};
+    }
 };
 
 #endif
