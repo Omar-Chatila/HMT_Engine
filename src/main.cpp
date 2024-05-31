@@ -1,4 +1,6 @@
 #include "display_helper.h"
+#include "application.h"
+#include "layers.h"
 
 
 
@@ -38,6 +40,14 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
     bool show = true;
     // Render loop
     int current_frame = 0;
+
+    Application* app = new Application();
+    //app->push_layer<OsmLayer>();
+    //app->push_layer<OsmMapLayer>();
+    app->push_layer<ExampleLayer>();
+
+    
+
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &WIDTH, &HEIGHT);
         aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
@@ -48,7 +58,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::ShowDemoWindow(&show);
+        app->activate();
     
         // Render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
