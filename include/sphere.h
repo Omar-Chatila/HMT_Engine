@@ -10,13 +10,15 @@ public:
     Sphere(float radius, int sectorCount, int stackCount);
     ~Sphere();
     void draw();
-    
+    void setTexture(const char* texturePath);
+
 private:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    GLuint VAO, VBO, EBO;
+    GLuint VAO, VBO, EBO, textureID;
     void generateSphere(float radius, int sectorCount, int stackCount);
     void setupBuffers();
 };
 
 #endif // SPHERE_H
+

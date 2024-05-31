@@ -1,135 +1,19 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <vector>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <thread>
+#include "display_helper.h"
 
-#include "Shader.h"
-#include "Sphere.h"
-#include "input_parser.h"
-#include "trajectories.h"
-#include "trajectory_analysis.h"
-#include "line.h"
-
-const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
-const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
-
-std::vector<glm::vec3> spherePositions;
-int WIDTH = 800;
-int HEIGHT = 600;
-float aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-
-namespace Joint {
-    std::vector<std::pair<int, int>> bones = {
-         {l_shoulder, l_sternoclavicular},
-         {l_sternoclavicular, r_sternoclavicular},
-         {r_sternoclavicular, r_shoulder},
-
-         {skullbase, vc7},
-         {vc7, vt10},
-         {vt10, vl5},
-        
-         {HumanoidRoot, l_hip},
-         {HumanoidRoot, r_hip},
-         {HumanoidRoot, vl5},
-
-         {l_shoulder, l_elbow},
-         {l_elbow, l_wrist},
-         {r_shoulder, r_elbow},
-         {r_elbow, r_wrist},
-
-         {l_hip, l_knee},
-         {l_knee, l_ankle},
-         {r_hip, r_knee},
-         {r_knee, r_ankle}
-    };
-};
-
-// Define sphere colors for each joint type
-std::vector<glm::vec3> sphereColors = {
-    glm::vec3(1.0f, 0.5f, 1.0f), 
-
-    glm::vec3(1.0f, 0.0f, 0.0f), 
-    glm::vec3(1.0f, 0.0f, 0.0f), 
-    glm::vec3(1.0f, 0.0f, 0.0f),  
-    glm::vec3(1.0f, 0.0f, 0.0f),  
-
-    glm::vec3(0.0f, 1.0f, 0.0f),  
-
-    glm::vec3(0.0f, 1.0f, 0.0f),  
-    glm::vec3(0.0f, 1.0f, 0.0f),  
-    glm::vec3(0.0f, 1.0f, 0.0f),  
-
-    glm::vec3(0.0f, 1.0f, 0.0f),  
-
-    glm::vec3(0.0f, 1.0f, 0.0f), 
-    glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f),
-
-    glm::vec3(1.0f, 1.0f, 0.0f), 
-
-    glm::vec3(1.0f, 0.8f, 0.4f),  
-    glm::vec3(0.4f, 0.2f, 0.8f), 
-
-    glm::vec3(1.0f, 1.0f, 0.0f), 
-
-    glm::vec3(1.0f, 0.8f, 0.4f), 
-    glm::vec3(0.4f, 0.2f, 0.8f)   
-};
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
-void update_SpherePositions(Frame &frame) {
-    for (int i = 0; i < JOINT_COUNT; i++) {
-        spherePositions[i].x = frame.joint_translations[i].x;
-        spherePositions[i].y = frame.joint_translations[i].y;
-        spherePositions[i].z = frame.joint_translations[i].z;
-    }
-}
-
-
-int display(std::vector<Frame> &frames, std::vector<glm::vec3> &spherePositions, const std::vector<glm::vec3> &sphereColors) {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
-
-    // Create a GLFW window
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Motor Action Visualizer", nullptr, nullptr);
-    if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    // Initialize GLEW
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW" << std::endl;
-        return -1;
-    }
-
+int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors) {
+    GLFWwindow *window = intit_window();
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
+    Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
     // Create a sphere
     Sphere sphere(0.04f, 256, 128);
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
-    glm::vec3 min_pos = spherePositions[0];
-    glm::vec3 max_pos = spherePositions[0];
+    glm::vec3 min_pos = ref_spherePositions[0];
+    glm::vec3 max_pos = ref_spherePositions[0];
     
-    for (const auto& pos : spherePositions) {
+    for (const auto& pos : ref_spherePositions) {
         if (pos.x < min_pos.x) min_pos.x = pos.x;
         if (pos.y < min_pos.y) min_pos.y = pos.y;
         if (pos.z < min_pos.z) min_pos.z = pos.z;
@@ -165,25 +49,42 @@ int display(std::vector<Frame> &frames, std::vector<glm::vec3> &spherePositions,
         sphereShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
         sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
-        update_SpherePositions(frames[current_frame++ % frames.size()]);
+        update_SpherePositions(ref_frames[current_frame++ % ref_frames.size()], inp_frames[current_frame++ % inp_frames.size()]);
         
-        for (size_t i = 0; i < spherePositions.size(); i++) {
-            glm::vec3 position = spherePositions[i];
+        for (size_t i = 0; i < JOINT_COUNT; i++) {
+            glm::vec3 position = ref_spherePositions[i];
             glm::vec3 color = sphereColors[i];
-            
             sphereShader.setUniformVec3("objectColor", color);
-            
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, position);
             sphereShader.setUniformMat4("model", model);
+            sphere.draw();
+        }
 
+        for (size_t i = 0; i < JOINT_COUNT; i++) {
+            glm::vec3 position = input_spherePositions[i];
+            glm::vec3 color = sphereColors[i];
+            sphereShader.setUniformVec3("objectColor", color);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, position);
+            sphereShader.setUniformMat4("model", model);
             sphere.draw();
         }
 
         sphereShader.unuse();  // Unbind the sphere shader program
         for (auto& bone : Joint::bones) {
-            glm::vec3 start = spherePositions[bone.first];
-            glm::vec3 end = spherePositions[bone.second];
+            glm::vec3 start = ref_spherePositions[bone.first];
+            glm::vec3 end = ref_spherePositions[bone.second];
+            Line line(start, end);
+            glUseProgram(line.shaderProgram);
+            glm::mat4 model = glm::mat4(1.0f);
+            line.setMVP(projection * view * model);
+            line.draw();
+        }
+
+        for (auto& bone : Joint::bones) {
+            glm::vec3 start = input_spherePositions[bone.first];
+            glm::vec3 end = input_spherePositions[bone.second];
             Line line(start, end);
             glUseProgram(line.shaderProgram);
             glm::mat4 model = glm::mat4(1.0f);
@@ -204,14 +105,17 @@ int display(std::vector<Frame> &frames, std::vector<glm::vec3> &spherePositions,
 
 int main() {
     for (int i = 0; i < JOINT_COUNT; i++) {
-        spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+        ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+        input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
     }
 
+    // Parse input trajectory
     std::string input_file = R"(resources\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();
     const Trajectories* input_trajectories = new Trajectories(input_frames);
 
+    // Parse reference trajectory
     std::string reference_file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
     Input_parser* reference = new Input_parser(reference_file.c_str());
     std::vector<Frame> reference_frames = reference->get_frames();
@@ -223,7 +127,7 @@ int main() {
 
     std::cout << reference_frames[0] << std::endl;
     //update_SpherePositions(reference_frames[0]);
-    display(input_frames, spherePositions, sphereColors);
+    display(reference_frames, input_frames, ref_spherePositions, sphereColors);
 
     delete input;
     delete input_trajectories;
