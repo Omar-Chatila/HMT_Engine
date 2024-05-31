@@ -60,6 +60,10 @@ void Shader::use() {
     glUseProgram(ID);
 }
 
+void Shader::unuse() {
+    glUseProgram(0);
+}
+
 void Shader::setUniformMat4(const std::string &name, const glm::mat4 &mat) const {
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }

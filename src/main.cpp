@@ -4,17 +4,47 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <thread>
 
 #include "Shader.h"
 #include "Sphere.h"
 #include "input_parser.h"
 #include "trajectories.h"
 #include "trajectory_analysis.h"
+#include "cylinder.h"
+#include "line.h"
 
 const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
 const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
 
 std::vector<glm::vec3> spherePositions;
+
+namespace Joint {
+    std::vector<std::pair<int, int>> bones = {
+         {l_shoulder, l_sternoclavicular},
+         {l_sternoclavicular, r_sternoclavicular},
+         {r_sternoclavicular, r_shoulder},
+
+         {skullbase, vc7},
+         {vc7, vt10},
+         {vt10, vl5},
+        
+         {HumanoidRoot, l_hip},
+         {HumanoidRoot, r_hip},
+         {HumanoidRoot, vl5},
+
+         {l_shoulder, l_elbow},
+         {l_elbow, l_wrist},
+         {r_shoulder, r_elbow},
+         {r_elbow, r_wrist},
+
+         {l_hip, l_knee},
+         {l_knee, l_ankle},
+         {r_hip, r_knee},
+         {r_knee, r_ankle}
+    };
+};
+
 // Define sphere colors for each joint type
 std::vector<glm::vec3> sphereColors = {
     glm::vec3(1.0f, 0.5f, 1.0f), 
@@ -53,11 +83,12 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 void update_SpherePositions(Frame &frame) {
     for (int i = 0; i < JOINT_COUNT; i++) {
-        spherePositions[i].x = frame.joint_translations[i].x * 1.2;
-        spherePositions[i].y = frame.joint_translations[i].y * 1.2;
-        spherePositions[i].z = frame.joint_translations[i].z * 1.2;
+        spherePositions[i].x = frame.joint_translations[i].x;
+        spherePositions[i].y = frame.joint_translations[i].y;
+        spherePositions[i].z = frame.joint_translations[i].z;
     }
 }
+
 
 int display(const std::vector<glm::vec3>& spherePositions, const std::vector<glm::vec3>& sphereColors) {
     // Initialize GLFW
@@ -87,16 +118,22 @@ int display(const std::vector<glm::vec3>& spherePositions, const std::vector<glm
     }
 
     // Compile and link shaders
-    Shader shader(vertexShaderPath, fragmentShaderPath);
+    Shader sphereShader(vertexShaderPath, fragmentShaderPath);
 
     // Create a sphere
     Sphere sphere(0.04f, 128, 64);
 
+    // Create line
+    vec3 start = vec3(-0.5f, -0.5f, 0.0f);
+    vec3 end = vec3(0.5f, 0.5f, 0.0f);
+    Line line(start, end);
+    
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
+    
     srand(0);
+    
     // Render loop
-    int iteration = 0;
     while (!glfwWindowShouldClose(window)) {
         // Input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -105,41 +142,56 @@ int display(const std::vector<glm::vec3>& spherePositions, const std::vector<glm
         // Render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Activate shader
-        shader.use();
-
-        // Set uniform values
+        // Set view and projection matrices
         glm::mat4 view = glm::lookAt(glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        shader.setUniformMat4("view", view);
-        shader.setUniformMat4("projection", projection);
 
-        // Set light properties
-        shader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
-        shader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
-        shader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-
-        // Render spheres
-        for (size_t i = 0; i < spherePositions.size(); i++) {
-            glm::vec3 position = spherePositions[i];
-            glm::vec3 color = sphereColors[i];
+        // Draw spheres
+        {
+            sphereShader.use();
             
-            shader.setUniformVec3("objectColor", color);
+            // Set uniform values
+            sphereShader.setUniformMat4("view", view);
+            sphereShader.setUniformMat4("projection", projection);
+            sphereShader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+            sphereShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
+            sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            
+            for (size_t i = 0; i < spherePositions.size(); i++) {
+                glm::vec3 position = spherePositions[i];
+                glm::vec3 color = sphereColors[i];
+                
+                sphereShader.setUniformVec3("objectColor", color);
+                
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, position);
+                sphereShader.setUniformMat4("model", model);
 
+                sphere.draw();
+            }
+
+            sphereShader.unuse();  // Unbind the sphere shader program
+        }
+
+        // Draw the line
+        {   
+            glUseProgram(line.shaderProgram);
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, position);
-            shader.setUniformMat4("model", model);
-            sphere.draw();
+            line.setMVP(projection * view * model);
+            line.draw();
+            glUseProgram(0);  // Unbind the line shader program
         }
 
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    
     // Cleanup
     glfwTerminate();
     return 0;
 }
+
 
 int main() {
     for (int i = 0; i < JOINT_COUNT; i++) {

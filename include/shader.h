@@ -9,6 +9,7 @@ class Shader {
 public:
     Shader(const char* vertexPath, const char* fragmentPath);
     void use();
+    void unuse();
     void setUniformMat4(const std::string &name, const glm::mat4 &mat) const;
     void setUniformVec3(const std::string &name, const glm::vec3 &value) const;
 
