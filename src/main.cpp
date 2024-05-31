@@ -1,7 +1,18 @@
 #include "display_helper.h"
 
+
+
 int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors) {
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     GLFWwindow *window = intit_window();
+    // Get OpenGL version
+    const GLubyte* glVersion = glGetString(GL_VERSION);
+    if (glVersion) {
+        std::cout << "OpenGL Version: " << glVersion << std::endl;
+    } else {
+        std::cerr << "Failed to get OpenGL version\n";
+    }
+
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
     Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
@@ -23,8 +34,10 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         if (pos.z > max_pos.z) max_pos.z = pos.z;
     }
     glm::vec3 center = (min_pos + max_pos) / 2.0f;
-    int current_frame = 0;
+    auto io = init_imgui(window);
+    bool show = true;
     // Render loop
+    int current_frame = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &WIDTH, &HEIGHT);
         aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
@@ -32,6 +45,11 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::ShowDemoWindow(&show);
+    
         // Render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -92,12 +110,39 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
             line.draw();
         }
         glUseProgram(0);  // Unbind the line shader program
-        // Swap buffers
+
+        // Rendering
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        // Update and Render additional Platform Windows
+        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     
     // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
