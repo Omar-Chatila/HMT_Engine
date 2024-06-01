@@ -25,18 +25,18 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
     glEnable(GL_DEPTH_TEST);
 
     glm::vec3 center = {0.0f, 1.0f, 0.0f};
-    context->setCenter(center);
+    context->center = center;
     auto io = init_imgui(window);
     bool show = true;
     // Render loop
     int current_frame = 0;
 
     Application* app = new Application();
-    app->push_layer<ImGuiLayer>(context->getAspectRatio()); 
+    app->push_layer<ImGuiLayer>(*context); 
 
     while (!glfwWindowShouldClose(window)) {
-        int width = context->getWindowWidth();
-        int height = context->getWindowHeight();
+        int width = context->windowWidth;
+        int height = context->windowHeight;
         glfwGetWindowSize(window, &width, &height);
         //aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // for example modify this in layer
         // Input
@@ -52,8 +52,8 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Set view and projection matrices
-        glm::mat4 view = glm::lookAt(context->getCameraPos(), context->getCenter(), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(context->getFov()), context->getAspectRatio(), context->getNear(), context->getFar());
+        glm::mat4 view = glm::lookAt(context->camera_pos, context->center, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 projection = glm::perspective(glm::radians(context->fov), context->aspectRatio, context->near, context->far);
 
         // Draw spheres
         sphereShader.use();
@@ -115,14 +115,14 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        auto clear_color = context->getClearColor();
+        auto clear_color = context->clear_color;
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         //glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Update and Render additional Platform Windows
         // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
+        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly) 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
