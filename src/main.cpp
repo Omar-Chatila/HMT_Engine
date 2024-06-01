@@ -2,8 +2,6 @@
 #include "application.h"
 #include "layers.h"
 
-
-
 int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors) {
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     GLFWwindow *window = intit_window();
@@ -42,15 +40,11 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
     int current_frame = 0;
 
     Application* app = new Application();
-    //app->push_layer<OsmLayer>();
-    //app->push_layer<OsmMapLayer>();
-    app->push_layer<ExampleLayer>();
-
-    
+    app->push_layer<ImGuiLayer>(aspect_ratio); 
 
     while (!glfwWindowShouldClose(window)) {
         glfwGetWindowSize(window, &WIDTH, &HEIGHT);
-        aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+        //aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // for example modify this in layer
         // Input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);

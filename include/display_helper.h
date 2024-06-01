@@ -92,7 +92,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 void update_SpherePositions(Frame &ref_frame, Frame &inp_frame) {
     for (int i = 0; i < JOINT_COUNT; i++) {
-        ref_spherePositions[i].x = ref_frame.joint_translations[i].x;
+        ref_spherePositions[i].x = ref_frame.joint_translations[i].x - 0.5;
         ref_spherePositions[i].y = ref_frame.joint_translations[i].y;
         ref_spherePositions[i].z = ref_frame.joint_translations[i].z;
 

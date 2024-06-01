@@ -21,7 +21,11 @@ public:
 		static_assert(std::is_base_of<Layer, T>::value, "Pushed type is not subclass of Layer!");
 		layer_stack.emplace_back(std::make_shared<T>())->onAttach();
 	}
-	void push_layer(const std::shared_ptr<Layer>& layer) { layer_stack.emplace_back(layer); layer->onAttach(); }
+	template<typename T, typename... Args>
+	void push_layer(Args&&... args) {
+		static_assert(std::is_base_of<Layer, T>::value, "Pushed type is not subclass of Layer!");
+		layer_stack.emplace_back(std::make_shared<T>(std::forward<Args>(args)...))->onAttach();
+	}
 	void startup();
 	void activate();
 	void shutdown();
