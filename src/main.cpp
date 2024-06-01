@@ -151,9 +151,6 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
 
     glfwDestroyWindow(window);
     glfwTerminate();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
     return 0;
 }
 
