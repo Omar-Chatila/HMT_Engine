@@ -23,7 +23,7 @@ public:
             ImGui::Checkbox("Demo Window", &show_demo_window);
             ImGui::Checkbox("Another Window", &show_another_window);
 
-            ImGui::SliderFloat("Aspect Ratio", &aspect_ratio, 1.0f, 3.0f);
+            ImGui::SliderFloat("Aspect Ratio", &m_AspectRatio, 1.0f, 3.0f);
             if (ImGui::Button("Button"))
                 counter++;
             ImGui::SameLine();

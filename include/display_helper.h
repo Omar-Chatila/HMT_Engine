@@ -24,10 +24,6 @@ const char *tex_fragmentShaderPath = "src/shader/textured_fragment_shader.glsl";
 std::vector<glm::vec3> ref_spherePositions;
 std::vector<glm::vec3> input_spherePositions;
 
-int WIDTH = 800;
-int HEIGHT = 600;
-float aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-
 namespace Joint {
     std::vector<std::pair<int, int>> bones = {
          {l_shoulder, l_sternoclavicular},
@@ -113,7 +109,7 @@ GLFWwindow* intit_window() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Motor Action Visualizer", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "Motor Action Visualizer", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
