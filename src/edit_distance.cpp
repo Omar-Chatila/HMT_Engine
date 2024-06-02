@@ -1,33 +1,31 @@
 #include "edit_distance.h"
 
-bool EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<double(const Vec3D&, const Vec3D&)> func) {
+bool EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D&, const Vec3D&)> func) {
     return func(vec1, vec2) < epsilon;
 }
 
-double EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, double epsilon, std::function<double(const Vec3D&, const Vec3D&)> func) {
-    const int n = size_v1 + 1;
-    const int m = size_v2 + 1;
+float EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float epsilon, std::function<float(const Vec3D&, const Vec3D&)> func) {
+    const int n = size_v1;
+    const int m = size_v2;
 
-    auto *matrix = new double[n * m];
-    for (int i = 0; i < m; i++) {
-        matrix[i] = i;
+    auto *S = new int[(n + 1) * (m + 1)];
+    S[0] = 0;
+    for (int i = 1; i <= n; ++i) {
+        S[i * (m + 1)] = i;
     }
-    for (int i = 0; i < n; i++) {
-        matrix[m * i] = i;
+    for (int j = 1; j <= m; ++j) {
+        S[j] = j;
     }
 
-    matrix[0] = 0;
-    for (int i = 1; i <= size_v1; i++) {
-        for (int j = 1; j <= size_v2; j++) {
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
             int subcost = 1;
             if (match(v1[i - 1], v2[j - 1], 3, func)) {
                 subcost = 0;
             }
-            int index = i * (size_v2 + 1) + j;
-            matrix[i * m + j] = subcost + std::min(matrix[index - m],
-                                                std::min(matrix[index - 1],
-                                                         matrix[index - m - 1]));
+            S[i * (m + 1) + j] = subcost 
+                + std::min({S[(i-1) * (m + 1) + j], S[i * (m + 1) + (j-1)], S[(i-1) * (m + 1) + (j-1)]});
         }
     }
-    return matrix[n * m - 1];
+    return S[n * (m + 1) + m];
 }

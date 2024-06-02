@@ -10,7 +10,6 @@ public:
     Sphere(float radius, int sectorCount, int stackCount);
     ~Sphere();
     void draw();
-    void setTexture(const char* texturePath);
 
 private:
     std::vector<float> vertices;

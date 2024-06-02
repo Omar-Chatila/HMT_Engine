@@ -4,37 +4,56 @@
 
 #include "dtw.h"
 
-double *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std::function<double(const Vec3D&, const Vec3D&)> func) {
-    const int n = size_v1 + 1;
-    const int m = size_v2 + 1;
+float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std::function<float(const Vec3D&, const Vec3D&)> func) {
+    const int n = size_v1;
+    const int m = size_v2;
 
-    auto *matrix = new double[n * m];
-    for (int i = 0; i < m; i++) {
-        matrix[i] = 10000;
+    float *S = new float[(n + 1) * (m + 1)];
+    S[0] = 0;
+    for (int i = 1; i <= n; ++i) {
+        S[i * (m + 1)] = std::numeric_limits<float>::infinity();
     }
-    for (int i = 0; i < n; i++) {
-        matrix[m * i] = 10000;
+    for (int j = 1; j <= m; ++j) {
+        S[j] = std::numeric_limits<float>::infinity();
     }
 
-    matrix[0] = 0;
-
-    for (int i = 1; i <= size_v1; i++) {
-        for (int j = 1; j <= size_v2; j++) {
-            auto cost = func(v1[i - 1], v2[j - 1]);
-            int index = i * (size_v2 + 1) + j;
-            matrix[i * m + j] = cost + std::min(matrix[index - m],
-                                                std::min(matrix[index - 1],
-                                                         matrix[index - m - 1]));
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            float cost = func(v1[i - 1], v2[j - 1]);
+             S[i * (m + 1) + j] = cost + std::min({S[(i-1) * (m + 1) + j], S[i * (m + 1) + (j-1)], S[(i-1) * (m + 1) + (j - 1)]});
         }
     }
-    return matrix;
+    return S;
 }
 
-std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *cost_matrix, int n, int m) {
+float *Dtw::dtw(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj, std::function<float(const Quaternion*, const Quaternion*)> func) {
+    const int n = inp_traj.size();
+    const int m = ref_traj.size();
+
+    float *S = new float[(n + 1) * (m + 1)];
+    S[0] = 0;
+    for (int i = 1; i <= n; ++i) {
+        S[i * (m + 1)] = std::numeric_limits<float>::infinity();
+    }
+    for (int j = 1; j <= m; ++j) {
+        S[j] = std::numeric_limits<float>::infinity();
+    }
+
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= m; ++j) {
+            float cost = func(inp_traj[i - 1], ref_traj[j - 1]);
+            S[i * (m + 1) + j] = cost + std::min({S[(i-1) * (m + 1) + j], S[i * (m + 1) + (j-1)], S[(i-1) * (m + 1) + (j-1)]});
+        }
+    }
+
+    return S;
+}
+
+std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matrix, int n, int m) {
     // Initialize variables
     int index = (m + 1) * (n + 1) - 1;
     std::vector<int> alignment;
-    double cost = cost_matrix[index];
+    float cost = cost_matrix[index];
 
     while (index != 0) {
         alignment.push_back(index); // Record the current index in the alignment path
@@ -57,5 +76,6 @@ std::pair<double, std::vector<int>> Dtw::get_cost_and_alignment(const double *co
     // Reverse the alignment vector to get the correct order
     std::reverse(alignment.begin(), alignment.end());
     // Return the computed total cost and the alignment path
+    free(cost_matrix);
     return {cost, alignment};
 }

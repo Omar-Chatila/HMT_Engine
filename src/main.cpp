@@ -2,6 +2,7 @@
 #include "display_helper.h"
 #include "application.h"
 #include "layers.h"
+#include "tests.h"
 #include <iostream>
 
 int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors, UIContext *context) {
@@ -130,6 +131,8 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
 
     glfwDestroyWindow(window);
     glfwTerminate();
+
+    delete context;
     return 0;
 }
 
@@ -144,26 +147,31 @@ int main() {
     std::string input_file = R"(resources\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();
-    const Trajectories* input_trajectories = new Trajectories(input_frames);
+    Trajectories* input_trajectories = new Trajectories(input_frames);
 
     // Parse reference trajectory
-    std::string reference_file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
-    Input_parser* reference = new Input_parser(reference_file.c_str());
-    std::vector<Frame> reference_frames = reference->get_frames();
-    const Trajectories* reference_trajectories = new Trajectories(reference_frames);
+    std::string ref_file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
+    Input_parser* reference = new Input_parser(ref_file.c_str());
+    std::vector<Frame> ref_frms = reference->get_frames();
+    Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
-    Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *reference_trajectories);
+    Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
     analysis->perform_DTW(Joint::l_hip, EUCLID);
+    auto alignment = analysis->perform_DTW(ref_trajcts->get_anglesTrajectories(), input_trajectories->get_anglesTrajectories());
+    std::cout << "Cost: " << alignment.first << std::endl;
+    
     analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 
-    std::cout << reference_frames[0] << std::endl;
-    //update_SpherePositions(reference_frames[0]);
-    context->reference_file = cropString(reference_file).c_str();
+    context->reference_file = cropString(ref_file).c_str();
     context->input_file = cropString(input_file).c_str();
-    display(reference_frames, input_frames, ref_spherePositions, sphereColors, context); 
+    if (display(ref_frms, input_frames, ref_spherePositions, sphereColors, context)) {
+        std::cout << "Render Error" << std::endl;
+    } 
 
-    delete input;
+    delete analysis;
+    delete ref_trajcts;
+    delete reference;
     delete input_trajectories;
-    delete reference_trajectories;
+    delete input;
     return 0;
 }

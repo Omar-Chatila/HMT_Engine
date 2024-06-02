@@ -8,15 +8,10 @@
 #include "edit_distance.h"
 
 // For Minkonwski
-const double p = 3;
+const float p = 3;
 
-enum Distances {
-    EUCLID, SQUARED_EUCLID, MANHATTAN, MINKOWSKI, MAX_NORM, MIN_DISTANCE,
-    CANBERRA_DISTANCE, SCALAR_PRODUCT, COSINE_SIMILARITY, COSINE_DISTANCE1,
-    COSINE_DISTANCE2, HAMMING_DISTANCE
-};
-
-extern std::vector<std::function<double(const Vec3D&, const Vec3D&)>> dist_measures;
+extern std::vector<std::function<float(const Vec3D&, const Vec3D&)>> vec_dist_measures;
+extern std::function<float(const Quaternion*, const Quaternion*)> quaternion_dist;
 
 class Trajectoy_analysis {
 private:
@@ -27,8 +22,9 @@ public:
         : input_trajectories{p_input}, reference_trajectories{p_reference} {}
     ~Trajectoy_analysis() {};
 
-    std::pair<double, std::vector<int>> perform_DTW(Joint::Type joint, Distances type);
-    double perform_EDR(Joint::Type joint, Distances type, double epsilon);
+    std::pair<float, std::vector<int>> perform_DTW(Joint::Type joint, Distances type);
+    std::pair<float, std::vector<int>> perform_DTW(const std::vector<Quaternion*> &ref_traj, const std::vector<Quaternion*> &inp_traj);
+    float perform_EDR(Joint::Type joint, Distances type, float epsilon);
 
 };
 
