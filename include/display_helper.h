@@ -98,7 +98,7 @@ void update_SpherePositions(Frame &ref_frame, Frame &inp_frame) {
     }
 }
 
-GLFWwindow* intit_window() {
+GLFWwindow* intit_window(UIContext *context) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -109,7 +109,8 @@ GLFWwindow* intit_window() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Motor Action Visualizer", nullptr, nullptr);
+
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "sdf", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -124,6 +125,16 @@ GLFWwindow* intit_window() {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         return nullptr;
     }
+
+    const GLubyte* glVersion = glGetString(GL_VERSION);
+    if (glVersion) {
+        std::cout << "OpenGL Version: " << glVersion << std::endl;
+    } else {
+        std::cerr << "Failed to get OpenGL version\n";
+    }
+
+    std::string windowTitle = "Motion Visualizer " + context->reference_file + " vs. " + context->input_file + " - " + " OpenGL Version: " +  reinterpret_cast<const char*>(glVersion);
+    glfwSetWindowTitle(window, windowTitle.c_str());
 
     return window;
 }

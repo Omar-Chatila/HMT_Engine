@@ -1,31 +1,20 @@
+#include "ui_context.h"
 #include "display_helper.h"
 #include "application.h"
 #include "layers.h"
-#include "ui_context.h"
+#include <iostream>
 
-UIContext *context;  
-
-int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors) {
-    context = new UIContext();
-    GLFWwindow *window = intit_window();
-    // Get OpenGL version
-    const GLubyte* glVersion = glGetString(GL_VERSION);
-    if (glVersion) {
-        std::cout << "OpenGL Version: " << glVersion << std::endl;
-    } else {
-        std::cerr << "Failed to get OpenGL version\n";
-    }
-
+int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors, UIContext *context) {
+    GLFWwindow *window = intit_window(context);
+    
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
     Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
     // Create a sphere
-    Sphere sphere(0.04f, 256, 128);
+    Sphere sphere(0.04f, 256, 128); 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
-    glm::vec3 center = {0.0f, 1.0f, 0.0f};
-    context->center = center;
     auto io = init_imgui(window);
     bool show = true;
     // Render loop
@@ -47,13 +36,13 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         app->activate();
-    
+     
         // Render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Set view and projection matrices
-        glm::mat4 view = glm::lookAt(context->camera_pos, context->center, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 projection = glm::perspective(glm::radians(context->fov), context->aspectRatio, context->near, context->far);
+        glm::mat4 view = glm::lookAt(context->camera_pos, context->center, context->camera_orientation);
+        glm::mat4 projection = glm::perspective(glm::radians(context->fov), context->aspectRatio, 0.1f, 100.0f);
 
         // Draw spheres
         sphereShader.use();
@@ -63,7 +52,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         sphereShader.setUniformMat4("projection", projection);
         sphereShader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
         sphereShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
-        sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); 
 
         update_SpherePositions(ref_frames[current_frame % ref_frames.size()], inp_frames[current_frame % inp_frames.size()]);
         current_frame++;
@@ -144,8 +133,8 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
     return 0;
 }
 
-
 int main() {
+    UIContext *context = new UIContext();
     for (int i = 0; i < JOINT_COUNT; i++) {
         ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
         input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -169,7 +158,9 @@ int main() {
 
     std::cout << reference_frames[0] << std::endl;
     //update_SpherePositions(reference_frames[0]);
-    display(reference_frames, input_frames, ref_spherePositions, sphereColors);
+    context->reference_file = cropString(reference_file).c_str();
+    context->input_file = cropString(input_file).c_str();
+    display(reference_frames, input_frames, ref_spherePositions, sphereColors, context); 
 
     delete input;
     delete input_trajectories;

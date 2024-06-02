@@ -11,6 +11,7 @@ LIBS = -l:libglfw3dll.a -lvulkan-1.dll -l:libimgui_docker.dll.a -lglew32 -lopeng
 
 # Source files
 SRC = $(wildcard src/*.cpp) $(wildcard imgui/*.cpp)
+HEADERS = $(wildcard include/*.h) $(wildcard include/imgui/*.h) $(wildcard include/glm/*.h) $(wildcard include/glew/*.h)
 
 # Compiler and flags
 CXX = g++
@@ -20,7 +21,7 @@ CXXFLAGS = -O3
 default: $(OUTPUT_DIR)/$(PROJECTNAME)
 
 # Build the project
-$(OUTPUT_DIR)/$(PROJECTNAME): $(SRC)
+$(OUTPUT_DIR)/$(PROJECTNAME): $(SRC) $(HEADERS)
 	@mkdir -p $(OUTPUT_DIR)
 	$(CXX) $(SRC) -o $@ $(INCLUDE_DIRS) $(LIB_DIRS) $(LIBS) $(CXXFLAGS)
 

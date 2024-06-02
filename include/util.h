@@ -78,4 +78,13 @@ struct Frame {
     }
 };
 
+inline std::string cropString(const std::string& input) {
+    size_t lastSlash = input.rfind('\\');
+    size_t lastDot = input.rfind('.');
+    if (lastSlash == std::string::npos || lastDot == std::string::npos || lastSlash >= lastDot) {
+        return input;  // Return the original string if conditions aren't met
+    }
+    return input.substr(lastSlash + 1, lastDot - lastSlash - 1);
+}
+
 #endif

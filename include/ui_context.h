@@ -13,13 +13,12 @@ public:
     UIContext() : 
     camera_pos({glm::vec3(2.0f, 2.0f, 2.0f)}), 
     aspectRatio(ar),
-    near(0.1f),
-    far(100.0f), 
     clear_color({0.45f, 0.55f, 0.60f, 1.00f}), 
     fov(45.0f), 
     windowHeight(720), 
     windowWidth(1280), 
-    center({0.0f,1.0f, 0.0f}) {}
+    camera_orientation(0.0, 1.0, 0.0),
+    center({0.4f,1.0f, 0.0f}) {}
 
     ImVec4 clear_color;
     glm::vec3 center;
@@ -29,7 +28,6 @@ public:
     float aspectRatio;
     float fov;
     float projection_angle;
-    float near, far;
 
     int windowWidth;
     int windowHeight;
