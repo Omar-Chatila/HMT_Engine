@@ -86,7 +86,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void update_SpherePositions(Frame &ref_frame, Frame &inp_frame) {
+void update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame) {
     for (int i = 0; i < JOINT_COUNT; i++) {
         ref_spherePositions[i].x = ref_frame.joint_translations[i].x - 0.5;
         ref_spherePositions[i].y = ref_frame.joint_translations[i].y;
@@ -98,7 +98,23 @@ void update_SpherePositions(Frame &ref_frame, Frame &inp_frame) {
     }
 }
 
-GLFWwindow* intit_window(UIContext *context) {
+void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping) {
+    int n = input_frames.size();
+    int m = ref_frames.size();
+    int in = mapping / (m + 1);
+    int ref = mapping % (m + 1);
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        ref_spherePositions[i].x = ref_frames[ref].joint_translations[i].x - 0.5;
+        ref_spherePositions[i].y = ref_frames[ref].joint_translations[i].y;
+        ref_spherePositions[i].z = ref_frames[ref].joint_translations[i].z;
+
+        input_spherePositions[i].x = input_frames[in].joint_translations[i].x + 1.0f;
+        input_spherePositions[i].y = input_frames[in].joint_translations[i].y;
+        input_spherePositions[i].z = input_frames[in].joint_translations[i].z;
+    }
+}
+
+GLFWwindow* init_window(UIContext *context) {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;

@@ -91,4 +91,34 @@ inline std::string cropString(const std::string& input) {
     return input.substr(lastSlash + 1, lastDot - lastSlash - 1);
 }
 
+inline std::vector<std::string> readAllLines(const char* p_file, int start_line) {
+    std::ifstream file(p_file);
+    std::vector<std::string> lines;
+    std::string line;
+
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file");
+    }
+    int line_number = 1;
+    while (std::getline(file, line)) {
+        // filter meta info
+        if (line_number++ > start_line)
+            lines.push_back(line);
+    }
+    file.close();
+    return lines;
+}
+
+inline std::vector<std::string> split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::stringstream ss(str);
+
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
 #endif

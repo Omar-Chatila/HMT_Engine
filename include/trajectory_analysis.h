@@ -23,7 +23,7 @@ public:
     ~Trajectoy_analysis() {};
 
     std::pair<float, std::vector<int>> perform_DTW(Joint::Type joint, Distances type);
-    std::pair<float, std::vector<int>> perform_DTW(const std::vector<Quaternion*> &ref_traj, const std::vector<Quaternion*> &inp_traj);
+    std::pair<float, std::vector<int>> perform_DTW(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj);
     float perform_EDR(Joint::Type joint, Distances type, float epsilon);
 
 };

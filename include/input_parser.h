@@ -23,7 +23,6 @@ private:
     float min_y, max_y;
     float min_z, max_z;
 
-    std::vector<std::string> readAllLines();
     Frame line_to_frame(std::string &line, int time_frame);
 public:
     Input_parser(const char* path_to_file);

@@ -11,36 +11,6 @@ Input_parser::~Input_parser() {
     }
 }
 
-std::vector<std::string> Input_parser::readAllLines() {
-    std::ifstream file(this->file);
-    std::vector<std::string> lines;
-    std::string line;
-
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file");
-    }
-    int line_number = 1;
-    while (std::getline(file, line)) {
-        // filter meta info
-        if (line_number++ > 15)
-            lines.push_back(line);
-    }
-    file.close();
-    return lines;
-}
-
-std::vector<std::string> split(const std::string& str, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::stringstream ss(str);
-
-    while (std::getline(ss, token, delimiter)) {
-        tokens.push_back(token);
-    }
-
-    return tokens;
-}
-
 Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     // separate movement data and meta info
     std::vector<std::string> parts_and_meta = split(line, ';');
@@ -116,7 +86,7 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
 }
 
 std::vector<Frame> Input_parser::get_frames() {
-    std::vector<std::string> lines = readAllLines();
+    std::vector<std::string> lines = readAllLines(this->file, 15);
     int time_frame = 0;
     for (auto& line : lines) {
         this->frames.push_back(line_to_frame(line, time_frame++));

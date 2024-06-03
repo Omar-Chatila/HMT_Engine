@@ -3,10 +3,11 @@
 #include "application.h"
 #include "layers.h"
 #include "tests.h"
+#include "motion_data.h"
 #include <iostream>
 
-int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std::vector<glm::vec3> &ref_spherePositions, const std::vector<glm::vec3> &sphereColors, UIContext *context) {
-    GLFWwindow *window = intit_window(context);
+int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UIContext *context, std::pair<float, std::vector<int>> &alignment) {
+    GLFWwindow *window = init_window(context);
     
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
@@ -20,6 +21,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
     bool show = true;
     // Render loop
     int current_frame = 0;
+    int map_index = 0;
 
     Application* app = new Application();
     app->push_layer<ImGuiLayer>(*context); 
@@ -55,7 +57,13 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, std:
         sphereShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
         sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); 
 
-        update_SpherePositions(ref_frames[current_frame % ref_frames.size()], inp_frames[current_frame % inp_frames.size()]);
+        if (context->aligned) {
+            int mapping = alignment.second[map_index % (alignment.second.size() - 1)];
+            update_SpherePos_Aligned(inp_frames, ref_frames, mapping);
+            map_index++;
+        } else {
+            update_SpherePos_noAlign(ref_frames[current_frame % ref_frames.size()], inp_frames[current_frame % inp_frames.size()]);
+        }
         current_frame++;
         
         for (size_t i = 0; i < JOINT_COUNT; i++) {
@@ -157,16 +165,28 @@ int main() {
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
     analysis->perform_DTW(Joint::l_hip, EUCLID);
-    auto alignment = analysis->perform_DTW(ref_trajcts->get_anglesTrajectories(), input_trajectories->get_anglesTrajectories());
+    std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
     std::cout << "Cost: " << alignment.first << std::endl;
-    
+
     analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 
     context->reference_file = cropString(ref_file).c_str();
     context->input_file = cropString(input_file).c_str();
-    if (display(ref_frms, input_frames, ref_spherePositions, sphereColors, context)) {
+    if (display(ref_frms, input_frames, context, alignment)) {
         std::cout << "Render Error" << std::endl;
     } 
+
+    int n = input_trajectories->get_anglesTrajectories().size();
+    int m = ref_trajcts->get_anglesTrajectories().size();
+
+    int maxi = 0;
+    int maxj = 0;
+    for (int p : alignment.second) {
+        maxi = std::max(p / (n + 1), maxi); 
+        maxj = std::max(p % (m + 1), maxj);
+    }
+
+    std::string squats_info = R"(resources\squats_subject_info.csv)";
 
     delete analysis;
     delete ref_trajcts;

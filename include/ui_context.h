@@ -18,8 +18,12 @@ public:
     windowHeight(720), 
     windowWidth(1280), 
     camera_orientation(0.0, 1.0, 0.0),
-    center({0.4f,1.0f, 0.0f}) {}
+    center({0.4f,1.0f, 0.0f}),
+    aligned(false), 
+    squats(true){}
 
+    bool aligned;
+    bool squats;
     ImVec4 clear_color;
     glm::vec3 center;
     glm::vec3 camera_pos;
@@ -34,6 +38,13 @@ public:
 
     std::string input_file;
     std::string reference_file;
+
+    int selected_amateur;
+    int selected_prof;
+    std::vector<std::string> amateur_squats;
+    std::vector<std::string> prof_squats;
+    std::vector<std::string> amateur_tai;
+    std::vector<std::string> prof_tai;
 
     Distances dist_func;
     Trajectoy_analysis *analysis;
