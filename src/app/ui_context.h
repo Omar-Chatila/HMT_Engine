@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
 #include "trajectory_analysis.h"
 
 constexpr float ar = 16.0f / 9.0f;
@@ -50,6 +51,7 @@ public:
 
     Distances dist_func;
     Trajectoy_analysis *analysis;
+    std::tuple<float*, std::vector<int>, int, int> *matrix;
 };
 
 #endif // UI_CONTEXT_H

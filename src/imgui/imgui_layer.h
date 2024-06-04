@@ -3,24 +3,124 @@
 #include "Layer.h"
 #include "ui_context.h"
 #include <imgui.h>
+#include <tuple>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
+#include <limits>
+#include <cmath>
+#include <vector>
 
 class ImGuiLayer : public Layer {
 public:
-    ImGuiLayer(UIContext& context) : m_Context(context) {}
+    ImGuiLayer(UIContext& context) : m_Context(context) {
+        precomputeDistancesAndColors();
+    }
 
     void UpdateFOVWithScroll() {
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.MouseWheel != 0.0f) {
-        m_Context.fov -= io.MouseWheel * 2; // Adjust the sensitivity as needed
-        if (m_Context.fov < -180.0f) m_Context.fov = -180.0f;
-        if (m_Context.fov > 180.0f) m_Context.fov = 180.0f;
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.MouseWheel != 0.0f) {
+            m_Context.fov -= io.MouseWheel * 2;
+            if (m_Context.fov < -180.0f) m_Context.fov = -180.0f;
+            if (m_Context.fov > 180.0f) m_Context.fov = 180.0f;
+        }
     }
-}
+
+    ImU32 interpolateColor(float value, float minVal, float maxVal, ImU32 colorLow, ImU32 colorHigh) {
+        float ratio = ((value - minVal) / (maxVal - minVal)) * 1.5f;
+        ratio = std::max(0.0f, std::min(1.0f, ratio));
+
+        int r1 = (colorLow >> IM_COL32_R_SHIFT) & 0xFF;
+        int g1 = (colorLow >> IM_COL32_G_SHIFT) & 0xFF;
+        int b1 = (colorLow >> IM_COL32_B_SHIFT) & 0xFF;
+        int a1 = (colorLow >> IM_COL32_A_SHIFT) & 0xFF;
+
+        int r2 = (colorHigh >> IM_COL32_R_SHIFT) & 0xFF;
+        int g2 = (colorHigh >> IM_COL32_G_SHIFT) & 0xFF;
+        int b2 = (colorHigh >> IM_COL32_B_SHIFT) & 0xFF;
+        int a2 = (colorHigh >> IM_COL32_A_SHIFT) & 0xFF;
+
+        int r = static_cast<int>(r1 + ratio * (r2 - r1));
+        int g = static_cast<int>(g1 + ratio * (g2 - g1));
+        int b = static_cast<int>(b1 + ratio * (b2 - b1));
+        int a = static_cast<int>(a1 + ratio * (a2 - a1));
+
+        return IM_COL32(r, g, b, a);
+    }
+
+    void precomputeDistancesAndColors() {
+        int n = std::get<2>(*m_Context.matrix);
+        int m = std::get<3>(*m_Context.matrix);
+        std::vector<int> align_path = std::get<1>(*m_Context.matrix);
+        float* mat = std::get<0>(*m_Context.matrix);
+
+        float minDist = std::numeric_limits<float>::infinity();
+        float maxDist = -std::numeric_limits<float>::infinity();
+
+        std::vector<std::pair<int, int>> pathCoords;
+        for (int idx : align_path) {
+            int i = idx / (m + 1);
+            int j = idx % (m + 1);
+            pathCoords.emplace_back(i, j);
+        }
+
+        distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
+
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
+                float minDistanceToPath = std::numeric_limits<float>::infinity();
+                for (const auto& [pi, pj] : pathCoords) {
+                    float distance = std::hypot(i - pi, j - pj);
+                    if (distance < minDistanceToPath) {
+                        minDistanceToPath = distance;
+                    }
+                }
+                distances[i * (m + 1) + j] = minDistanceToPath;
+                if (minDistanceToPath < minDist) minDist = minDistanceToPath;
+                if (minDistanceToPath > maxDist) maxDist = minDistanceToPath;
+            }
+        }
+
+        colors.resize((n + 1) * (m + 1), IM_COL32(0, 0, 0, 255));
+
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
+                int index = i * (m + 1) + j;
+                bool isAligned = (std::find(align_path.begin(), align_path.end(), index) != align_path.end());
+                if (isAligned) {
+                    colors[index] = IM_COL32_WHITE;
+                } else {
+                    colors[index] = interpolateColor(distances[index], minDist, maxDist, IM_COL32(0, 0, 255, 255), IM_COL32(255, 0, 0, 255));
+                }
+            }
+        }
+    }
+
+    void drawDTWDiagram() {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        int n = std::get<2>(*m_Context.matrix);
+        int m = std::get<3>(*m_Context.matrix);
+        const float rect_size = 1.0f;
+        float xPos = p.x;
+        float yPos = p.y;
+
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
+                int index = i * (m + 1) + j;
+                ImU32 color = colors[index];
+                draw_list->AddRectFilled(ImVec2(xPos, yPos), ImVec2(xPos + rect_size, yPos + rect_size), color);
+                xPos += rect_size;
+            }
+            xPos = p.x;
+            yPos += rect_size;
+        }
+
+        // Advance the ImGui cursor to claim space in the window (otherwise the window will appear small and needs to be resized)
+        ImGui::Dummy(ImVec2((m + 1) * rect_size, (n + 1) * rect_size));
+    }
 
     virtual void onRender() override {
         static bool show_demo_window = true;
-        static bool show_another_window = false;
         static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
         if (show_demo_window)
@@ -28,44 +128,6 @@ public:
         {
             ImGui::Begin("Visualizer for Motion Data");
             
-            // if (ImGui::CollapsingHeader("Motion Data Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-            //     if (ImGui::RadioButton("Squats", m_Context.squats)) {
-            //         m_Context.squats = true;
-            //     }
-            //     ImGui::SameLine();
-            //     if (ImGui::RadioButton("Tai-Chi", !m_Context.squats)) {
-            //         m_Context.squats = false;
-            //     }
-            //     std::vector<std::string> sport_type = m_Context.squats ? m_Context.amateur_squats : m_Context.amateur_tai;
-            //     if (ImGui::BeginCombo("Amateur", sport_type[m_Context.selected_amateur].c_str())) {
-            //         for (int i = 0; i < sport_type.size(); i++) {
-            //             bool isSelected = (m_Context.selected_amateur == i);
-            //             if (ImGui::Selectable(sport_type[i].c_str(), isSelected)) {
-            //                 m_Context.selected_amateur = i;
-            //             }
-            //             if (isSelected) {
-            //                 ImGui::SetItemDefaultFocus();
-            //             }
-            //         }
-            //         ImGui::EndCombo();
-            //     }
-            //     ImGui::SameLine();
-
-            //     std::vector<std::string> sport_type2 = m_Context.squats ? m_Context.prof_squats : m_Context.prof_tai;
-            //     if (ImGui::BeginCombo("Reference", sport_type2[m_Context.selected_prof].c_str())) {
-            //         for (int i = 0; i < sport_type2.size(); i++) {
-            //             bool isSelected = (m_Context.selected_prof == i);
-            //             if (ImGui::Selectable(sport_type2[i].c_str(), isSelected)) {
-            //                 m_Context.selected_prof = i;
-            //             }
-            //             if (isSelected) {
-            //                 ImGui::SetItemDefaultFocus();
-            //             }
-            //         }
-            //         ImGui::EndCombo();
-            //     }
-            // }
-
             if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::SliderFloat("Aspect Ratio", &m_Context.aspectRatio, 1.0f, 3.0f);
                 UpdateFOVWithScroll();
@@ -91,22 +153,20 @@ public:
 
             ImGui::Checkbox("VSync", &m_Context.vsync);
             ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
-
+            ImGui::SameLine();
+            ImGui::Checkbox("Show Heatmap", &showDiagram);
+            if (showDiagram)
+                drawDTWDiagram();
             ImGui::Text("Aspect Ratio = %.3f", m_Context.aspectRatio);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             
-            ImGui::End();
-        }
-
-        if (show_another_window) {
-            ImGui::Begin("Another Window", &show_another_window);
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
             ImGui::End();
         }
     }
 
 private:
     UIContext& m_Context;
+    std::vector<float> distances;
+    std::vector<ImU32> colors;
+    bool showDiagram = false;
 };

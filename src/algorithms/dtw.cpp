@@ -86,6 +86,5 @@ std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matri
         index = next_index; // Move to the next index
     }
     std::reverse(alignment.begin(), alignment.end());
-    free(cost_matrix);
     return {cost, alignment};
 }

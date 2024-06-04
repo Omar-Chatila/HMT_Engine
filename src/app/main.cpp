@@ -5,8 +5,9 @@
 #include "tests.h"
 #include "motion_data.h"
 #include <iostream>
+#include <tuple>
 
-int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UIContext *context, std::pair<float, std::vector<int>> &alignment) {
+int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UIContext *context, std::tuple<float, std::vector<int>, float*> &alignment) {
     GLFWwindow *window = init_window(context);
     
     // Compile and link shaders
@@ -17,13 +18,13 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
-    auto io = init_imgui(window);
+    auto io = init_imgui(window); 
     bool show = true;
     // Render loop
     int current_frame = 0;
     int map_index = 0;
 
-    Application* app = new Application();
+    Application* app = new Application(); 
     app->push_layer<ImGuiLayer>(*context); 
 
     while (!glfwWindowShouldClose(window)) {
@@ -58,7 +59,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
         sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); 
 
         if (context->aligned) {
-            int mapping = alignment.second[map_index % (alignment.second.size())];
+            int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
             update_SpherePos_Aligned(inp_frames, ref_frames, mapping);
             map_index++;
         } else {
@@ -164,28 +165,27 @@ int main() {
     Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
-    auto alignment2 = analysis->perform_DTW(Joint::l_hip, EUCLID);
-    std::cout << "DTW hip: " << alignment2.first << std::endl;
-    std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
-    std::cout << "Cost: " << alignment.first << std::endl;
-    std::cout << alignment.second[alignment.second.size() - 1] << std::endl;
+    std::tuple<float, std::vector<int>, float*> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
+    std::cout << "Cost: " << std::get<0>(alignment) << std::endl;
     //std::cout << "EDR: " << analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0) << std::endl;
 
-     context->reference_file = cropString(ref_file).c_str();
-     context->input_file = cropString(input_file).c_str();
-     if (display(ref_frms, input_frames, context, alignment)) {
-         std::cout << "Render Error" << std::endl;
-     } 
+    context->reference_file = cropString(ref_file).c_str();
+    context->input_file = cropString(input_file).c_str();
+    int n = input_trajectories->get_anglesTrajectories().size();
+    int m = ref_trajcts->get_anglesTrajectories().size();
+    float* matrixx = std::get<2>(alignment);
+    std::cout << std::get<1>(alignment).size() << std::endl;
+    std::tuple mat{matrixx,std::get<1>(alignment), n, m};
+    context->matrix = &mat;
+    std::string squats_info = R"(resources\squats_subject_info.csv)";
+    if (display(ref_frms, input_frames, context, alignment)) {
+        std::cout << "Render Error" << std::endl;
+    }
 
-     int n = input_trajectories->get_anglesTrajectories().size();
-     int m = ref_trajcts->get_anglesTrajectories().size();
-
-     std::string squats_info = R"(resources\squats_subject_info.csv)";
-
-     delete analysis;
-     delete ref_trajcts;
-     delete reference; 
-     delete input_trajectories;
-     delete input; 
+    delete analysis;
+    delete ref_trajcts;
+    delete reference; 
+    delete input_trajectories;
+    delete input; 
     return 0;
 }

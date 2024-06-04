@@ -30,9 +30,9 @@ void test() {
     std::cout << "dist " << quaternion_dist(quats_in[0], quats_ref[200]);
 
 
-    std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
-    std::cout << "Cost: " << alignment.first << std::endl;
-    int last = alignment.second[alignment.second.size() - 1];
+    std::tuple<float, std::vector<int>, float*> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
+    std::cout << "Cost: " << std::get<0>(alignment) << std::endl;
+    int last = std::get<1>(alignment)[std::get<1>(alignment).size() - 1];
 
     std::cout << "dtw" << std::endl;
 
