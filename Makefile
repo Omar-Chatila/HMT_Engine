@@ -18,7 +18,13 @@ OBJ = $(SRC:%.cpp=$(OUTPUT_DIR)/%.o)
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3
+CXXFLAGS = -O3 -MMD -MP
+
+# Dependency files
+DEP = $(OBJ:.o=.d)
+
+# Include dependency files
+-include $(DEP)
 
 # Default target
 default: $(TARGET)

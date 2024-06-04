@@ -7,13 +7,13 @@
 
 #include "Layer.h"
 
-class Application{
+class ImGUI_Layers{
 private:
 	std::vector<std::shared_ptr<Layer>> layer_stack;
 
 public:
-	Application();   // Konstruktor
-    ~Application();  // Destruktor
+	ImGUI_Layers();   // Konstruktor
+    ~ImGUI_Layers();  // Destruktor
 
 	template<typename T>
 	void push_layer()

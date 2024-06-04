@@ -117,6 +117,33 @@ public:
 
         // Advance the ImGui cursor to claim space in the window (otherwise the window will appear small and needs to be resized)
         ImGui::Dummy(ImVec2((m + 1) * rect_size, (n + 1) * rect_size));
+        float prog = static_cast<float>(m_Context.c_frame % std::get<1>(*m_Context.matrix).size()) / std::get<1>(*m_Context.matrix).size();
+        ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
+        ImGui::Text("Current Frame: %d", m_Context.c_frame);
+    }
+
+    void showCameraOptions() {
+        if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::SliderFloat("Aspect Ratio", &m_Context.aspectRatio, 1.0f, 3.0f);
+            UpdateFOVWithScroll();
+            ImGui::SliderFloat("Fov", &m_Context.fov, -180.0f, 180.0f);
+            
+            ImGui::DragFloat3("Center", glm::value_ptr(m_Context.center), 0.1f, -3.0f, 3.0f);
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##Center"))
+                m_Context.center = {0.4f, 1.0f, 0.0f};
+            
+            ImGui::DragFloat3("Position", glm::value_ptr(m_Context.camera_pos), 0.1f, -5.0f, 5.0f);
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##Position"))
+                m_Context.camera_pos = {2.0f, 2.0f, 2.0f};
+
+            ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context.camera_orientation), 0.1f, -1.0f, 1.0f);
+            ImGui::SameLine();
+            if (ImGui::Button("Reset##Orientation"))
+                m_Context.camera_orientation = {0.0, 1.0, 0.0};
+            ImGui::ColorEdit3("Clear Color", (float*)&m_Context.clear_color);
+        };
     }
 
     virtual void onRender() override {
@@ -128,35 +155,17 @@ public:
         {
             ImGui::Begin("Visualizer for Motion Data");
             
-            if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::SliderFloat("Aspect Ratio", &m_Context.aspectRatio, 1.0f, 3.0f);
-                UpdateFOVWithScroll();
-                ImGui::SliderFloat("Fov", &m_Context.fov, -180.0f, 180.0f);
-                
-                ImGui::DragFloat3("Center", glm::value_ptr(m_Context.center), 0.1f, -3.0f, 3.0f);
-                ImGui::SameLine();
-                if (ImGui::Button("Reset##Center"))
-                    m_Context.center = {0.4f, 1.0f, 0.0f};
-                
-                ImGui::DragFloat3("Position", glm::value_ptr(m_Context.camera_pos), 0.1f, -5.0f, 5.0f);
-                ImGui::SameLine();
-                if (ImGui::Button("Reset##Position"))
-                    m_Context.camera_pos = {2.0f, 2.0f, 2.0f};
-
-                ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context.camera_orientation), 0.1f, -1.0f, 1.0f);
-                ImGui::SameLine();
-                if (ImGui::Button("Reset##Orientation"))
-                    m_Context.camera_orientation = {0.0, 1.0, 0.0};
-
-                ImGui::ColorEdit3("Clear Color", (float*)&m_Context.clear_color);
-            };
-
+            showCameraOptions();
             ImGui::Checkbox("VSync", &m_Context.vsync);
             ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
             ImGui::SameLine();
             ImGui::Checkbox("Show Heatmap", &showDiagram);
-            if (showDiagram)
+            if (showDiagram){
+                ImGui::SameLine();
+                ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
                 drawDTWDiagram();
+            }
+            
             ImGui::Text("Aspect Ratio = %.3f", m_Context.aspectRatio);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             
@@ -169,4 +178,5 @@ private:
     std::vector<float> distances;
     std::vector<ImU32> colors;
     bool showDiagram = false;
+    int alignment_length;
 };

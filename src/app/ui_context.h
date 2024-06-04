@@ -22,7 +22,8 @@ public:
     center({0.4f,1.0f, 0.0f}),
     aligned(false), 
     squats(true), 
-    vsync(true){}
+    vsync(true),
+    c_frame(0){}
 
     bool vsync;
     bool aligned;
@@ -52,6 +53,12 @@ public:
     Distances dist_func;
     Trajectoy_analysis *analysis;
     std::tuple<float*, std::vector<int>, int, int> *matrix;
+    float cost;
+    int c_frame;
+
+    ~UIContext() {
+        free(std::get<0>(*matrix));
+    }
 };
 
 #endif // UI_CONTEXT_H

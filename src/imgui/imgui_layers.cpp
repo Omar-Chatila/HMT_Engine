@@ -1,23 +1,23 @@
-#include "application.h"
+#include "imgui_layers.h"
 
-Application::Application() {
+ImGUI_Layers::ImGUI_Layers() {
     startup();
 }
 
-Application::~Application() {
+ImGUI_Layers::~ImGUI_Layers() {
     shutdown();
 }
 
-void Application::startup() {
+void ImGUI_Layers::startup() {
 
 }
 
-void Application::activate() {
+void ImGUI_Layers::activate() {
     for (auto& layer : layer_stack)
 		layer->onRender();
 }
 
-void Application::shutdown() {
+void ImGUI_Layers::shutdown() {
     for (auto& layer : layer_stack)
         layer->onDettach();
 

@@ -1,6 +1,6 @@
 #include "ui_context.h"
 #include "display_helper.h"
-#include "application.h"
+#include "imgui_layers.h"
 #include "layers.h"
 #include "tests.h"
 #include "motion_data.h"
@@ -24,7 +24,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
     int current_frame = 0;
     int map_index = 0;
 
-    Application* app = new Application(); 
+    ImGUI_Layers* app = new ImGUI_Layers(); 
     app->push_layer<ImGuiLayer>(*context); 
 
     while (!glfwWindowShouldClose(window)) {
@@ -40,18 +40,12 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         app->activate();
-     
-        // Render
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Set view and projection matrices
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glm::mat4 view = glm::lookAt(context->camera_pos, context->center, context->camera_orientation);
         glm::mat4 projection = glm::perspective(glm::radians(context->fov), context->aspectRatio, 0.1f, 100.0f);
 
-        // Draw spheres
         sphereShader.use();
-        
-        // Set uniform values
         sphereShader.setUniformMat4("view", view);
         sphereShader.setUniformMat4("projection", projection);
         sphereShader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
@@ -60,53 +54,14 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
 
         if (context->aligned) {
             int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
+            context->c_frame = map_index % std::get<1>(alignment).size();
             update_SpherePos_Aligned(inp_frames, ref_frames, mapping);
             map_index++;
         } else {
             update_SpherePos_noAlign(ref_frames[current_frame % ref_frames.size()], inp_frames[current_frame % inp_frames.size()]);
         }
         current_frame++;
-        
-        for (size_t i = 0; i < JOINT_COUNT; i++) {
-            glm::vec3 position = ref_spherePositions[i];
-            glm::vec3 color = sphereColors[i];
-            sphereShader.setUniformVec3("objectColor", color);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, position);
-            sphereShader.setUniformMat4("model", model);
-            sphere.draw();
-        }
-
-        for (size_t i = 0; i < JOINT_COUNT; i++) {
-            glm::vec3 position = input_spherePositions[i];
-            glm::vec3 color = sphereColors[i];
-            sphereShader.setUniformVec3("objectColor", color);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, position);
-            sphereShader.setUniformMat4("model", model);
-            sphere.draw();
-        }
-
-        sphereShader.unuse();  // Unbind the sphere shader program
-        for (auto& bone : Joint::bones) {
-            glm::vec3 start = ref_spherePositions[bone.first];
-            glm::vec3 end = ref_spherePositions[bone.second];
-            Line line(start, end);
-            glUseProgram(line.shaderProgram);
-            glm::mat4 model = glm::mat4(1.0f);
-            line.setMVP(projection * view * model);
-            line.draw();
-        }
-
-        for (auto& bone : Joint::bones) {
-            glm::vec3 start = input_spherePositions[bone.first];
-            glm::vec3 end = input_spherePositions[bone.second];
-            Line line(start, end);
-            glUseProgram(line.shaderProgram);
-            glm::mat4 model = glm::mat4(1.0f);
-            line.setMVP(projection * view * model);
-            line.draw();
-        }
+        draw_objects(projection, view, sphere, sphereShader);
         glUseProgram(0);  // Unbind the line shader program
 
         // Rendering
@@ -118,17 +73,12 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         //glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Update and Render additional Platform Windows
-        // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-        //  For this specific demo app we could also call glfwMakeContextCurrent(window) directly) 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -153,19 +103,20 @@ int main() {
     }
 
     // Parse input trajectory
-    std::string input_file = R"(resources\fb_41_pre_splitted_1.txt)";
+    std::string input_file = R"(resources\motion_data\squats\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();
     Trajectories* input_trajectories = new Trajectories(input_frames);
 
     // Parse reference trajectory
-    std::string ref_file = R"(resources\expertise_01_single100_2_splitted_1.txt)";
+    std::string ref_file = R"(resources\motion_data\squats\expertise_01_single100_2_splitted_1.txt)";
     Input_parser* reference = new Input_parser(ref_file.c_str());
     std::vector<Frame> ref_frms = reference->get_frames();
     Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
     std::tuple<float, std::vector<int>, float*> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
+    context->cost = std::get<0>(alignment);
     std::cout << "Cost: " << std::get<0>(alignment) << std::endl;
     //std::cout << "EDR: " << analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0) << std::endl;
 
