@@ -4,7 +4,52 @@
 #include "trajectory_analysis.h"
 #include "dtw.h"
 
+void test1();
+
 void test() {
+    // Parse input trajectory
+    std::string input_file = R"(resources\test\fb_41_pre_splitted_1.txt)";
+    Input_parser* input = new Input_parser(input_file.c_str());
+    std::vector<Frame> input_frames = input->get_frames();
+    Trajectories* input_trajectories = new Trajectories(input_frames);
+
+    std::cout << "input traj created" << std::endl;
+
+    // Parse reference trajectory
+    std::string ref_file = R"(resources\test\expertise_01_single100_2_splitted_1.txt)";
+    Input_parser* reference = new Input_parser(ref_file.c_str());
+    std::vector<Frame> ref_frms = reference->get_frames();
+    Trajectories* ref_trajcts = new Trajectories(ref_frms);
+
+    std::cout << "ref traj created" << std::endl;
+
+    Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
+    auto quats_in = input_trajectories->get_anglesTrajectories();
+    auto quats_ref = ref_trajcts->get_anglesTrajectories();
+
+    std::cout << "dist " << quaternion_dist(quats_in[0], quats_ref[200]);
+
+
+    std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
+    std::cout << "Cost: " << alignment.first << std::endl;
+    int last = alignment.second[alignment.second.size() - 1];
+
+    std::cout << "dtw" << std::endl;
+
+    int n = input_trajectories->get_anglesTrajectories().size();
+    int m = ref_trajcts->get_anglesTrajectories().size();
+    std::cout << last / (m + 1) << ", " << last % (m + 1) << std::endl;
+
+    std::string squats_info = R"(resources\squats_subject_info.csv)";
+
+    delete analysis;
+    delete ref_trajcts;
+    delete reference;
+    delete input_trajectories;
+    delete input;
+}
+
+void test1() {
     Quaternion* joint_rotations1 = new Quaternion[JOINT_COUNT];
     Quaternion* joint_rotations2 = new Quaternion[JOINT_COUNT];
     Quaternion* joint_rotations3 = new Quaternion[JOINT_COUNT];

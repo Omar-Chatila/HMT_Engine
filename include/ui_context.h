@@ -20,8 +20,10 @@ public:
     camera_orientation(0.0, 1.0, 0.0),
     center({0.4f,1.0f, 0.0f}),
     aligned(false), 
-    squats(true){}
+    squats(true), 
+    vsync(true){}
 
+    bool vsync;
     bool aligned;
     bool squats;
     ImVec4 clear_color;

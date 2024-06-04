@@ -30,8 +30,8 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
         int width = context->windowWidth;
         int height = context->windowHeight;
         glfwGetWindowSize(window, &width, &height);
-        //aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT); // for example modify this in layer
-        // Input
+        glfwSwapInterval(context->vsync);
+
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
@@ -58,7 +58,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
         sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); 
 
         if (context->aligned) {
-            int mapping = alignment.second[map_index % (alignment.second.size() - 1)];
+            int mapping = alignment.second[map_index % (alignment.second.size())];
             update_SpherePos_Aligned(inp_frames, ref_frames, mapping);
             map_index++;
         } else {
@@ -164,34 +164,28 @@ int main() {
     Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
-    analysis->perform_DTW(Joint::l_hip, EUCLID);
+    //auto costs = analysis->perform_DTW(Joint::l_hip, EUCLID);
+    //std::cout << "DTW hip: " << costs.first << std::endl;
     std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
     std::cout << "Cost: " << alignment.first << std::endl;
+    std::cout << alignment.second[alignment.second.size() - 1] << std::endl;
+    //std::cout << "EDR: " << analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0) << std::endl;
 
-    analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
+     context->reference_file = cropString(ref_file).c_str();
+     context->input_file = cropString(input_file).c_str();
+     if (display(ref_frms, input_frames, context, alignment)) {
+         std::cout << "Render Error" << std::endl;
+     } 
 
-    context->reference_file = cropString(ref_file).c_str();
-    context->input_file = cropString(input_file).c_str();
-    if (display(ref_frms, input_frames, context, alignment)) {
-        std::cout << "Render Error" << std::endl;
-    } 
+     int n = input_trajectories->get_anglesTrajectories().size();
+     int m = ref_trajcts->get_anglesTrajectories().size();
 
-    int n = input_trajectories->get_anglesTrajectories().size();
-    int m = ref_trajcts->get_anglesTrajectories().size();
+     std::string squats_info = R"(resources\squats_subject_info.csv)";
 
-    int maxi = 0;
-    int maxj = 0;
-    for (int p : alignment.second) {
-        maxi = std::max(p / (n + 1), maxi); 
-        maxj = std::max(p % (m + 1), maxj);
-    }
-
-    std::string squats_info = R"(resources\squats_subject_info.csv)";
-
-    delete analysis;
-    delete ref_trajcts;
-    delete reference;
-    delete input_trajectories;
-    delete input;
+     delete analysis;
+     delete ref_trajcts;
+     delete reference; 
+     delete input_trajectories;
+     delete input; 
     return 0;
 }

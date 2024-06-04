@@ -89,6 +89,7 @@ public:
                 ImGui::ColorEdit3("Clear Color", (float*)&m_Context.clear_color);
             };
 
+            ImGui::Checkbox("VSync", &m_Context.vsync);
             ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
 
             ImGui::Text("Aspect Ratio = %.3f", m_Context.aspectRatio);

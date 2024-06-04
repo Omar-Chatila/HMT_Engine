@@ -101,8 +101,8 @@ void update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame) {
 void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping) {
     int n = input_frames.size();
     int m = ref_frames.size();
-    int in = mapping / (m + 1);
-    int ref = mapping % (m + 1);
+    int in = mapping / (m + 1) - 1;
+    int ref = mapping % (m + 1) - 1;
     for (int i = 0; i < JOINT_COUNT; i++) {
         ref_spherePositions[i].x = ref_frames[ref].joint_translations[i].x - 0.5;
         ref_spherePositions[i].y = ref_frames[ref].joint_translations[i].y;
@@ -133,6 +133,7 @@ GLFWwindow* init_window(UIContext *context) {
         return nullptr;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Initialize GLEW

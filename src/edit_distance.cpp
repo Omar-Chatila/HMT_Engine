@@ -1,4 +1,5 @@
 #include "edit_distance.h"
+#include "defines.h"
 
 bool EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D&, const Vec3D&)> func) {
     return func(vec1, vec2) < epsilon;
@@ -27,5 +28,15 @@ float EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float ep
                 + std::min({S[(i-1) * (m + 1) + j], S[i * (m + 1) + (j-1)], S[(i-1) * (m + 1) + (j-1)]});
         }
     }
-    return S[n * (m + 1) + m];
+
+    std::ofstream outfile("output.txt");
+
+    for (int i = 0; i <= n; ++i) {
+        for (int j = 0; j <= m; ++j) {
+            outfile << ", " << S[i * (m + 1) + j];
+        }
+        outfile << std::endl;
+    }
+
+    return S[(n + 1) * (m + 1) - 1];
 }
