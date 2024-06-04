@@ -164,8 +164,8 @@ int main() {
     Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
-    //auto costs = analysis->perform_DTW(Joint::l_hip, EUCLID);
-    //std::cout << "DTW hip: " << costs.first << std::endl;
+    auto alignment2 = analysis->perform_DTW(Joint::l_hip, EUCLID);
+    std::cout << "DTW hip: " << alignment2.first << std::endl;
     std::pair<float, std::vector<int>> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
     std::cout << "Cost: " << alignment.first << std::endl;
     std::cout << alignment.second[alignment.second.size() - 1] << std::endl;

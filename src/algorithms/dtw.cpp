@@ -24,6 +24,16 @@ float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std:
              S[current] = cost + std::min({S[above], S[left], S[diag_left]});
         }
     }
+
+    std::ofstream outfile("output.txt");
+
+    for (int i = 0; i <= n; ++i) {
+        for (int j = 0; j <= m; ++j) {
+            outfile << ", " << S[i * (m + 1) + j];
+        }
+        outfile << std::endl;
+    }
+
     return S;
 }
 
@@ -61,7 +71,7 @@ float *Dtw::dtw(const std::vector<Quaternion*> &inp_traj, const std::vector<Quat
 std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matrix, int n, int m) {
     int index = (m + 1) * (n + 1) - 1;
     std::vector<int> alignment;
-    float cost = cost_matrix[index];
+    const float cost = cost_matrix[index];
 
     while (index >= m + 2) {
         alignment.push_back(index);
@@ -73,7 +83,6 @@ std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matri
         } else {
             next_index = index - m - 1; // Move up
         }
-        cost += cost_matrix[next_index];
         index = next_index; // Move to the next index
     }
     std::reverse(alignment.begin(), alignment.end());
