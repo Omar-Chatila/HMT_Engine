@@ -10,22 +10,64 @@
 #include <cmath>
 #include <vector>
 
-class ImGuiLayer : public Layer {
+class ImGuiLayer : public Layer
+{
 public:
-    ImGuiLayer(UIContext& context) : m_Context(context) {
+    ImGuiLayer(UIContext &context) : m_Context(context)
+    {
+        squat_sampleSize = this->m_Context.motion_files->size();
+        selected = (bool*) (calloc(squat_sampleSize, sizeof(bool)));
         precomputeDistancesAndColors();
     }
 
-    void UpdateFOVWithScroll() {
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.MouseWheel != 0.0f) {
+    void UpdateFOVWithScroll()
+    {
+        ImGuiIO &io = ImGui::GetIO();
+        if (io.MouseWheel != 0.0f)
+        {
             m_Context.fov -= io.MouseWheel * 2;
-            if (m_Context.fov < -180.0f) m_Context.fov = -180.0f;
-            if (m_Context.fov > 180.0f) m_Context.fov = 180.0f;
+            if (m_Context.fov < -180.0f)
+                m_Context.fov = -180.0f;
+            if (m_Context.fov > 180.0f)
+                m_Context.fov = 180.0f;
         }
     }
 
-    ImU32 interpolateColor(float value, float minVal, float maxVal, ImU32 colorLow, ImU32 colorHigh) {
+    struct Color
+    {
+        float r, g, b, a;
+    };
+
+    // Define the interpolateColor function
+    Color interpolateColor(float value, float minVal, float maxVal, const std::vector<Color> &colorStops)
+    {
+        if (colorStops.empty())
+            return {0, 0, 0, 255};
+
+        float normalized = (value - minVal) / (maxVal - minVal);
+        size_t stopCount = colorStops.size();
+
+        if (normalized <= 0)
+            return colorStops.front();
+        if (normalized >= 1)
+            return colorStops.back();
+
+        float scaled = normalized * (stopCount - 1);
+        size_t idx = std::floor(scaled);
+        float frac = scaled - idx;
+
+        Color c1 = colorStops[idx];
+        Color c2 = colorStops[idx + 1];
+
+        return {
+            c1.r + frac * (c2.r - c1.r),
+            c1.g + frac * (c2.g - c1.g),
+            c1.b + frac * (c2.b - c1.b),
+            c1.a + frac * (c2.a - c1.a)};
+    }
+
+    ImU32 interpolateColor(float value, float minVal, float maxVal, ImU32 colorLow, ImU32 colorHigh)
+    {
         float ratio = ((value - minVal) / (maxVal - minVal)) * 1.5f;
         ratio = std::max(0.0f, std::min(1.0f, ratio));
 
@@ -47,17 +89,19 @@ public:
         return IM_COL32(r, g, b, a);
     }
 
-    void precomputeDistancesAndColors() {
+    void precomputeDistancesAndColors()
+    {
         int n = std::get<2>(*m_Context.matrix);
         int m = std::get<3>(*m_Context.matrix);
         std::vector<int> align_path = std::get<1>(*m_Context.matrix);
-        float* mat = std::get<0>(*m_Context.matrix);
+        float *mat = std::get<0>(*m_Context.matrix);
 
         float minDist = std::numeric_limits<float>::infinity();
         float maxDist = -std::numeric_limits<float>::infinity();
 
         std::vector<std::pair<int, int>> pathCoords;
-        for (int idx : align_path) {
+        for (int idx : align_path)
+        {
             int i = idx / (m + 1);
             int j = idx % (m + 1);
             pathCoords.emplace_back(i, j);
@@ -65,38 +109,59 @@ public:
 
         distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
 
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
+        for (int i = 0; i <= n; i++)
+        {
+            for (int j = 0; j <= m; j++)
+            {
                 float minDistanceToPath = std::numeric_limits<float>::infinity();
-                for (const auto& [pi, pj] : pathCoords) {
+                for (const auto &[pi, pj] : pathCoords)
+                {
                     float distance = std::hypot(i - pi, j - pj);
-                    if (distance < minDistanceToPath) {
+                    if (distance < minDistanceToPath)
+                    {
                         minDistanceToPath = distance;
                     }
                 }
                 distances[i * (m + 1) + j] = minDistanceToPath;
-                if (minDistanceToPath < minDist) minDist = minDistanceToPath;
-                if (minDistanceToPath > maxDist) maxDist = minDistanceToPath;
+                if (minDistanceToPath < minDist)
+                    minDist = minDistanceToPath;
+                if (minDistanceToPath > maxDist)
+                    maxDist = minDistanceToPath;
             }
         }
 
         colors.resize((n + 1) * (m + 1), IM_COL32(0, 0, 0, 255));
 
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
+        std::vector<Color> colorStops = {
+            {0, 255, 0, 255},   // Green
+            {255, 255, 0, 255}, // Yellow
+            {255, 0, 0, 255},   // Red
+            {127, 0, 255, 255}, // Purple
+            {0, 0, 255, 255}    // Blue
+        };
+
+        for (int i = 0; i <= n; i++)
+        {
+            for (int j = 0; j <= m; j++)
+            {
                 int index = i * (m + 1) + j;
                 bool isAligned = (std::find(align_path.begin(), align_path.end(), index) != align_path.end());
-                if (isAligned) {
+                if (isAligned)
+                {
                     colors[index] = IM_COL32_WHITE;
-                } else {
-                    colors[index] = interpolateColor(distances[index], minDist, maxDist, IM_COL32(0, 0, 255, 255), IM_COL32(255, 0, 0, 255));
+                }
+                else
+                {
+                    Color interpolatedColor = interpolateColor(distances[index] * 2.0f, minDist, maxDist, colorStops);
+                    colors[index] = IM_COL32((int)interpolatedColor.r, (int)interpolatedColor.g, (int)interpolatedColor.b, (int)interpolatedColor.a);
                 }
             }
         }
     }
 
-    void drawDTWDiagram() {
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    void drawDTWDiagram()
+    {
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
         const ImVec2 p = ImGui::GetCursorScreenPos();
         int n = std::get<2>(*m_Context.matrix);
         int m = std::get<3>(*m_Context.matrix);
@@ -104,8 +169,10 @@ public:
         float xPos = p.x;
         float yPos = p.y;
 
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
+        for (int i = 0; i <= n; i++)
+        {
+            for (int j = 0; j <= m; j++)
+            {
                 int index = i * (m + 1) + j;
                 ImU32 color = colors[index];
                 draw_list->AddRectFilled(ImVec2(xPos, yPos), ImVec2(xPos + rect_size, yPos + rect_size), color);
@@ -123,16 +190,16 @@ public:
     }
 
     void showCameraOptions() {
-        if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_CollapsingHeader)) {
             ImGui::SliderFloat("Aspect Ratio", &m_Context.aspectRatio, 1.0f, 3.0f);
             UpdateFOVWithScroll();
             ImGui::SliderFloat("Fov", &m_Context.fov, -180.0f, 180.0f);
-            
+
             ImGui::DragFloat3("Center", glm::value_ptr(m_Context.center), 0.1f, -3.0f, 3.0f);
             ImGui::SameLine();
             if (ImGui::Button("Reset##Center"))
                 m_Context.center = {0.4f, 1.0f, 0.0f};
-            
+
             ImGui::DragFloat3("Position", glm::value_ptr(m_Context.camera_pos), 0.1f, -5.0f, 5.0f);
             ImGui::SameLine();
             if (ImGui::Button("Reset##Position"))
@@ -142,8 +209,67 @@ public:
             ImGui::SameLine();
             if (ImGui::Button("Reset##Orientation"))
                 m_Context.camera_orientation = {0.0, 1.0, 0.0};
-            ImGui::ColorEdit3("Clear Color", (float*)&m_Context.clear_color);
+            ImGui::ColorEdit3("Clear Color", (float *)&m_Context.clear_color);
         };
+    }
+
+    void show_selectionTable() {
+        // Options
+        static ImGuiTableFlags flags =
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
+
+        if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 10 * 15), 0.0f)) {
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
+            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
+            ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
+            ImGui::TableSetupColumn("Sex", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Age", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Weight", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Hand", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Foot", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+            ImGui::TableSetupColumn("Exp", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
+
+            ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
+            ImGui::TableHeadersRow();
+
+            // Demonstrate using clipper for large vertical lists
+
+            ImGuiListClipper clipper;
+            clipper.Begin(squat_sampleSize);
+            while (clipper.Step())
+                for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
+                    auto pers = m_Context.motion_files->at(row_n);
+                    // Display a data item
+                    ImGui::PushID(row_n);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Checkbox("", &selected[row_n]);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%04d", row_n);
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(pers.motion_file.c_str());  // File
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%c", pers.sex);  // Sex
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", pers.age);  // Age
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", pers.size); // Size
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", pers.weight); // Weight
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", pers.right_handed); // Hand
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", pers.right_footed); // Foot
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d, %d, %d, %d", pers.experience_trainer,pers.expertise, pers.expertise_practical, pers.expertise_theoretical); // Exp
+                    ImGui::PopID();
+                }
+            ImGui::EndTable();
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+        }
     }
 
     virtual void onRender() override {
@@ -154,29 +280,36 @@ public:
             ImGui::ShowDemoWindow(&show_demo_window);
         {
             ImGui::Begin("Visualizer for Motion Data");
-            
+
             showCameraOptions();
             ImGui::Checkbox("VSync", &m_Context.vsync);
-            ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
-            ImGui::SameLine();
-            ImGui::Checkbox("Show Heatmap", &showDiagram);
-            if (showDiagram){
-                ImGui::SameLine();
-                ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
-                drawDTWDiagram();
+            if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
+                show_selectionTable();
             }
-            
-            ImGui::Text("Aspect Ratio = %.3f", m_Context.aspectRatio);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            
-            ImGui::End();
+            if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
+                ImGui::SameLine();
+                ImGui::Checkbox("Show Heatmap", &showDiagram);
+                if (showDiagram) {
+                    ImGui::SameLine();
+                    ImGuiStyle *style = &ImGui::GetStyle();
+                    char txt_green[] = "text green";
+                    style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
+                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                    ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
+                    ImGui::PopStyleColor();
+                    drawDTWDiagram();
+                }
+            }
         }
     }
 
 private:
-    UIContext& m_Context;
+    UIContext &m_Context;
     std::vector<float> distances;
     std::vector<ImU32> colors;
     bool showDiagram = false;
+    int squat_sampleSize;
+    bool *selected;
     int alignment_length;
 };

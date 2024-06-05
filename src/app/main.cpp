@@ -1,9 +1,9 @@
 #include "ui_context.h"
 #include "display_helper.h"
+#include "motion_data.h"
 #include "imgui_layers.h"
 #include "layers.h"
 #include "tests.h"
-#include "motion_data.h"
 #include <iostream>
 #include <tuple>
 
@@ -112,6 +112,8 @@ int main() {
     std::string ref_file = R"(resources\motion_data\squats\expertise_01_single100_2_splitted_1.txt)";
     Input_parser* reference = new Input_parser(ref_file.c_str());
     std::vector<Frame> ref_frms = reference->get_frames();
+    for (auto& lab : ref_frms[0].labels)
+        std::cout << lab << std::endl;
     Trajectories* ref_trajcts = new Trajectories(ref_frms);
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
@@ -128,7 +130,9 @@ int main() {
     std::cout << std::get<1>(alignment).size() << std::endl;
     std::tuple mat{matrixx,std::get<1>(alignment), n, m};
     context->matrix = &mat;
-    std::string squats_info = R"(resources\squats_subject_info.csv)";
+    const char* squats_info = R"(resources\squats_subject_info.csv)";
+    std::vector<motion_data> info = motion_info(squats_info);
+    context->motion_files = &info;
     if (display(ref_frms, input_frames, context, alignment)) {
         std::cout << "Render Error" << std::endl;
     }

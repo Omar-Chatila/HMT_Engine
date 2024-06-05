@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include "motion_data.h"
 #include "trajectory_analysis.h"
 
 constexpr float ar = 16.0f / 9.0f;
@@ -55,6 +56,7 @@ public:
     std::tuple<float*, std::vector<int>, int, int> *matrix;
     float cost;
     int c_frame;
+    std::vector<motion_data> *motion_files;
 
     ~UIContext() {
         free(std::get<0>(*matrix));

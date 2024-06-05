@@ -28,6 +28,9 @@ namespace Joint {
     };
 }
 
+enum Error {
+
+};
 
 struct Vec3D {
     float x, y, z;
@@ -82,14 +85,18 @@ struct Frame {
     }
 };
 
-inline std::string cropString(const std::string& input) {
-    size_t lastSlash = input.rfind('\\');
+inline std::string cropString(const std::string& input, char token) {
+    size_t lastSlash = input.rfind(token);
     size_t lastDot = input.rfind('.');
     if (lastSlash == std::string::npos || lastDot == std::string::npos || lastSlash >= lastDot) {
         return input;  // Return the original string if conditions aren't met
     }
     return input.substr(lastSlash + 1, lastDot - lastSlash - 1);
 }
+inline std::string cropString(const std::string& input) {
+    return cropString(input, '\\');
+}
+
 
 inline std::vector<std::string> readAllLines(const char* p_file, int start_line) {
     std::ifstream file(p_file);

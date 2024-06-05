@@ -20,7 +20,7 @@ struct motion_data {
     int experience_trainer;
 };
 
-static std::vector<motion_data> motion_info(const char* file) {
+std::vector<motion_data> motion_info(const char* file) {
     auto lines = readAllLines(file, 0);
     std::vector<motion_data> result;
     for (auto& line : lines) {
