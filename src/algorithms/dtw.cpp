@@ -24,16 +24,6 @@ float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std:
              S[current] = cost + std::min({S[above], S[left], S[diag_left]});
         }
     }
-
-    std::ofstream outfile("output.txt");
-
-    for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j <= m; ++j) {
-            outfile << ", " << S[i * (m + 1) + j];
-        }
-        outfile << std::endl;
-    }
-
     return S;
 }
 
@@ -55,15 +45,6 @@ float *Dtw::dtw(const std::vector<Quaternion*> &inp_traj, const std::vector<Quat
             float cost = func(inp_traj[i - 1], ref_traj[j - 1]);
             S[current] = cost + std::min({S[above], S[left], S[diag_left]});
         }
-    }
-
-    std::ofstream outfile("output.txt");
-
-    for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j <= m; ++j) {
-            outfile << ", " << S[i * (m + 1) + j];
-        }
-        outfile << std::endl;
     }
     return S;
 }

@@ -2,6 +2,8 @@
 #include <cmath>
 #include <iostream>
 
+#define M_PI 3.14159265358979323846
+
 Sphere::Sphere(float radius, int sectorCount, int stackCount) {
     generateSphere(radius, sectorCount, stackCount);
     setupBuffers();

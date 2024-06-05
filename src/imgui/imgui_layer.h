@@ -241,12 +241,12 @@ public:
                 for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
                     auto pers = m_Context.motion_files->at(row_n);
                     // Display a data item
-                    ImGui::PushID(row_n);
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
-                    ImGui::Checkbox("", &selected[row_n]);
+                    ImGui::PushID(row_n);
+                    ImGui::Checkbox("##active", &selected[row_n]);
                     ImGui::TableNextColumn();
-                    ImGui::Text("%04d", row_n);
+                    ImGui::Text("%02d", row_n);
                     ImGui::TableNextColumn();
                     ImGui::TextUnformatted(pers.motion_file.c_str());  // File
                     ImGui::TableNextColumn();
@@ -266,9 +266,24 @@ public:
                     ImGui::PopID();
                 }
             ImGui::EndTable();
+        }
+    }
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
+    void show_DTW_Options() {
+        if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
+            ImGui::SameLine();
+            ImGui::Checkbox("Show Heatmap", &showDiagram);
+            if (showDiagram) {
+                ImGui::SameLine();
+                ImGuiStyle *style = &ImGui::GetStyle();
+                char txt_green[] = "text green";
+                style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
+                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+                ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
+                ImGui::PopStyleColor();
+                drawDTWDiagram();
+            }
         }
     }
 
@@ -286,21 +301,9 @@ public:
             if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
                 show_selectionTable();
             }
-            if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
-                ImGui::SameLine();
-                ImGui::Checkbox("Show Heatmap", &showDiagram);
-                if (showDiagram) {
-                    ImGui::SameLine();
-                    ImGuiStyle *style = &ImGui::GetStyle();
-                    char txt_green[] = "text green";
-                    style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
-                    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-                    ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
-                    ImGui::PopStyleColor();
-                    drawDTWDiagram();
-                }
-            }
+            show_DTW_Options();
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
         }
     }
 

@@ -18,7 +18,7 @@ OBJ = $(SRC:%.cpp=$(OUTPUT_DIR)/%.o)
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3 -MMD -MP
+CXXFLAGS = -O3 -MMD -MP -std=c++23
 
 # Dependency files
 DEP = $(OBJ:.o=.d)
@@ -28,6 +28,9 @@ DEP = $(OBJ:.o=.d)
 
 # Default target
 default: $(TARGET)
+
+debug: CXXFLAGS += -g
+debug: $(TARGET)
 
 # Build the project
 $(TARGET): $(OBJ)
