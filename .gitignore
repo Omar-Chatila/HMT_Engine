@@ -1,4 +1,3 @@
-imgui.ini
-build/project.exe
-build/project.exe
-imgui.ini
+.vscode/c_cpp_properties.json
+src/run.exe
+.vscode/settings.json
