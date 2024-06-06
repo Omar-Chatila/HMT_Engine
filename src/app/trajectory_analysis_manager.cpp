@@ -22,7 +22,7 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 void TrajectoryAnalysisManager::performAnalysis() {
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories());
     context->cost = std::get<0>(alignment);
-    analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
+    //analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 }
 
 void TrajectoryAnalysisManager::updateContext() {

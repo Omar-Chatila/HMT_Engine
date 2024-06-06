@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "trajectory_analysis_manager.h"
+#include "motion_file_processor.h"
 
 int main() {
     UIContext *context = new UIContext();
@@ -8,11 +9,17 @@ int main() {
     TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(input_file, ref_file, context);
     manager->performAnalysis();
     manager->updateContext();
-
     Renderer *renderer = new Renderer(context);
+    /*
+    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
+    motionFileProcessor->processAllFiles();
+    delete motionFileProcessor;
+     */
     int code = renderer->display(manager);
 
     delete renderer;
     delete manager;
+    delete context;
+
     return code;
 }
