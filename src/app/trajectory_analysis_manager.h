@@ -19,14 +19,14 @@ public:
     void performAnalysis();
     void updateContext();
     void render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view, Sphere& sphere, Shader& sphereShader);
-    std::vector<Frame> inputFrames;
-    std::vector<Frame> refFrames;
-    std::tuple<float, std::vector<int>, float*> alignment;
 
 private:
     UIContext* context;
     std::string inputFile;
     std::string refFile;
+    std::vector<Frame> inputFrames;
+    std::vector<Frame> refFrames;
+    std::tuple<float, std::vector<int>, float*> alignment;
     Input_parser* inputParser;
     Input_parser* refParser;
     Trajectories* inputTrajectories;

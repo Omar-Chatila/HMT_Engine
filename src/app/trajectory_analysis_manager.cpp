@@ -40,9 +40,5 @@ void TrajectoryAnalysisManager::updateContext() {
     context->motion_files = &info;
 }
 
-void TrajectoryAnalysisManager::render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view, Sphere& sphere, Shader& sphereShader) {
-     if (display(refFrames, inputFrames, context, alignment)) {
-        std::cout << "Render Error" << std::endl;
-    } 
-}
- */
+
+  */

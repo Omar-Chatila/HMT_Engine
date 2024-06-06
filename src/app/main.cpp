@@ -118,6 +118,7 @@ int main() {
 
     Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
     std::tuple<float, std::vector<int>, float*> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
+    context->costmatrix =  Dtw::get_cost_matrix(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories(), quaternion_dist);
     context->cost = std::get<0>(alignment);
     std::cout << "Cost: " << std::get<0>(alignment) << std::endl;
     //std::cout << "EDR: " << analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0) << std::endl;

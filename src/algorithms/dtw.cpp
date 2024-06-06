@@ -49,6 +49,27 @@ float *Dtw::dtw(const std::vector<Quaternion*> &inp_traj, const std::vector<Quat
     return S;
 }
 
+float* Dtw::get_cost_matrix(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj, std::function<float(const Quaternion*, const Quaternion*)> func) {
+    const int n = inp_traj.size();
+    const int m = ref_traj.size();
+
+    float *S = (float*) calloc((n + 1) * (m + 1), sizeof(float));
+    S[0] = 0;
+    for (int i = 1; i <= n; ++i) {
+        S[i * (m + 1)] = std::numeric_limits<float>::infinity();;
+    }
+    for (int j = 1; j <= m; ++j) {
+        S[j] = std::numeric_limits<float>::infinity();
+    }
+
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= m; ++j) {
+            S[current] = func(inp_traj[i - 1], ref_traj[j - 1]);
+        }
+    }
+    return S;
+}
+
 std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matrix, int n, int m) {
     int index = (m + 1) * (n + 1) - 1;
     std::vector<int> alignment;

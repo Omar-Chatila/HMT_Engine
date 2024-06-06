@@ -54,6 +54,7 @@ public:
     Distances dist_func;
     Trajectoy_analysis *analysis;
     std::tuple<float*, std::vector<int>, int, int> *matrix;
+    float* costmatrix;
     float cost;
     int c_frame;
     std::vector<motion_data> *motion_files;
