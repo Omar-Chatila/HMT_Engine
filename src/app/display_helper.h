@@ -9,6 +9,7 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+#include "ui_context.h"
 #include "Shader.h"
 #include "Sphere.h"
 #include "input_parser.h"

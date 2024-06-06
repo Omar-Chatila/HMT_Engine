@@ -4,12 +4,17 @@
 #include "trajectory_analysis.h"
 #include "input_parser.h"
 #include "ui_context.h"
-#include "renderer.h"
-#include "motion_data.h"
 #include <vector>
 #include <string>
 #include <tuple>
 #include <iostream>
+
+struct DisplayRequirements {
+    std::vector<Frame> &ref_frames;
+    std::vector<Frame> &inp_frames;
+    UIContext *context;
+    std::tuple<float, std::vector<int>, float*> &alignment;
+};
 
 class TrajectoryAnalysisManager {
 public:
@@ -18,7 +23,7 @@ public:
 
     void performAnalysis();
     void updateContext();
-    void render(Renderer& renderer, const glm::mat4& projection, const glm::mat4& view, Sphere& sphere, Shader& sphereShader);
+    DisplayRequirements displayRequirements();
 
 private:
     UIContext* context;

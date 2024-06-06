@@ -1,15 +1,13 @@
-/* #include "trajectory_analysis_manager.h"
+#include "trajectory_analysis_manager.h"
 
 TrajectoryAnalysisManager::TrajectoryAnalysisManager(const std::string& inputFile, const std::string& refFile, UIContext* context)
     : inputFile(inputFile), refFile(refFile), context(context), inputParser(nullptr), refParser(nullptr), inputTrajectories(nullptr), refTrajectories(nullptr), analysis(nullptr) {
     inputParser = new Input_parser(inputFile.c_str());
     inputFrames = inputParser->get_frames();
     inputTrajectories = new Trajectories(inputFrames);
-
     refParser = new Input_parser(refFile.c_str());
     refFrames = refParser->get_frames();
     refTrajectories = new Trajectories(refFrames);
-
     analysis = new Trajectoy_analysis(*inputTrajectories, *refTrajectories);
 }
 
@@ -33,12 +31,12 @@ void TrajectoryAnalysisManager::updateContext() {
     int n = inputTrajectories->get_anglesTrajectories().size();
     int m = refTrajectories->get_anglesTrajectories().size();
     float* matrixx = std::get<2>(alignment);
-    std::tuple mat{matrixx, std::get<1>(alignment), n, m};
-    context->matrix = &mat;
+    auto mat = new std::tuple{matrixx, std::get<1>(alignment), n, m};
+    context->matrix = mat;
     const char* squats_info = R"(resources\squats_subject_info.csv)";
-    std::vector<motion_data> info = motion_info(squats_info);
-    context->motion_files = &info;
+    context->motion_files = motion_info(squats_info);
 }
 
-
-  */
+DisplayRequirements TrajectoryAnalysisManager::displayRequirements() {
+    return {this->refFrames, this->inputFrames, this->context, this->alignment};
+}

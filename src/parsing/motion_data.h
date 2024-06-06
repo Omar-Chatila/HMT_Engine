@@ -1,6 +1,4 @@
-#ifndef MOTION_DATA_H
-#define MOTION_DATA_H
-
+#pragma once
 #include <vector>
 #include <string>
 #include "util.h"
@@ -20,14 +18,14 @@ struct motion_data {
     int experience_trainer;
 };
 
-std::vector<motion_data> motion_info(const char* file) {
+inline std::vector<motion_data>* motion_info(const char* file) {
     auto lines = readAllLines(file, 0);
-    std::vector<motion_data> result;
+    auto result = new std::vector<motion_data>();
     for (auto& line : lines) {
         std::cout << line << std::endl;
         motion_data data{};
         auto elements = split(line, ',');
-        
+
         data.motion_file = elements[0];
         data.sex = elements[1].c_str()[0];
         data.age = atoi(elements[2].c_str());
@@ -40,9 +38,7 @@ std::vector<motion_data> motion_info(const char* file) {
         data.expertise_practical = atoi(elements[8].c_str());
         data.expertise_theoretical = atoi(elements[9].c_str());
         data.experience_trainer = atoi(elements[10].c_str());
-        result.push_back(data);
+        result->push_back(data);
     }
-    return result;
+    return result;  // Returning the address of the dynamically allocated vector
 }
-
-#endif

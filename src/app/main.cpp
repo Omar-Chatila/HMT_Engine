@@ -1,13 +1,16 @@
-#include "ui_context.h"
 #include "display_helper.h"
-#include "motion_data.h"
 #include "imgui_layers.h"
 #include "layers.h"
 #include "tests.h"
+#include "trajectory_analysis_manager.h"
 #include <iostream>
 #include <tuple>
 
-int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UIContext *context, std::tuple<float, std::vector<int>, float*> &alignment) {
+int display(TrajectoryAnalysisManager *manager) {
+    auto ref_frames = manager->displayRequirements().ref_frames;
+    auto inp_frames = manager->displayRequirements().inp_frames;
+    auto context = manager->displayRequirements().context;
+    auto alignment = manager->displayRequirements().alignment;
     GLFWwindow *window = init_window(context);
     
     // Compile and link shaders
@@ -24,7 +27,7 @@ int display(std::vector<Frame> &ref_frames, std::vector<Frame> &inp_frames, UICo
     int current_frame = 0;
     int map_index = 0;
 
-    ImGUI_Layers* app = new ImGUI_Layers(); 
+    ImGUI_Layers* app = new ImGUI_Layers();
     app->push_layer<ImGuiLayer>(*context); 
 
     while (!glfwWindowShouldClose(window)) {
@@ -101,47 +104,16 @@ int main() {
         ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
         input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
     }
-
     // Parse input trajectory
     std::string input_file = R"(resources\motion_data\squats\fb_41_pre_splitted_1.txt)";
-    Input_parser* input = new Input_parser(input_file.c_str());
-    std::vector<Frame> input_frames = input->get_frames();
-    Trajectories* input_trajectories = new Trajectories(input_frames);
-
     // Parse reference trajectory
     std::string ref_file = R"(resources\motion_data\squats\expertise_01_single100_2_splitted_1.txt)";
-    Input_parser* reference = new Input_parser(ref_file.c_str());
-    std::vector<Frame> ref_frms = reference->get_frames();
-    for (auto& lab : ref_frms[0].labels)
-        std::cout << lab << std::endl;
-    Trajectories* ref_trajcts = new Trajectories(ref_frms);
+    TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(input_file, ref_file, context);
+    manager->performAnalysis();
+    manager->updateContext();
 
-    Trajectoy_analysis* analysis = new Trajectoy_analysis(*input_trajectories, *ref_trajcts);
-    std::tuple<float, std::vector<int>, float*> alignment = analysis->perform_DTW(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories());
-    context->costmatrix =  Dtw::get_cost_matrix(input_trajectories->get_anglesTrajectories(), ref_trajcts->get_anglesTrajectories(), quaternion_dist);
-    context->cost = std::get<0>(alignment);
-    std::cout << "Cost: " << std::get<0>(alignment) << std::endl;
-    //std::cout << "EDR: " << analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0) << std::endl;
+    display(manager);
 
-    context->reference_file = cropString(ref_file).c_str();
-    context->input_file = cropString(input_file).c_str();
-    int n = input_trajectories->get_anglesTrajectories().size();
-    int m = ref_trajcts->get_anglesTrajectories().size();
-    float* matrixx = std::get<2>(alignment);
-    std::cout << std::get<1>(alignment).size() << std::endl;
-    std::tuple mat{matrixx,std::get<1>(alignment), n, m};
-    context->matrix = &mat;
-    const char* squats_info = R"(resources\squats_subject_info.csv)";
-    std::vector<motion_data> info = motion_info(squats_info);
-    context->motion_files = &info;
-    if (display(ref_frms, input_frames, context, alignment)) {
-        std::cout << "Render Error" << std::endl;
-    }
-
-    delete analysis;
-    delete ref_trajcts;
-    delete reference; 
-    delete input_trajectories;
-    delete input; 
+    delete manager;
     return 0;
 }

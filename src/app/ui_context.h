@@ -1,5 +1,4 @@
-#ifndef UI_CONTEXT_H
-#define UI_CONTEXT_H
+#pragma once
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -63,5 +62,3 @@ public:
         free(std::get<0>(*matrix));
     }
 };
-
-#endif // UI_CONTEXT_H
