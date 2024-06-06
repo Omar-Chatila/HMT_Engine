@@ -22,7 +22,6 @@ inline std::vector<motion_data>* motion_info(const char* file) {
     auto lines = readAllLines(file, 0);
     auto result = new std::vector<motion_data>();
     for (auto& line : lines) {
-        std::cout << line << std::endl;
         motion_data data{};
         auto elements = split(line, ',');
 
