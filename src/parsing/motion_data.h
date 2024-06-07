@@ -33,6 +33,8 @@ inline std::vector<motion_data>* motion_info(const char* file) {
         data.right_handed = atoi(elements[5].c_str());
         if (elements[6] != "nA")
             data.right_footed = atoi(elements[6].c_str());
+        else
+            data.right_footed = -1;
         data.expertise = atoi(elements[7].c_str());
         data.expertise_practical = atoi(elements[8].c_str());
         data.expertise_theoretical = atoi(elements[9].c_str());

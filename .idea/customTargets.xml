@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="0bf5c8a5-91f6-46ef-8163-38b11eede183" name="ming" defaultType="MAKE">
+      <configuration id="7cb43d7a-6151-445d-ac0a-11038599287e" name="ming" toolchainName="MinGW">
+        <build type="MAKE">
+          <make targetName="bin/DistanceMeasuresHMT_0.0.1" />
+        </build>
+      </configuration>
+    </target>
+  </component>
+</project>

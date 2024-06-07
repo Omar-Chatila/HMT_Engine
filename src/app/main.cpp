@@ -19,7 +19,7 @@ int main() {
 
     delete renderer;
     delete manager;
-    delete context;
 
     return code;
+
 }

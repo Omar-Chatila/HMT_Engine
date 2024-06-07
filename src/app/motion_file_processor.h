@@ -24,7 +24,7 @@ private:
     void initFileLocations();
 
 public:
-    MotionFileProcessor(enum Activity p_activity);
+    explicit MotionFileProcessor(enum Activity p_activity);
     ~MotionFileProcessor();
     void processAllFiles();
 };
