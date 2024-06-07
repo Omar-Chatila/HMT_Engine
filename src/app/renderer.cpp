@@ -6,10 +6,13 @@ Renderer::Renderer(UIContext *p_context) : context(p_context){
         input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
     }
     window = init_window(context);
+    init_fbo();
 }
 
 Renderer::Renderer(TrajectoryAnalysisManager *manager) {
-
+    glDeleteFramebuffers(1, &fbo);
+    glDeleteTextures(1, &fboTexture);
+    glDeleteRenderbuffers(1, &rbo);
 }
 
 Renderer::~Renderer() {
@@ -21,6 +24,30 @@ Renderer::~Renderer() {
     glfwTerminate();
 
     delete context;
+}
+
+GLuint fbo, fboTexture, rbo;
+
+void Renderer::init_fbo() {
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glGenTextures(1, &fboTexture);
+    glBindTexture(GL_TEXTURE_2D, fboTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, context->windowWidth, context->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
+
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, context->windowWidth, context->windowHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 int Renderer::display(TrajectoryAnalysisManager *manager) {
@@ -58,11 +85,17 @@ int Renderer::display(TrajectoryAnalysisManager *manager) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         app->activate();
-
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+        // Bind the FBO
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, context->windowWidth, context->windowHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        auto clear_color = context->clear_color;
+        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+
+        // Render your scene
         glm::mat4 view = glm::lookAt(context->camera_pos, context->center, context->camera_orientation);
         glm::mat4 projection = glm::perspective(glm::radians(context->fov), context->aspectRatio, 0.1f, 100.0f);
-
         sphereShader.use();
         sphereShader.setUniformMat4("view", view);
         sphereShader.setUniformMat4("projection", projection);
@@ -80,28 +113,33 @@ int Renderer::display(TrajectoryAnalysisManager *manager) {
         }
         current_frame++;
         draw_objects(projection, view, sphere, sphereShader);
-        glUseProgram(0);  // Unbind the line shader program
+        glUseProgram(0);
 
-        // Rendering
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // ImGui window to display the FBO texture
+        ImGui::Begin("Reference (left) vs Input (right)");
+        ImVec2 windowSize = ImGui::GetContentRegionAvail();
+        glViewport(0, 0, windowSize.x, windowSize.y);
+        ImGui::Image((void*)(intptr_t)fboTexture, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::End();
+
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        auto clear_color = context->clear_color;
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        //glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     return 0;
 }
+
 
 void Renderer::update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame) {
     for (int i = 0; i < JOINT_COUNT; i++) {
@@ -188,7 +226,7 @@ GLFWwindow *Renderer::init_window(UIContext *context) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "sdf", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "Window", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

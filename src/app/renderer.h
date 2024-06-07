@@ -30,6 +30,7 @@ private:
     std::vector<glm::vec3> input_spherePositions;
     UIContext *context;
     GLFWwindow *window;
+    GLuint fbo, fboTexture, rbo;
     const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
     const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
     const char *tex_vertexShaderPath = "src/shader/vertex_shader.glsl";
@@ -44,6 +45,8 @@ private:
     GLFWwindow* init_window(UIContext *context);
 
     ImGuiIO& init_imgui(GLFWwindow *window);
+
+    void init_fbo();
 
 public:
     Renderer(UIContext *p_context);

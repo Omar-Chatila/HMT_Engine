@@ -13,8 +13,10 @@
 class ImGuiLayer : public Layer
 {
 public:
-    ImGuiLayer(UIContext &context) : m_Context(context)
-    {
+    ImGuiLayer(UIContext &context) : m_Context(context) {
+        ImGui::CreateContext();
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         squat_sampleSize = this->m_Context.motion_files->size();
         selected = (bool*) (calloc(squat_sampleSize, sizeof(bool)));
         precomputeDistancesAndColors();
@@ -23,6 +25,7 @@ public:
     void UpdateFOVWithScroll()
     {
         ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         if (io.MouseWheel != 0.0f)
         {
             m_Context.fov -= io.MouseWheel * 2;
@@ -283,6 +286,28 @@ public:
     }
 
     virtual void onRender() override {
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+        // Set up the main dock space
+        ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize(viewport->Size);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+                | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+        ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+        ImGui::PopStyleVar(2);
+
+        // Create the dock space
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+
+        ImGui::End();
+
         static bool show_demo_window = true;
         static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 

@@ -14,7 +14,7 @@ public:
     UIContext() : 
     camera_pos({glm::vec3(2.0f, 2.0f, 2.0f)}), 
     aspectRatio(ar),
-    clear_color({0.45f, 0.55f, 0.80f, 1.00f}), 
+    clear_color({0.25f, 0.35f, 0.60f, 0.80f}),
     fov(45.0f), 
     windowHeight(720), 
     windowWidth(1280), 
