@@ -140,10 +140,8 @@ public:
             {0, 0, 255, 255}    // Blue
         };
 
-        for (int i = 0; i <= n; i++)
-        {
-            for (int j = 0; j <= m; j++)
-            {
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
                 int index = i * (m + 1) + j;
                 bool isAligned = (std::find(align_path.begin(), align_path.end(), index) != align_path.end());
                 if (isAligned)
@@ -159,8 +157,7 @@ public:
         }
     }
 
-    void drawDTWDiagram()
-    {
+    void drawDTWDiagram() {
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
         const ImVec2 p = ImGui::GetCursorScreenPos();
         int n = std::get<2>(*m_Context.matrix);
@@ -169,10 +166,8 @@ public:
         float xPos = p.x;
         float yPos = p.y;
 
-        for (int i = 0; i <= n; i++)
-        {
-            for (int j = 0; j <= m; j++)
-            {
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
                 int index = i * (m + 1) + j;
                 ImU32 color = colors[index];
                 draw_list->AddRectFilled(ImVec2(xPos, yPos), ImVec2(xPos + rect_size, yPos + rect_size), color);

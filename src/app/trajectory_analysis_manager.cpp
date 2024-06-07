@@ -34,8 +34,6 @@ void TrajectoryAnalysisManager::updateContext() {
     float* matrixx = std::get<2>(alignment);
     auto mat = new std::tuple{matrixx, std::get<1>(alignment), n, m};
     context->matrix = mat;
-    const char* squats_info = R"(resources\squats_subject_info.csv)";
-    context->motion_files = motion_info(squats_info);
 }
 
 float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {

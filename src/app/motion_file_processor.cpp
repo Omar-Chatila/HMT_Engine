@@ -46,7 +46,6 @@ void MotionFileProcessor::processAllFiles() {
 }
 
 void MotionFileProcessor::processInputFile(const std::string &input) {
-    UIContext *context = new UIContext();
     std::string inp_file;
     if (activity == SQUATS) {
         inp_file = std::string(rootDirectory) + "squats/" + input;
@@ -54,10 +53,11 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
         inp_file = std::string(rootDirectory) + "taichi/" + input;
     }
     for (const auto& refFile : ref_files) {
+        UIContext *context = new UIContext();
         TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inp_file, refFile, context);
         manager->performAnalysis();
         trajectoryManagers.push_back(manager);
-        std::cout << manager->displayRequirements().context->cost << std::endl;
+        std::cout << "Cost: " << manager->displayRequirements().context->cost << std::endl;
     }
 }
 
@@ -71,6 +71,8 @@ TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm a
             closest = manager;
         }
     }
+    std::cout << "Min Cost: " <<  minCost << std::endl;
     closest->updateContext();
+    std::cout << closest->displayRequirements().context->reference_file << std::endl;
     return closest;
 }

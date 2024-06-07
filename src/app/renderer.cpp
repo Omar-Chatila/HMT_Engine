@@ -28,7 +28,6 @@ int Renderer::display(TrajectoryAnalysisManager *manager) {
     auto inp_frames = manager->displayRequirements().inp_frames;
     auto context = manager->displayRequirements().context;
     auto alignment = manager->displayRequirements().alignment;
-
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
     Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
