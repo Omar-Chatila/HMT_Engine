@@ -29,7 +29,7 @@ private:
     std::vector<glm::vec3> ref_spherePositions;
     std::vector<glm::vec3> input_spherePositions;
     UIContext *context;
-    GLFWwindow* window;
+    GLFWwindow *window;
     const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
     const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
     const char *tex_vertexShaderPath = "src/shader/vertex_shader.glsl";
@@ -47,6 +47,8 @@ private:
 
 public:
     Renderer(UIContext *p_context);
+
+    Renderer(TrajectoryAnalysisManager *manager);
 
     ~Renderer();
 

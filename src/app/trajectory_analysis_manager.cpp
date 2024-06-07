@@ -22,6 +22,7 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 void TrajectoryAnalysisManager::performAnalysis() {
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories());
     context->cost = std::get<0>(alignment);
+    algorithms_results[DTW] = std::get<0>(alignment);
     //analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 }
 
@@ -35,6 +36,10 @@ void TrajectoryAnalysisManager::updateContext() {
     context->matrix = mat;
     const char* squats_info = R"(resources\squats_subject_info.csv)";
     context->motion_files = motion_info(squats_info);
+}
+
+float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
+    return algorithms_results[algorithm];
 }
 
 DisplayRequirements TrajectoryAnalysisManager::displayRequirements() {

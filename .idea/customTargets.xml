@@ -6,6 +6,9 @@
         <build type="MAKE">
           <make targetName="bin/DistanceMeasuresHMT_0.0.1" />
         </build>
+        <clean type="MAKE">
+          <make targetName="rm -rf build" />
+        </clean>
       </configuration>
     </target>
   </component>

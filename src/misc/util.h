@@ -41,8 +41,7 @@ struct Vec3D {
     }
 };
 
-struct Quaternion
-{
+struct Quaternion {
     float w, x, y, z;
 
     friend std::ostream& operator<<(std::ostream& os, const Quaternion& quat) {

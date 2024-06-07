@@ -35,18 +35,42 @@ void MotionFileProcessor::initFileLocations() {
 
 void MotionFileProcessor::processAllFiles() {
     std::cout << "Create all Trajectories" << std::endl;
-    int inp_index = 0;
-    int ref_index = 0;
     for (const auto& inputFile : input_files) {
-        ref_index = 0;
+        UIContext *c = new UIContext();
         for (const auto& refFile : ref_files) {
-            UIContext *c = new UIContext();
             TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inputFile, refFile, c);
             manager->performAnalysis();
             trajectoryManagers.push_back(manager);
-            std::cout << inp_index << ":" << ref_index << std::endl;
-            ref_index++;
         }
-        inp_index++;
     }
+}
+
+void MotionFileProcessor::processInputFile(const std::string &input) {
+    UIContext *context = new UIContext();
+    std::string inp_file;
+    if (activity == SQUATS) {
+        inp_file = std::string(rootDirectory) + "squats/" + input;
+    } else {
+        inp_file = std::string(rootDirectory) + "taichi/" + input;
+    }
+    for (const auto& refFile : ref_files) {
+        TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inp_file, refFile, context);
+        manager->performAnalysis();
+        trajectoryManagers.push_back(manager);
+        std::cout << manager->displayRequirements().context->cost << std::endl;
+    }
+}
+
+TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm algorithm) {
+    float minCost = 1000000.0f;
+    TrajectoryAnalysisManager* closest = trajectoryManagers.front();
+    for (const auto manager : trajectoryManagers) {
+        auto currentResult = manager->getAlgorithmResult(algorithm);
+        if (currentResult < minCost) {
+            minCost = currentResult;
+            closest = manager;
+        }
+    }
+    closest->updateContext();
+    return closest;
 }

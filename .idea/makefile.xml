@@ -11,6 +11,17 @@
           </build-configuration>
         </build-configurations>
       </build-target>
+      <build-target name="rm -rf build">
+        <build-configurations>
+          <build-configuration toolchainName="MinGW">
+            <make-targets>
+              <make-target>rm</make-target>
+              <make-target>-rf</make-target>
+              <make-target>build</make-target>
+            </make-targets>
+          </build-configuration>
+        </build-configurations>
+      </build-target>
     </user-build-targets>
   </component>
 </project>

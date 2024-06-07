@@ -37,6 +37,7 @@ float EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float ep
         }
         outfile << std::endl;
     }
-
-    return S[(n + 1) * (m + 1) - 1];
+    float result = (n + 1) * (m + 1) - 1;
+    free(S);
+    return result;
 }

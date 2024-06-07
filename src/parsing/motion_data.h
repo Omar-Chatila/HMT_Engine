@@ -41,5 +41,5 @@ inline std::vector<motion_data>* motion_info(const char* file) {
         data.experience_trainer = atoi(elements[10].c_str());
         result->push_back(data);
     }
-    return result;  // Returning the address of the dynamically allocated vector
+    return result;
 }

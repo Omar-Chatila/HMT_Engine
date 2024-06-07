@@ -27,6 +27,8 @@ public:
     explicit MotionFileProcessor(enum Activity p_activity);
     ~MotionFileProcessor();
     void processAllFiles();
+    void processInputFile(const std::string &input);
+    TrajectoryAnalysisManager* getClosestMatch(enum Algorithm algorithm);
 };
 
 

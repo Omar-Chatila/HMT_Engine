@@ -8,6 +8,10 @@ Renderer::Renderer(UIContext *p_context) : context(p_context){
     window = init_window(context);
 }
 
+Renderer::Renderer(TrajectoryAnalysisManager *manager) {
+
+}
+
 Renderer::~Renderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
