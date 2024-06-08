@@ -6,7 +6,9 @@
 #include <regex>
 #include <string>
 #include <algorithm>
+#include "motion_file_processor.h"
 #include "trajectory_analysis_manager.h"
+//#include "Engine.h" // this line fucks everything up!!!
 
 enum Activity {
     SQUATS,
@@ -31,5 +33,4 @@ public:
     TrajectoryAnalysisManager* getClosestMatch(enum Algorithm algorithm);
 };
 
-
-#endif //DISTANCEMEASURES_HMT_MOTION_FILE_PROCESSOR_H
+#endif

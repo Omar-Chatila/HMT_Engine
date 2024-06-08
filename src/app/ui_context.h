@@ -23,7 +23,10 @@ public:
     aligned(false), 
     squats(true), 
     vsync(true),
-    c_frame(0){}
+    c_frame(0){
+        const char* squats_info = R"(resources\squats_subject_info.csv)";
+        this->motion_files = motion_info(squats_info);
+    }
 
     bool vsync;
     bool aligned;

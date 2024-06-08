@@ -1,5 +1,4 @@
-#ifndef TRAJECTORY_ANALYSIS_MANAGER_H
-#define TRAJECTORY_ANALYSIS_MANAGER_H
+#pragma once
 
 #include "trajectory_analysis.h"
 #include "input_parser.h"
@@ -26,6 +25,10 @@ struct DisplayRequirements {
     std::vector<Frame> &inp_frames;
     UIContext *context;
     std::tuple<float, std::vector<int>, float*> &alignment;
+
+    ~DisplayRequirements() {
+        delete context;
+    }
 };
 
 class TrajectoryAnalysisManager {
@@ -36,7 +39,7 @@ public:
     void performAnalysis();
     void updateContext();
     float getAlgorithmResult(enum Algorithm algorithm);
-    DisplayRequirements displayRequirements();
+    DisplayRequirements *displayRequirements();
 
 private:
     UIContext* context;
@@ -52,6 +55,3 @@ private:
     Trajectories* refTrajectories;
     Trajectoy_analysis* analysis;
 };
-
-
-#endif
