@@ -153,7 +153,11 @@ int Renderer::display(TrajectoryAnalysisManager *manager) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // ImGui window for FBO1
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2.0f, 2.0f));  // Adjust window padding
+
+
         ImGui::Begin("Reference Viewport");
         ImVec2 windowSize1 = ImGui::GetContentRegionAvail();
         ImGui::Image((void*)(intptr_t)fboTexture1, windowSize1, ImVec2(0, 1), ImVec2(1, 0));
@@ -165,6 +169,7 @@ int Renderer::display(TrajectoryAnalysisManager *manager) {
         ImGui::Image((void*)(intptr_t)fboTexture2, windowSize2, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
 
+        ImGui::PopStyleVar(3);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

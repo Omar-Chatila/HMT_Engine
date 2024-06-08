@@ -17,7 +17,7 @@ public:
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        squat_sampleSize = this->m_Context.motion_files->size();
+        squat_sampleSize = this->m_Context.motion_files->size() - 16;
         selected = (bool*) (calloc(squat_sampleSize, sizeof(bool)));
         precomputeDistancesAndColors();
     }
@@ -217,9 +217,9 @@ public:
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
 
         if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 10 * 15), 0.0f)) {
-            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
             ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
-            ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
+            ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
             ImGui::TableSetupColumn("Sex", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
             ImGui::TableSetupColumn("Age", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
             ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
@@ -231,18 +231,16 @@ public:
             ImGui::TableSetupScrollFreeze(0, 1); // Make row always visible
             ImGui::TableHeadersRow();
 
-            // Demonstrate using clipper for large vertical lists
-
             ImGuiListClipper clipper;
-            clipper.Begin(squat_sampleSize);
+            clipper.Begin(squat_sampleSize - 16);
             while (clipper.Step())
                 for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
-                    auto pers = m_Context.motion_files->at(row_n);
+                    auto pers = m_Context.motion_files->at(row_n  + 16);
                     // Display a data item
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::PushID(row_n);
-                    ImGui::Checkbox("##active", &selected[row_n]);
+                    ImGui::RadioButton("##active", &selected_index, row_n);
                     ImGui::TableNextColumn();
                     ImGui::Text("%02d", row_n);
                     ImGui::TableNextColumn();
@@ -285,7 +283,7 @@ public:
         }
     }
 
-    virtual void onRender() override {
+    void onRender() override {
         ImGuiIO& io = ImGui::GetIO();
         ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -294,13 +292,15 @@ public:
         ImGui::SetNextWindowSize(viewport->Size);
         ImGui::SetNextWindowViewport(viewport->ID);
 
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
-                | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse|
+                                        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));  // Adjust window padding
 
         ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
-        ImGui::PopStyleVar(2);
+        ImGui::PopStyleVar(3);  // Pop all style vars at once
 
         // Create the dock space
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -308,12 +308,14 @@ public:
 
         ImGui::End();
 
-        static bool show_demo_window = true;
-        static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        // Now render your UI
         {
+            static bool show_demo_window = true;
+            static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+            if (show_demo_window)
+                ImGui::ShowDemoWindow(&show_demo_window);
+
             ImGui::Begin("Visualizer for Motion Data");
 
             showCameraOptions();
@@ -333,6 +335,6 @@ private:
     std::vector<ImU32> colors;
     bool showDiagram = false;
     int squat_sampleSize;
-    bool *selected;
+    int selected_index = -1;
     int alignment_length;
 };

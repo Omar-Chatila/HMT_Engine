@@ -57,7 +57,6 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
         TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inp_file, refFile, context);
         manager->performAnalysis();
         trajectoryManagers.push_back(manager);
-        std::cout << "Cost: " << manager->displayRequirements().context->cost << std::endl;
     }
 }
 
@@ -71,8 +70,6 @@ TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm a
             closest = manager;
         }
     }
-    std::cout << "Min Cost: " <<  minCost << std::endl;
     closest->updateContext();
-    std::cout << closest->displayRequirements().context->reference_file << std::endl;
     return closest;
 }
