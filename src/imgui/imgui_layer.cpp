@@ -220,6 +220,7 @@ void ImGuiLayer::show_selectionTable() {
                     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
                     motionFileProcessor->processInputFile(std::string(file));
                     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
+                    manager->updateDisplayRequirements();
                 }
                 ImGui::TableNextColumn();
                 ImGui::Text("%02d", row_n);

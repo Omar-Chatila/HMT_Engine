@@ -5,10 +5,10 @@ build/src/app/engine.o: src/app/engine.cpp src/app/Engine.h \
  src/algorithms/trajectory_analysis.h src/parsing/trajectories.h \
  src/misc/util.h src/algorithms/distance_measures.h src/algorithms/dtw.h \
  src/algorithms/edit_distance.h src/parsing/input_parser.h \
- src/app/ui_context.h src/parsing/motion_data.h src/opengl/Shader.h \
- src/opengl/Sphere.h src/opengl/line.h src/imgui/imgui_layers.h \
- src/imgui/Layer.h src/imgui/layers.h src/imgui/example_layer.h \
- src/imgui/imgui_layer.h
+ src/app/display_requirements.h src/app/ui_context.h \
+ src/parsing/motion_data.h src/opengl/Shader.h src/opengl/Sphere.h \
+ src/opengl/line.h src/imgui/imgui_layers.h src/imgui/Layer.h \
+ src/imgui/layers.h src/imgui/example_layer.h src/imgui/imgui_layer.h
 src/app/Engine.h:
 include/GLFW/glfw3.h:
 include/imgui/imgui.h:
@@ -25,6 +25,7 @@ src/algorithms/distance_measures.h:
 src/algorithms/dtw.h:
 src/algorithms/edit_distance.h:
 src/parsing/input_parser.h:
+src/app/display_requirements.h:
 src/app/ui_context.h:
 src/parsing/motion_data.h:
 src/opengl/Shader.h:

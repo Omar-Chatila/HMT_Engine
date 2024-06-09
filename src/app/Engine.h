@@ -36,9 +36,6 @@ private:
     GLuint fbo1, fboTexture1, rbo1;
     GLuint fbo2, fboTexture2, rbo2;
 
-    DisplayRequirements *dispReq;
-
-
     void update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame);
     void draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphere, Shader &sphereShader);
     void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping);
@@ -48,8 +45,7 @@ private:
     void draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context);
 
 public:
-    Renderer(TrajectoryAnalysisManager *manager);
+    Renderer();
     ~Renderer();
     int display();
-    void setDisplayRequirements(DisplayRequirements *p_req);
 };

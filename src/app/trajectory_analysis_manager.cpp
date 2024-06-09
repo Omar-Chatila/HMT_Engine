@@ -40,6 +40,9 @@ float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
     return algorithms_results[algorithm];
 }
 
-DisplayRequirements* TrajectoryAnalysisManager::displayRequirements() {
-    return new DisplayRequirements{this->refFrames, this->inputFrames, this->context, this->alignment};
+void TrajectoryAnalysisManager::updateDisplayRequirements() {
+    DisplayRequirements::getInstance()->setAlignment(this->alignment);
+    DisplayRequirements::getInstance()->setInpFrames(this->inputFrames);
+    DisplayRequirements::getInstance()->setRefFrames(this->refFrames);
+    DisplayRequirements::getInstance()->setContext(this->context);
 }

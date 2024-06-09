@@ -7,9 +7,10 @@ build/src/imgui/imgui_layer.o: src/imgui/imgui_layer.cpp \
  include/GLFW/glfw3.h include/imgui/imgui_impl_glfw.h \
  include/imgui/imgui_impl_opengl3.h src/misc/enums.h src/misc/util.h \
  src/app/trajectory_analysis_manager.h src/parsing/input_parser.h \
- src/opengl/Shader.h src/opengl/Sphere.h src/opengl/line.h \
- src/imgui/imgui_layers.h src/imgui/layers.h src/imgui/example_layer.h \
- src/app/motion_file_processor.h src/app/motion_file_processor.h
+ src/app/display_requirements.h src/opengl/Shader.h src/opengl/Sphere.h \
+ src/opengl/line.h src/imgui/imgui_layers.h src/imgui/layers.h \
+ src/imgui/example_layer.h src/app/motion_file_processor.h \
+ src/app/motion_file_processor.h
 src/imgui/imgui_layer.h:
 src/imgui/Layer.h:
 src/app/ui_context.h:
@@ -30,6 +31,7 @@ src/misc/enums.h:
 src/misc/util.h:
 src/app/trajectory_analysis_manager.h:
 src/parsing/input_parser.h:
+src/app/display_requirements.h:
 src/opengl/Shader.h:
 src/opengl/Sphere.h:
 src/opengl/line.h:

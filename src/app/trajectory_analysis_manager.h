@@ -2,6 +2,7 @@
 
 #include "trajectory_analysis.h"
 #include "input_parser.h"
+#include "display_requirements.h"
 #include "ui_context.h"
 #include <vector>
 #include <array>
@@ -20,17 +21,6 @@ enum Algorithm {
     LCSS
 };
 
-struct DisplayRequirements {
-    std::vector<Frame> &ref_frames;
-    std::vector<Frame> &inp_frames;
-    UIContext *context;
-    std::tuple<float, std::vector<int>, float*> &alignment;
-
-    ~DisplayRequirements() {
-        delete context;
-    }
-};
-
 class TrajectoryAnalysisManager {
 public:
     TrajectoryAnalysisManager(const std::string& inputFile, const std::string& refFile, UIContext* context);
@@ -39,9 +29,10 @@ public:
     void performAnalysis();
     void updateContext();
     float getAlgorithmResult(enum Algorithm algorithm);
-    DisplayRequirements *displayRequirements();
+    void updateDisplayRequirements();
 
 private:
+    DisplayRequirements *displayRequ;
     UIContext* context;
     std::string inputFile;
     std::string refFile;

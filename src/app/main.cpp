@@ -5,10 +5,14 @@ int main() {
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char* default_file = "fb_41_pre_splitted_1.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
+    DisplayRequirements* disp_req = DisplayRequirements::getInstance();
     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
-    Renderer* rend = new Renderer(manager);
+    manager->updateDisplayRequirements();
+    Renderer* rend = new Renderer();
     rend->display();
 
+    delete rend;
+    delete manager;
     delete motionFileProcessor;
 
     return 0;
