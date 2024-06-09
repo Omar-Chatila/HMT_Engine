@@ -5,11 +5,11 @@ TARGET := bin/$(PROJECT_NAME)_$(PROJECT_VERSION)
 OUTPUT_DIR = build
 
 # Directories
-INCLUDE_DIRS = -Iinclude -Iinclude/imgui -Iinclude/glm -Iinclude/glew -Isrc -Isrc/algorithms -Isrc/app -Isrc/imgui -Isrc/misc -Isrc/opengl -Isrc/parsing -Isrc/tests
+INCLUDE_DIRS = -Iinclude -Iinclude/imgui -Iinclude/glm -Iinclude/glew -Isrc -Isrc/algorithms -Isrc/app -Isrc/app/engine -Isrc/imgui -Isrc/misc -Isrc/opengl -Isrc/parsing -Isrc/tests
 LIB_DIRS = -Llib -L/usr/local/lib -L/usr/lib -L/usr/lib64
 
 # Libraries
-LIBS = -l:libglfw3dll.a -lvulkan-1.dll -l:libimgui_docker.dll.a -lglew32 -lopengl32 my.res
+LIBS = -l:libglfw3dll.a -lvulkan-1.dll -l:libimgui_docker.dll.a -lglew32 -lpthread -lopengl32 my.res
 
 # Source files
 SRC = $(wildcard imgui/*.cpp) $(shell find src -name '*.cpp')

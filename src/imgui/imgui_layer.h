@@ -15,6 +15,13 @@ struct Color
 {
     float r, g, b, a;
 };
+
+struct MatrixContext {
+    std::vector<int> align_path;
+    int n, m;
+    float* mat;
+    bool isCostDeviation;
+};
 class ImGuiLayer : public Layer {
 public:
     ImGuiLayer(UIContext *context);
@@ -26,7 +33,11 @@ public:
 
     ImU32 interpolateColor(float value, float minVal, float maxVal, ImU32 colorLow, ImU32 colorHigh);
 
-    void precomputeDistancesAndColors();
+    void precomputePathDeviation();
+
+    void precomputeCostDeviation();
+
+    void precomputeDeviation(MatrixContext& context, std::vector<float>& distances, std::vector<ImU32>& colors);
 
     void drawDTWDiagram();
 
@@ -38,11 +49,14 @@ public:
 
     void onRender() override;
 
+    void changeInputFile(int selected_index);
+
 private:
     UIContext *m_Context;
     std::vector<float> distances;
     std::vector<ImU32> colors;
     bool showDiagram = false;
+    int isCostDeviation = 0;
     int squat_sampleSize;
     int selected_index = -1;
     int alignment_length;

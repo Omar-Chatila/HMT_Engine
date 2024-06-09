@@ -56,7 +56,7 @@ float* Dtw::get_cost_matrix(const std::vector<Quaternion*> &inp_traj, const std:
     float *S = (float*) calloc((n + 1) * (m + 1), sizeof(float));
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
-        S[i * (m + 1)] = std::numeric_limits<float>::infinity();;
+        S[i * (m + 1)] = std::numeric_limits<float>::infinity();
     }
     for (int j = 1; j <= m; ++j) {
         S[j] = std::numeric_limits<float>::infinity();

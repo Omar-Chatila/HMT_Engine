@@ -1,13 +1,26 @@
 #include "imgui_layer.h"
 #include "motion_file_processor.h"
 #include "Engine.h"
+#include <thread>
+#include <atomic>
+
 
 ImGuiLayer::ImGuiLayer(UIContext *context) : m_Context(context) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     squat_sampleSize = this->m_Context->motion_files->size() - 16;
-    precomputeDistancesAndColors();
+    precomputePathDeviation();
+}
+
+void ImGuiLayer::changeInputFile(int selected_index) {
+    const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
+    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
+    motionFileProcessor->processInputFile(std::string(file));
+    TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
+    manager->updateDisplayRequirements();
+    m_Context = DisplayRequirements::getInstance()->getContext();
+    precomputePathDeviation();
 }
 
 void ImGuiLayer::UpdateFOVWithScroll() {
@@ -71,18 +84,17 @@ ImU32 ImGuiLayer::interpolateColor(float value, float minVal, float maxVal, ImU3
     return IM_COL32(r, g, b, a);
 }
 
-void ImGuiLayer::precomputeDistancesAndColors() {
-    int n = std::get<2>(*m_Context->matrix);
-    int m = std::get<3>(*m_Context->matrix);
-    std::vector<int> align_path = std::get<1>(*m_Context->matrix);
-    float *mat = std::get<0>(*m_Context->matrix);
+void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>& distances, std::vector<ImU32>& colors) {
+    int n = context.n;
+    int m = context.m;
+    const std::vector<int>& align_path = context.align_path;
+    float* mat = context.mat;
 
     float minDist = std::numeric_limits<float>::infinity();
     float maxDist = -std::numeric_limits<float>::infinity();
 
     std::vector<std::pair<int, int>> pathCoords;
-    for (int idx : align_path)
-    {
+    for (int idx : align_path) {
         int i = idx / (m + 1);
         int j = idx % (m + 1);
         pathCoords.emplace_back(i, j);
@@ -90,16 +102,17 @@ void ImGuiLayer::precomputeDistancesAndColors() {
 
     distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
 
-    for (int i = 0; i <= n; i++)
-    {
-        for (int j = 0; j <= m; j++)
-        {
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= m; j++) {
             float minDistanceToPath = std::numeric_limits<float>::infinity();
-            for (const auto &[pi, pj] : pathCoords)
-            {
-                float distance = std::hypot(i - pi, j - pj);
-                if (distance < minDistanceToPath)
-                {
+            for (const auto& [pi, pj] : pathCoords) {
+                float distance;
+                if (context.isCostDeviation) {
+                    distance = std::abs(mat[i * (m + 1) + j] - mat[pi * (m + 1) + pj]);
+                } else {
+                    distance = std::hypot(i - pi, j - pj);
+                }
+                if (distance < minDistanceToPath) {
                     minDistanceToPath = distance;
                 }
             }
@@ -128,11 +141,38 @@ void ImGuiLayer::precomputeDistancesAndColors() {
             if (isAligned) {
                 colors[index] = IM_COL32_WHITE;
             } else {
-                Color interpolatedColor = interpolateColor(distances[index] * 2.0f, minDist, maxDist, colorStops);
+                Color interpolatedColor = interpolateColor(
+                    (context.isCostDeviation ? distances[index] : distances[index] * 2.0f),
+                    minDist, 
+                    (context.isCostDeviation ? 0.5 * maxDist : maxDist), 
+                    colorStops
+                );
                 colors[index] = IM_COL32((int)interpolatedColor.r, (int)interpolatedColor.g, (int)interpolatedColor.b, (int)interpolatedColor.a);
             }
         }
     }
+}
+
+void ImGuiLayer::precomputeCostDeviation() {
+    MatrixContext context{
+        std::get<1>(*m_Context->matrix),
+        std::get<2>(*m_Context->matrix),
+        std::get<3>(*m_Context->matrix),
+        m_Context->costmatrix,
+        true  // isCostDeviation
+    };
+    precomputeDeviation(context, distances, colors);
+}
+
+void ImGuiLayer::precomputePathDeviation() {
+    MatrixContext context{
+        std::get<1>(*m_Context->matrix),
+        std::get<2>(*m_Context->matrix),
+        std::get<3>(*m_Context->matrix),
+        std::get<0>(*m_Context->matrix),
+        false  // isCostDeviation
+    };
+    precomputeDeviation(context, distances, colors);
 }
 
 void ImGuiLayer::drawDTWDiagram() {
@@ -216,12 +256,7 @@ void ImGuiLayer::show_selectionTable() {
                 ImGui::TableNextColumn();
                 ImGui::PushID(row_n);
                 if (ImGui::RadioButton("##active", &selected_index, row_n)) {
-                    const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
-                    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
-                    motionFileProcessor->processInputFile(std::string(file));
-                    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
-                    manager->updateDisplayRequirements();
-                    m_Context = DisplayRequirements::getInstance()->getContext();
+                    changeInputFile(selected_index);
                 }
                 ImGui::TableNextColumn();
                 ImGui::Text("%02d", row_n);
@@ -249,6 +284,7 @@ void ImGuiLayer::show_selectionTable() {
 
 void ImGuiLayer::show_DTW_Options() {
         if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
+
             ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
             ImGui::SameLine();
             ImGui::Checkbox("Show Heatmap", &showDiagram);
@@ -290,7 +326,6 @@ void ImGuiLayer::onRender() {
 
         ImGui::End();
 
-        // Now render your UI
         {
             static bool show_demo_window = true;
             static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
