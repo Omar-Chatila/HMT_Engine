@@ -17,7 +17,7 @@ struct Color
 };
 class ImGuiLayer : public Layer {
 public:
-    ImGuiLayer(UIContext &context);
+    ImGuiLayer(UIContext *context);
 
     void UpdateFOVWithScroll();
 
@@ -39,7 +39,7 @@ public:
     void onRender() override;
 
 private:
-    UIContext &m_Context;
+    UIContext *m_Context;
     std::vector<float> distances;
     std::vector<ImU32> colors;
     bool showDiagram = false;

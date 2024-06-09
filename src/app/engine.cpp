@@ -85,7 +85,7 @@ int Renderer::display()
     int map_index = 0;
 
     ImGUI_Layers* app = new ImGUI_Layers();
-    app->push_layer<ImGuiLayer>(*DisplayRequirements::getInstance()->getContext());
+    app->push_layer<ImGuiLayer>(DisplayRequirements::getInstance()->getContext());
 
     while (!glfwWindowShouldClose(window)) {
         int width = DisplayRequirements::getInstance()->getContext()->windowWidth;

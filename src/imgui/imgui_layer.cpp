@@ -2,11 +2,11 @@
 #include "motion_file_processor.h"
 #include "Engine.h"
 
-ImGuiLayer::ImGuiLayer(UIContext &context) : m_Context(context) {
+ImGuiLayer::ImGuiLayer(UIContext *context) : m_Context(context) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    squat_sampleSize = this->m_Context.motion_files->size() - 16;
+    squat_sampleSize = this->m_Context->motion_files->size() - 16;
     precomputeDistancesAndColors();
 }
 
@@ -15,11 +15,11 @@ void ImGuiLayer::UpdateFOVWithScroll() {
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     if (io.MouseWheel != 0.0f)
     {
-        m_Context.fov -= io.MouseWheel * 2;
-        if (m_Context.fov < -180.0f)
-            m_Context.fov = -180.0f;
-        if (m_Context.fov > 180.0f)
-            m_Context.fov = 180.0f;
+        m_Context->fov -= io.MouseWheel * 2;
+        if (m_Context->fov < -180.0f)
+            m_Context->fov = -180.0f;
+        if (m_Context->fov > 180.0f)
+            m_Context->fov = 180.0f;
     }
 }
 
@@ -72,10 +72,10 @@ ImU32 ImGuiLayer::interpolateColor(float value, float minVal, float maxVal, ImU3
 }
 
 void ImGuiLayer::precomputeDistancesAndColors() {
-    int n = std::get<2>(*m_Context.matrix);
-    int m = std::get<3>(*m_Context.matrix);
-    std::vector<int> align_path = std::get<1>(*m_Context.matrix);
-    float *mat = std::get<0>(*m_Context.matrix);
+    int n = std::get<2>(*m_Context->matrix);
+    int m = std::get<3>(*m_Context->matrix);
+    std::vector<int> align_path = std::get<1>(*m_Context->matrix);
+    float *mat = std::get<0>(*m_Context->matrix);
 
     float minDist = std::numeric_limits<float>::infinity();
     float maxDist = -std::numeric_limits<float>::infinity();
@@ -138,8 +138,8 @@ void ImGuiLayer::precomputeDistancesAndColors() {
 void ImGuiLayer::drawDTWDiagram() {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     const ImVec2 p = ImGui::GetCursorScreenPos();
-    int n = std::get<2>(*m_Context.matrix);
-    int m = std::get<3>(*m_Context.matrix);
+    int n = std::get<2>(*m_Context->matrix);
+    int m = std::get<3>(*m_Context->matrix);
     const float rect_size = 1.0f;
     float xPos = p.x;
     float yPos = p.y;
@@ -157,32 +157,32 @@ void ImGuiLayer::drawDTWDiagram() {
 
     // Advance the ImGui cursor to claim space in the window (otherwise the window will appear small and needs to be resized)
     ImGui::Dummy(ImVec2((m + 1) * rect_size, (n + 1) * rect_size));
-    float prog = static_cast<float>(m_Context.c_frame % std::get<1>(*m_Context.matrix).size()) / std::get<1>(*m_Context.matrix).size();
+    float prog = static_cast<float>(m_Context->c_frame % std::get<1>(*m_Context->matrix).size()) / std::get<1>(*m_Context->matrix).size();
     ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
-    ImGui::Text("Current Frame: %d", m_Context.c_frame);
+    ImGui::Text("Current Frame: %d", m_Context->c_frame);
 }
 
 void ImGuiLayer::showCameraOptions() {
     if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_CollapsingHeader)) {
-        ImGui::SliderFloat("Aspect Ratio", &m_Context.aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Aspect Ratio", &m_Context->aspectRatio, 1.0f, 3.0f);
         UpdateFOVWithScroll();
-        ImGui::SliderFloat("Fov", &m_Context.fov, -180.0f, 180.0f);
+        ImGui::SliderFloat("Fov", &m_Context->fov, -180.0f, 180.0f);
 
-        ImGui::DragFloat3("Center", glm::value_ptr(m_Context.center), 0.1f, -3.0f, 3.0f);
+        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->center), 0.1f, -3.0f, 3.0f);
         ImGui::SameLine();
         if (ImGui::Button("Reset##Center"))
-            m_Context.center = {0.4f, 1.0f, 0.0f};
+            m_Context->center = {0.4f, 1.0f, 0.0f};
 
-        ImGui::DragFloat3("Position", glm::value_ptr(m_Context.camera_pos), 0.1f, -5.0f, 5.0f);
+        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->camera_pos), 0.1f, -5.0f, 5.0f);
         ImGui::SameLine();
         if (ImGui::Button("Reset##Position"))
-            m_Context.camera_pos = {2.0f, 2.0f, 2.0f};
+            m_Context->camera_pos = {2.0f, 2.0f, 2.0f};
 
-        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context.camera_orientation), 0.1f, -1.0f, 1.0f);
+        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->camera_orientation), 0.1f, -1.0f, 1.0f);
         ImGui::SameLine();
         if (ImGui::Button("Reset##Orientation"))
-            m_Context.camera_orientation = {0.0, 1.0, 0.0};
-        ImGui::ColorEdit3("Clear Color", (float *)&m_Context.clear_color);
+            m_Context->camera_orientation = {0.0, 1.0, 0.0};
+        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->clear_color);
     };
 }
 
@@ -210,17 +210,18 @@ void ImGuiLayer::show_selectionTable() {
         clipper.Begin(squat_sampleSize - 16);
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
-                auto pers = m_Context.motion_files->at(row_n  + 16);
+                auto pers = m_Context->motion_files->at(row_n  + 16);
                 // Display a data item
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::PushID(row_n);
                 if (ImGui::RadioButton("##active", &selected_index, row_n)) {
-                    auto file = m_Context.motion_files->at(selected_index + 16).motion_file.c_str();
+                    const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
                     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
                     motionFileProcessor->processInputFile(std::string(file));
                     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
                     manager->updateDisplayRequirements();
+                    m_Context = DisplayRequirements::getInstance()->getContext();
                 }
                 ImGui::TableNextColumn();
                 ImGui::Text("%02d", row_n);
@@ -248,7 +249,7 @@ void ImGuiLayer::show_selectionTable() {
 
 void ImGuiLayer::show_DTW_Options() {
         if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("DTW Aligned", &m_Context.aligned);
+            ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
             ImGui::SameLine();
             ImGui::Checkbox("Show Heatmap", &showDiagram);
             if (showDiagram) {
@@ -257,7 +258,7 @@ void ImGuiLayer::show_DTW_Options() {
                 char txt_green[] = "text green";
                 style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
                 ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-                ImGui::Text(("Cost: " + std::to_string(m_Context.cost)).c_str());
+                ImGui::Text(("Cost: " + std::to_string(m_Context->cost)).c_str());
                 ImGui::PopStyleColor();
                 drawDTWDiagram();
             }
@@ -300,7 +301,7 @@ void ImGuiLayer::onRender() {
             ImGui::Begin("Visualizer for Motion Data");
 
             showCameraOptions();
-            ImGui::Checkbox("VSync", &m_Context.vsync);
+            ImGui::Checkbox("VSync", &m_Context->vsync);
             if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
                 show_selectionTable();
             }

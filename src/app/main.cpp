@@ -12,7 +12,6 @@ int main() {
     rend->display();
 
     delete rend;
-    delete manager;
     delete motionFileProcessor;
 
     return 0;
