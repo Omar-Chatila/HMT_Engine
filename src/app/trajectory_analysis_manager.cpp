@@ -41,8 +41,8 @@ float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
 }
 
 void TrajectoryAnalysisManager::updateDisplayRequirements() {
-    DisplayRequirements::getInstance()->setAlignment(this->alignment);
-    DisplayRequirements::getInstance()->setInpFrames(this->inputFrames);
-    DisplayRequirements::getInstance()->setRefFrames(this->refFrames);
-    DisplayRequirements::getInstance()->setContext(this->context);
+    DisplayRequirements::getI()->setAlignment(this->alignment);
+    DisplayRequirements::getI()->setInpFrames(this->inputFrames);
+    DisplayRequirements::getI()->setRefFrames(this->refFrames);
+    DisplayRequirements::getI()->setContext(this->context);
 }

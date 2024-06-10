@@ -2,13 +2,11 @@
 
 DisplayRequirements* DisplayRequirements::instance = nullptr;
 
-DisplayRequirements::DisplayRequirements() {}
-
 DisplayRequirements::~DisplayRequirements() {
     delete context;
 }
 
-DisplayRequirements *DisplayRequirements::getInstance() {
+DisplayRequirements *DisplayRequirements::getI() {
     if (instance == nullptr) {
         instance = new DisplayRequirements();
     }
@@ -39,10 +37,10 @@ std::vector<Frame> DisplayRequirements::getRef_frames() const {
     return instance->ref_frames;
 }
 
-std::vector<Frame> DisplayRequirements::getInp_frames() {
+std::vector<Frame> DisplayRequirements::getInp_frames () const {
     return instance->inp_frames;
 }
 
-UIContext* DisplayRequirements::getContext() {
+UIContext* DisplayRequirements::getContext() const {
     return instance->context;
 }

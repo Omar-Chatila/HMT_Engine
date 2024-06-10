@@ -7,7 +7,7 @@ class DisplayRequirements {
 private:
     
 public:
-    static DisplayRequirements* getInstance();
+    static DisplayRequirements* getI();
     static DisplayRequirements *instance;
     
     void setRefFrames(std::vector<Frame> &ref_frames);
@@ -16,11 +16,11 @@ public:
     void setAlignment(std::tuple<float, std::vector<int>, float*> &alignment);
 
     std::vector<Frame> getRef_frames() const;
-    std::vector<Frame> getInp_frames();
-    UIContext *getContext();
+    std::vector<Frame> getInp_frames() const;
+    UIContext *getContext() const;
     std::tuple<float, std::vector<int>, float*> getAlignment() const;
 private:
-    DisplayRequirements();     
+    DisplayRequirements() = default;     
     ~DisplayRequirements();
 
     std::vector<Frame> ref_frames;

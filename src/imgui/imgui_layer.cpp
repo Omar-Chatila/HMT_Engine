@@ -19,20 +19,26 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     motionFileProcessor->processInputFile(std::string(file));
     TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
-    m_Context = DisplayRequirements::getInstance()->getContext();
+    m_Context = DisplayRequirements::getI()->getContext();
     precomputePathDeviation();
 }
 
 void ImGuiLayer::UpdateFOVWithScroll() {
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    if (io.MouseWheel != 0.0f)
+    if (io.MouseWheel != 0.0f && io.KeyCtrl)
     {
-        m_Context->fov -= io.MouseWheel * 2;
-        if (m_Context->fov < -180.0f)
-            m_Context->fov = -180.0f;
-        if (m_Context->fov > 180.0f)
-            m_Context->fov = 180.0f;
+        m_Context->refView->fov -= io.MouseWheel * 2;
+        if (m_Context->refView->fov < -180.0f)
+            m_Context->refView->fov = -180.0f;
+        if (m_Context->refView->fov >  180.0f)
+            m_Context->refView->fov = 180.0f;
+    } else if (io.MouseWheel != 0.0f && io.KeyAlt) {
+        m_Context->inputView->fov -= io.MouseWheel * 2;
+        if (m_Context->inputView->fov < -180.0f)
+            m_Context->inputView->fov = -180.0f;
+        if (m_Context->inputView->fov >  180.0f)
+            m_Context->inputView->fov = 180.0f;
     }
 }
 
@@ -203,26 +209,48 @@ void ImGuiLayer::drawDTWDiagram() {
 }
 
 void ImGuiLayer::showCameraOptions() {
+    UpdateFOVWithScroll();
     if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_CollapsingHeader)) {
-        ImGui::SliderFloat("Aspect Ratio", &m_Context->aspectRatio, 1.0f, 3.0f);
-        UpdateFOVWithScroll();
-        ImGui::SliderFloat("Fov", &m_Context->fov, -180.0f, 180.0f);
+        ImGui::SeparatorText("Reference View (left) Camera");
+    //Ref view
 
-        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->center), 0.1f, -3.0f, 3.0f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset##Center"))
-            m_Context->center = {0.4f, 1.0f, 0.0f};
-
-        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->camera_pos), 0.1f, -5.0f, 5.0f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset##Position"))
-            m_Context->camera_pos = {2.0f, 2.0f, 2.0f};
-
-        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->camera_orientation), 0.1f, -1.0f, 1.0f);
-        ImGui::SameLine();
-        if (ImGui::Button("Reset##Orientation"))
-            m_Context->camera_orientation = {0.0, 1.0, 0.0};
-        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->clear_color);
+        // Aspect Ratio
+        ImGui::SliderFloat("Aspect Ratio", &m_Context->refView->aspectRatio, 1.0f, 3.0f);
+        // FOV
+        ImGui::SliderFloat("Fov", &m_Context->refView->fov, -180.0f, 180.0f);
+        // Center
+        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->refView->center), 0.1f, -3.0f, 3.0f);
+        // if (ImGui::Button("Reset##CenterRef")) {
+        //     m_Context->refView->center = {0.4f, 1.0f, 0.0f};
+        // }
+        // Position
+        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->refView->camera_pos), 0.1f, -5.0f, 5.0f);
+        // if (ImGui::Button("Reset##PositionRef")) {
+        //     m_Context->refView->camera_pos = {2.0f, 2.0f, 2.0f};
+        // }
+        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f, 1.0f);
+        // Clear Color
+        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->refView->clear_color);
+    //Input view
+        ImGui::SeparatorText("Input View (right) Camera");
+        ImGui::SliderFloat("Aspect Ratio", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Fov", &m_Context->inputView->fov, -180.0f, 180.0f);
+        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->inputView->center), 0.1f, -3.0f, 3.0f);
+        // if (ImGui::Button("Reset##CenterInp")) {
+        //     m_Context->inputView->center = {0.4f, 1.0f, 0.0f};
+        // }
+        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
+        // if (ImGui::Button("Reset##PositionInp")) {
+        //     m_Context->inputView->camera_pos = {2.0f, 2.0f, 2.0f};
+        // }
+        // Orientation
+        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f, 1.0f);
+        // ImGui::SameLine();
+        // if (ImGui::Button("Reset##Orientation")) {
+        //     m_Context->refView->camera_orientation = {0.0, 1.0, 0.0};
+        //     m_Context->inputView->camera_orientation = {0.0, 1.0, 0.0};
+        // }
+        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->inputView->clear_color);
     };
 }
 

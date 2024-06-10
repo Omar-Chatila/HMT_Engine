@@ -42,7 +42,7 @@ private:
     GLFWwindow* init_window(UIContext *context);
     ImGuiIO& init_imgui(GLFWwindow *window);
     void init_fbo();
-    void draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context);
+    void draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context, bool ref);
 
 public:
     Renderer();
