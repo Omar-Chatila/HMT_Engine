@@ -63,7 +63,6 @@ void Renderer::init_fbo() {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR::FRAMEBUFFER:: Framebuffer 2 is not complete!" << std::endl;
     }
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -86,7 +85,8 @@ int Renderer::display()
 
     ImGUI_Layers* app = new ImGUI_Layers();
     app->push_layer<ImGuiLayer>(DR::getI()->getContext());
-
+    int lastInpIndex = -1;
+    int lastRefIndex = -1;
     while (!glfwWindowShouldClose(window)) {
         int width = 1600;
         int height = 900;
@@ -121,10 +121,20 @@ int Renderer::display()
         auto ref_frms = DR::getI()->getRef_frames();
         auto in_frms = DR::getI()->getInp_frames();
         if (DR::getI()->getContext()->aligned) {
+            // TODO: Das hier nur ein mal getten
             auto alignment = DR::getI()->getAlignment();
             int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
+            int n = in_frms.size();
+            int m = ref_frms.size();
+            int in = mapping / (m + 1) - 1;
+            int ref = mapping % (m + 1) - 1;
+            DR::getI()->getContext()->inpPaused = lastInpIndex == in;
+            DR::getI()->getContext()->refPaused = lastRefIndex == ref;
+            lastInpIndex = in;
+            lastRefIndex = ref;
+            std::cout << DR::getI()->getContext()->inpPaused << ":" << DR::getI()->getContext()->refPaused << std::endl;
             DR::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
-            update_SpherePos_Aligned(in_frms, ref_frms, mapping);
+            update_SpherePos_Aligned(in_frms, ref_frms, mapping, 0, 1);
             map_index++;
         } else {
             update_SpherePos_noAlign(ref_frms[current_frame % ref_frms.size()], in_frms[current_frame % in_frms.size()]);
@@ -198,6 +208,9 @@ void Renderer::draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere 
     for (size_t i = 0; i < JOINT_COUNT; i++) {
         glm::vec3 position = spherePositions[i];
         glm::vec3 color = sphereColors[i];
+        if (ref && c->refPaused || !ref && c->inpPaused) {
+            color = sphereColors[19];
+        }
         sphereShader.setUniformVec3("objectColor", color);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, position);
@@ -274,7 +287,7 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
 }
 
 void
-Renderer::update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int mapping) {
+Renderer::update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int mapping, bool refPause, bool inpPause) {
     int n = input_frames.size();
     int m = ref_frames.size();
     int in = mapping / (m + 1) - 1;
@@ -341,22 +354,12 @@ ImGuiIO &Renderer::init_imgui(GLFWwindow *window) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
-
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
-
-    // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 

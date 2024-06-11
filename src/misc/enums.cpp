@@ -54,5 +54,6 @@ std::vector<glm::vec3> sphereColors = {
         glm::vec3(1.0f, 1.0f, 0.0f),
 
         glm::vec3(1.0f, 0.8f, 0.4f),
-        glm::vec3(0.4f, 0.2f, 0.8f)
+        glm::vec3(0.4f, 0.2f, 0.8f),
+        glm::vec3(1.0f, 0.0f, 0.0f)
 };

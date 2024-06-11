@@ -26,8 +26,7 @@ void ImGuiLayer::changeInputFile(int selected_index) {
 void ImGuiLayer::UpdateFOVWithScroll() {
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    if (io.MouseWheel != 0.0f && io.KeyCtrl)
-    {
+    if (io.MouseWheel != 0.0f && io.KeyCtrl) {
         m_Context->refView->fov -= io.MouseWheel * 2;
         if (m_Context->refView->fov < -180.0f)
             m_Context->refView->fov = -180.0f;
