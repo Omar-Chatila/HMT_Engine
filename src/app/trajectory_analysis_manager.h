@@ -32,7 +32,7 @@ public:
     void updateDisplayRequirements();
 
 private:
-    DisplayRequirements *displayRequ;
+    DR *displayRequ;
     UIContext* context;
     std::string inputFile;
     std::string refFile;

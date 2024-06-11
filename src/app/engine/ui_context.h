@@ -34,8 +34,6 @@ struct VPContext {
     }
 };
 
-
-
 class UIContext {
 public:
     UIContext() : 

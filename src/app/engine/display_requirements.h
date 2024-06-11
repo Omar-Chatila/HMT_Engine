@@ -3,12 +3,12 @@
 #include <vector>
 #include "ui_context.h"
 
-class DisplayRequirements {
+class DR {
 private:
     
 public:
-    static DisplayRequirements* getI();
-    static DisplayRequirements *instance;
+    static DR* getI();
+    static DR *instance;
     
     void setRefFrames(std::vector<Frame> &ref_frames);
     void setInpFrames(std::vector<Frame> &inp_frames);
@@ -20,8 +20,8 @@ public:
     UIContext *getContext() const;
     std::tuple<float, std::vector<int>, float*> getAlignment() const;
 private:
-    DisplayRequirements() = default;     
-    ~DisplayRequirements();
+    DR() = default;     
+    ~DR();
 
     std::vector<Frame> ref_frames;
     std::vector<Frame> inp_frames;

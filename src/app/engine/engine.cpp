@@ -5,7 +5,7 @@ Renderer::Renderer() {
         ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
         input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
     }
-    this->window = init_window(DisplayRequirements::getI()->getContext());
+    this->window = init_window(DR::getI()->getContext());
     init_fbo();
 }
 
@@ -30,14 +30,14 @@ void Renderer::init_fbo() {
 
     glGenTextures(1, &fboTexture1);
     glBindTexture(GL_TEXTURE_2D, fboTexture1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DisplayRequirements::getI()->getContext()->refView->windowWidth, DisplayRequirements::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DR::getI()->getContext()->refView->windowWidth, DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture1, 0);
 
     glGenRenderbuffers(1, &rbo1);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo1);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DisplayRequirements::getI()->getContext()->inputView->windowWidth, DisplayRequirements::getI()->getContext()->inputView->windowHeight);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DR::getI()->getContext()->inputView->windowWidth, DR::getI()->getContext()->inputView->windowHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo1);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -50,14 +50,14 @@ void Renderer::init_fbo() {
 
     glGenTextures(1, &fboTexture2);
     glBindTexture(GL_TEXTURE_2D, fboTexture2);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DisplayRequirements::getI()->getContext()->refView->windowWidth, DisplayRequirements::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DR::getI()->getContext()->refView->windowWidth, DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture2, 0);
 
     glGenRenderbuffers(1, &rbo2);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo2);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DisplayRequirements::getI()->getContext()->refView->windowWidth, DisplayRequirements::getI()->getContext()->refView->windowHeight);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, DR::getI()->getContext()->refView->windowWidth, DR::getI()->getContext()->refView->windowHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo2);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -85,13 +85,13 @@ int Renderer::display()
     int map_index = 0;
 
     ImGUI_Layers* app = new ImGUI_Layers();
-    app->push_layer<ImGuiLayer>(DisplayRequirements::getI()->getContext());
+    app->push_layer<ImGuiLayer>(DR::getI()->getContext());
 
     while (!glfwWindowShouldClose(window)) {
         int width = 1600;
         int height = 900;
         glfwGetWindowSize(window, &width, &height);
-        glfwSwapInterval(DisplayRequirements::getI()->getContext()->vsync);
+        glfwSwapInterval(DR::getI()->getContext()->vsync);
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -103,14 +103,14 @@ int Renderer::display()
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
         // Bind the FBO1
         glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
-        glViewport(0, 0, DisplayRequirements::getI()->getContext()->inputView->windowWidth, DisplayRequirements::getI()->getContext()->inputView->windowHeight);
+        glViewport(0, 0, DR::getI()->getContext()->inputView->windowWidth, DR::getI()->getContext()->inputView->windowHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        auto clear_color = DisplayRequirements::getI()->getContext()->inputView->clear_color;
+        auto clear_color = DR::getI()->getContext()->inputView->clear_color;
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
 
         // Render your scene
-        glm::mat4 view = glm::lookAt(DisplayRequirements::getI()->getContext()->refView->camera_pos, DisplayRequirements::getI()->getContext()->refView->center, DisplayRequirements::getI()->getContext()->refView->camera_orientation);
-        glm::mat4 projection = glm::perspective(glm::radians(DisplayRequirements::getI()->getContext()->refView->fov), DisplayRequirements::getI()->getContext()->refView->aspectRatio, 0.1f, 100.0f);
+        glm::mat4 view = glm::lookAt(DR::getI()->getContext()->refView->camera_pos, DR::getI()->getContext()->refView->center, DR::getI()->getContext()->refView->camera_orientation);
+        glm::mat4 projection = glm::perspective(glm::radians(DR::getI()->getContext()->refView->fov), DR::getI()->getContext()->refView->aspectRatio, 0.1f, 100.0f);
         sphereShader.use();
         sphereShader.setUniformMat4("view", view);
         sphereShader.setUniformMat4("projection", projection);
@@ -118,12 +118,12 @@ int Renderer::display()
         sphereShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
         sphereShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
-        auto ref_frms = DisplayRequirements::getI()->getRef_frames();
-        auto in_frms = DisplayRequirements::getI()->getInp_frames();
-        if (DisplayRequirements::getI()->getContext()->aligned) {
-            auto alignment = DisplayRequirements::getI()->getAlignment();
+        auto ref_frms = DR::getI()->getRef_frames();
+        auto in_frms = DR::getI()->getInp_frames();
+        if (DR::getI()->getContext()->aligned) {
+            auto alignment = DR::getI()->getAlignment();
             int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
-            DisplayRequirements::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
+            DR::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
             update_SpherePos_Aligned(in_frms, ref_frms, mapping);
             map_index++;
         } else {
@@ -135,18 +135,18 @@ int Renderer::display()
 
         // Render to FBO1
         glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
-        glViewport(0, 0, DisplayRequirements::getI()->getContext()->refView->windowWidth, DisplayRequirements::getI()->getContext()->refView->windowHeight);
+        glViewport(0, 0, DR::getI()->getContext()->refView->windowWidth, DR::getI()->getContext()->refView->windowHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        draw_scene(ref_spherePositions, sphere, sphereShader, DisplayRequirements::getI()->getContext(), 1);
-        auto clear_color1 = DisplayRequirements::getI()->getContext()->refView->clear_color;
+        draw_scene(ref_spherePositions, sphere, sphereShader, DR::getI()->getContext(), 1);
+        auto clear_color1 = DR::getI()->getContext()->refView->clear_color;
         glClearColor(clear_color1.x * clear_color1.w, clear_color1.y * clear_color1.w, clear_color1.z * clear_color1.w, clear_color1.w);
 
         // Render to FBO2
         glBindFramebuffer(GL_FRAMEBUFFER, fbo2);
-        glViewport(0, 0, DisplayRequirements::getI()->getContext()->inputView->windowWidth, DisplayRequirements::getI()->getContext()->inputView->windowHeight);
+        glViewport(0, 0, DR::getI()->getContext()->inputView->windowWidth, DR::getI()->getContext()->inputView->windowHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        draw_scene(input_spherePositions, sphere, sphereShader, DisplayRequirements::getI()->getContext(), 0);
-        auto clear_color2 = DisplayRequirements::getI()->getContext()->inputView->clear_color;
+        draw_scene(input_spherePositions, sphere, sphereShader, DR::getI()->getContext(), 0);
+        auto clear_color2 = DR::getI()->getContext()->inputView->clear_color;
         glClearColor(clear_color2.x * clear_color2.w, clear_color2.y * clear_color2.w, clear_color2.z * clear_color2.w, clear_color2.w);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

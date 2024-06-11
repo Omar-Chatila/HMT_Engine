@@ -19,7 +19,7 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     motionFileProcessor->processInputFile(std::string(file));
     TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
-    m_Context = DisplayRequirements::getI()->getContext();
+    m_Context = DR::getI()->getContext();
     precomputePathDeviation();
 }
 
@@ -211,46 +211,46 @@ void ImGuiLayer::drawDTWDiagram() {
 void ImGuiLayer::showCameraOptions() {
     UpdateFOVWithScroll();
     if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_CollapsingHeader)) {
-        ImGui::SeparatorText("Reference View (left) Camera");
+        ImGui::SeparatorText("Reference View (left) Camera##ref");
     //Ref view
 
         // Aspect Ratio
-        ImGui::SliderFloat("Aspect Ratio", &m_Context->refView->aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Aspect Ratio##ref", &m_Context->refView->aspectRatio, 1.0f, 3.0f);
         // FOV
-        ImGui::SliderFloat("Fov", &m_Context->refView->fov, -180.0f, 180.0f);
+        ImGui::SliderFloat("Fov##ref", &m_Context->refView->fov, -180.0f, 180.0f);
         // Center
-        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->refView->center), 0.1f, -3.0f, 3.0f);
+        ImGui::DragFloat3("Center##ref", glm::value_ptr(m_Context->refView->center), 0.1f, -3.0f, 3.0f);
         // if (ImGui::Button("Reset##CenterRef")) {
         //     m_Context->refView->center = {0.4f, 1.0f, 0.0f};
         // }
         // Position
-        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->refView->camera_pos), 0.1f, -5.0f, 5.0f);
+        ImGui::DragFloat3("Position##ref", glm::value_ptr(m_Context->refView->camera_pos), 0.1f, -5.0f, 5.0f);
         // if (ImGui::Button("Reset##PositionRef")) {
         //     m_Context->refView->camera_pos = {2.0f, 2.0f, 2.0f};
         // }
-        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f, 1.0f);
+        ImGui::DragFloat3("Orientation##ref", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f, 1.0f);
         // Clear Color
-        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->refView->clear_color);
+        ImGui::ColorEdit3("Clear Color##ref", (float *)&m_Context->refView->clear_color);
     //Input view
-        ImGui::SeparatorText("Input View (right) Camera");
-        ImGui::SliderFloat("Aspect Ratio", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
-        ImGui::SliderFloat("Fov", &m_Context->inputView->fov, -180.0f, 180.0f);
-        ImGui::DragFloat3("Center", glm::value_ptr(m_Context->inputView->center), 0.1f, -3.0f, 3.0f);
+        ImGui::SeparatorText("Input View (right) Camera##input");
+        ImGui::SliderFloat("Aspect Ratio##input", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Fov##input", &m_Context->inputView->fov, -180.0f, 180.0f);
+        ImGui::DragFloat3("Center##input", glm::value_ptr(m_Context->inputView->center), 0.1f, -3.0f, 3.0f);
         // if (ImGui::Button("Reset##CenterInp")) {
         //     m_Context->inputView->center = {0.4f, 1.0f, 0.0f};
         // }
-        ImGui::DragFloat3("Position", glm::value_ptr(m_Context->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
+        ImGui::DragFloat3("Position##input", glm::value_ptr(m_Context->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
         // if (ImGui::Button("Reset##PositionInp")) {
         //     m_Context->inputView->camera_pos = {2.0f, 2.0f, 2.0f};
         // }
         // Orientation
-        ImGui::DragFloat3("Orientation", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f, 1.0f);
+        ImGui::DragFloat3("Orientation##input", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f, 1.0f);
         // ImGui::SameLine();
         // if (ImGui::Button("Reset##Orientation")) {
         //     m_Context->refView->camera_orientation = {0.0, 1.0, 0.0};
         //     m_Context->inputView->camera_orientation = {0.0, 1.0, 0.0};
         // }
-        ImGui::ColorEdit3("Clear Color", (float *)&m_Context->inputView->clear_color);
+        ImGui::ColorEdit3("Clear Color##input", (float *)&m_Context->inputView->clear_color);
     };
 }
 
