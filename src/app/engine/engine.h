@@ -17,6 +17,7 @@
 #include "Sphere.h"
 #include "line.h"
 #include "imgui_layers.h"
+#include "layer.h"
 #include "layers.h"
 
 inline void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -29,7 +30,9 @@ private:
     const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
     const char *tex_vertexShaderPath = "src/shader/vertex_shader.glsl";
     const char *tex_fragmentShaderPath = "src/shader/textured_fragment_shader.glsl";
-    
+
+    SharedData *sharedData;
+
     std::vector<glm::vec3> ref_spherePositions;
     std::vector<glm::vec3> input_spherePositions;
     GLFWwindow *window;
@@ -45,7 +48,7 @@ private:
     void draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context, bool ref);
 
 public:
-    Renderer();
+    Renderer(SharedData *shared);
     ~Renderer();
     int display();
 };

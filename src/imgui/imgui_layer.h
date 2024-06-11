@@ -11,8 +11,7 @@
 #include <Engine.h>
 
 
-struct Color
-{
+struct Color {
     float r, g, b, a;
 };
 
@@ -24,7 +23,7 @@ struct MatrixContext {
 };
 class ImGuiLayer : public Layer {
 public:
-    ImGuiLayer(UIContext *context);
+    ImGuiLayer(UIContext *context, SharedData *data);
 
     void UpdateFOVWithScroll();
 

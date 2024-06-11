@@ -1,11 +1,13 @@
 #include "imgui_layer.h"
+#include "layer_data.h"
 #include "motion_file_processor.h"
 #include "Engine.h"
 #include <thread>
 #include <atomic>
 
 
-ImGuiLayer::ImGuiLayer(UIContext *context) : m_Context(context) {
+ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context) {
+    sharedData = data;
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -17,6 +19,19 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
     motionFileProcessor->processInputFile(std::string(file));
+    auto kNNResults = motionFileProcessor->getKClosestMatches(5, DTW);
+    sharedData->trajectoryInfos.clear();
+    for (auto result : kNNResults) {
+        TrajectoryInfo info;
+        info.reference = result->getContext()->reference_file;
+        info.manager = result;
+        for (int i = 0; i < ALGO_COUNT; i++) {
+            float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
+            info.costs.push_back(cost);
+        }
+        sharedData->trajectoryInfos.push_back(info);
+    }
+
     TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
     m_Context = DR::getI()->getContext();

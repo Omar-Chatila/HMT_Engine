@@ -5,8 +5,7 @@ MotionFileProcessor::MotionFileProcessor(Activity p_activity): activity(p_activi
 }
 
 
-MotionFileProcessor::~MotionFileProcessor()
-{
+MotionFileProcessor::~MotionFileProcessor() {
     std::for_each(trajectoryManagers.begin(), trajectoryManagers.end(), [](TrajectoryAnalysisManager* manager) {
         delete manager;
     });
@@ -74,4 +73,26 @@ TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm a
     }
     closest->updateContext();
     return closest;
+}
+
+std::vector<TrajectoryAnalysisManager *> MotionFileProcessor::getKClosestMatches(int k, enum Algorithm algorithm) {
+    std::vector<std::pair<float, TrajectoryAnalysisManager*>> costs;
+    for (const auto manager : trajectoryManagers) {
+        float cost = manager->getAlgorithmResult(algorithm);
+        costs.push_back(std::make_pair(cost, manager));
+    }
+    std::sort(costs.begin(), costs.end(), [](const auto &a, const auto &b) {
+        return a.first < b.first;
+    });
+
+    std::vector<TrajectoryAnalysisManager *> kClosest;
+    for (int i = 0; i < k && i < costs.size(); ++i) {
+        kClosest.push_back(costs[i].second);
+    }
+
+    for (auto manager : kClosest) {
+        manager->updateContext();
+    }
+
+    return kClosest;
 }

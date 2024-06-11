@@ -31,6 +31,7 @@ public:
     void processAllFiles();
     void processInputFile(const std::string &input);
     TrajectoryAnalysisManager* getClosestMatch(enum Algorithm algorithm);
+    std::vector<TrajectoryAnalysisManager *> getKClosestMatches(int k, enum Algorithm algorithm);
 };
 
 #endif

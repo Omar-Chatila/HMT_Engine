@@ -1,10 +1,11 @@
 #include "Engine.h"
 
-Renderer::Renderer() {
+Renderer::Renderer(SharedData *data) {
     for (int i = 0; i < JOINT_COUNT; i++) {
         ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
         input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
     }
+    this->sharedData = data;
     this->window = init_window(DR::getI()->getContext());
     init_fbo();
 }
@@ -84,7 +85,8 @@ int Renderer::display()
     int map_index = 0;
 
     ImGUI_Layers* app = new ImGUI_Layers();
-    app->push_layer<ImGuiLayer>(DR::getI()->getContext());
+    app->push_layer<ImGuiLayer>(DR::getI()->getContext(), sharedData);
+    app->push_layer<ResultLayer>(sharedData);
     int lastInpIndex = -1;
     int lastRefIndex = -1;
     while (!glfwWindowShouldClose(window)) {

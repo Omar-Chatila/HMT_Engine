@@ -34,6 +34,7 @@ struct VPContext {
     }
 };
 
+// TODO: nicht immer motionfiles neu parsen
 class UIContext {
 public:
     UIContext() : 
@@ -60,13 +61,6 @@ public:
     VPContext *refView;
     std::string input_file;
     std::string reference_file;
-
-    int selected_amateur;
-    int selected_prof;
-    std::vector<std::string> amateur_squats;
-    std::vector<std::string> prof_squats;
-    std::vector<std::string> amateur_tai;
-    std::vector<std::string> prof_tai;
 
     Distances dist_func;
     Trajectoy_analysis *analysis;

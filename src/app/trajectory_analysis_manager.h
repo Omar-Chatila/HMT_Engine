@@ -30,6 +30,7 @@ public:
     void updateContext();
     float getAlgorithmResult(enum Algorithm algorithm);
     void updateDisplayRequirements();
+    UIContext *getContext();
 
 private:
     DR *displayRequ;

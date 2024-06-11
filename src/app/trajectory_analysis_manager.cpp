@@ -36,6 +36,10 @@ void TrajectoryAnalysisManager::updateContext() {
     context->matrix = mat;
 }
 
+UIContext* TrajectoryAnalysisManager::getContext() {
+    return context;
+}
+
 float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
     return algorithms_results[algorithm];
 }

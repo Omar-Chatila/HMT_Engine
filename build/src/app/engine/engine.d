@@ -9,7 +9,8 @@ build/src/app/engine/engine.o: src/app/engine/engine.cpp \
  src/app/engine/display_requirements.h src/app/engine/ui_context.h \
  src/parsing/motion_data.h src/opengl/Shader.h src/opengl/Sphere.h \
  src/opengl/line.h src/imgui/imgui_layers.h src/imgui/Layer.h \
- src/imgui/layers.h src/imgui/example_layer.h src/imgui/imgui_layer.h
+ src/imgui/layer_data.h src/imgui/layers.h src/imgui/example_layer.h \
+ src/imgui/imgui_layer.h src/imgui/result_layer.h
 src/app/engine/Engine.h:
 include/GLFW/glfw3.h:
 include/imgui/imgui.h:
@@ -34,6 +35,8 @@ src/opengl/Sphere.h:
 src/opengl/line.h:
 src/imgui/imgui_layers.h:
 src/imgui/Layer.h:
+src/imgui/layer_data.h:
 src/imgui/layers.h:
 src/imgui/example_layer.h:
 src/imgui/imgui_layer.h:
+src/imgui/result_layer.h:
