@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <unordered_map>
 
 const int JOINT_COUNT = 19;
 
@@ -27,10 +28,6 @@ namespace Joint {
         r_hip, r_knee, r_ankle 
     };
 }
-
-enum Error {
-
-};
 
 struct Vec3D {
     float x, y, z;
@@ -53,6 +50,45 @@ struct Quaternion {
 inline float operator*(const Quaternion& q1, const Quaternion& q2) {
     return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
 }
+
+enum class MovementSegment {
+    SQUAT_PREPARATION,
+    SQUAT_GOING_DOWN,
+    SQUAT_GOING_UP,
+    SQUAT_WRAP_UP,
+};
+
+enum class ErrorPattern {
+    TOO_DEEP,
+    FEET_DISTANCE_NOT_SUFFICIENT,
+    INCORRECT_WEIGHT_DISTRIBUTION,
+    HIPS_DONT_START,
+    WRONG_MOVEMENT_DYNAMICS,
+    ARCHED_NECK,
+    HOLLOW_BACK,
+    KNEES_SIDEWAYS,
+    SYMMETRY,
+    COUNT
+};
+
+const std::unordered_map<std::string, MovementSegment> movementSegmentMap = {
+        {"Squat-preparation", MovementSegment::SQUAT_PREPARATION},
+        {"Squat-going-down", MovementSegment::SQUAT_GOING_DOWN},
+        {"Squat-going-up", MovementSegment::SQUAT_GOING_UP},
+        {"Squat-wrap-up", MovementSegment::SQUAT_WRAP_UP},
+};
+
+const std::unordered_map<std::string, ErrorPattern> errorPatternMap = {
+        {"too-deep", ErrorPattern::TOO_DEEP},
+        {"feet-distance-not-sufficient", ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT},
+        {"incorrect-weight-distribution", ErrorPattern::INCORRECT_WEIGHT_DISTRIBUTION},
+        {"hips-do-not-start", ErrorPattern::HIPS_DONT_START},
+        {"wrong-movement-dynamics", ErrorPattern::WRONG_MOVEMENT_DYNAMICS},
+        {"arched-neck", ErrorPattern::ARCHED_NECK},
+        {"hollow-back", ErrorPattern::HOLLOW_BACK},
+        {"knees-sideways", ErrorPattern::KNEES_SIDEWAYS},
+        {"symmetry", ErrorPattern::SYMMETRY},
+};
 
 struct Frame {
     int time_frame;

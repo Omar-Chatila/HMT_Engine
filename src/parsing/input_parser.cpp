@@ -65,23 +65,49 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
 
     // Extract and process meta
     std::string meta = parts_and_meta[1];
-    std::vector<std::string> meta_parts = split(meta, ',');
+    MovementSegment movementSegment;
+    std::array<double, static_cast<size_t>(ErrorPattern::COUNT)> errorPatternScores{};
 
-    // Process movement_segment
-    std::string movement_segment = meta_parts[0];
-    std::size_t pos = movement_segment.find(":");      
-    movement_segment = movement_segment.substr(pos + 1);
+    std::istringstream iss(line);
+    std::string field;
+    while (std::getline(iss, field, ';')) {
+        std::istringstream fieldStream(field);
+        std::string fieldName;
+        std::getline(fieldStream, fieldName, ':');
+        std::string fieldValue;
+        std::getline(fieldStream, fieldValue);
 
-    // Process style_pattern
-    std::string style_pattern = meta_parts[1];
-    pos = style_pattern.find(":");   
-    style_pattern = style_pattern.substr(pos + 1); // +1 to skip the colon
-    std::vector<std::string> patterns = split(style_pattern, ' ');
-
-    // Combine movement_segment and patterns into one vector
-    std::vector<std::string> meta_data;
-    meta_data.push_back(movement_segment);
-    meta_data.insert(meta_data.end(), patterns.begin(), patterns.end());
+        if (fieldName == "MP") {
+            auto it = movementSegmentMap.find(fieldValue);
+            if (it != movementSegmentMap.end()) {
+                movementSegment = it->second;
+            }
+        } else if (fieldName == "PSPS") {
+            std::istringstream pspsStream(fieldValue);
+            std::string pattern;
+            while (std::getline(pspsStream, pattern, ' ')) {
+                std::istringstream patternStream(pattern);
+                std::string patternName;
+                std::getline(patternStream, patternName, '_');
+                auto it = errorPatternMap.find(patternName);
+                if (it != errorPatternMap.end()) {
+                    size_t index = static_cast<size_t>(it->second);
+                    std::string value;
+                    std::getline(patternStream, value, '~');
+                    if (value != "not-active") {
+                        std::getline(patternStream, value, '~');
+                        errorPatternScores[index] = std::stod(value);
+                    }
+                }
+            }
+        }
+    }
+    // Print the parsed data
+    std::cout << "Movement Segment: " << static_cast<int>(movementSegment) << std::endl;
+    std::cout << "Error Pattern Scores:" << std::endl;
+    for (size_t i = 0; i < errorPatternScores.size(); ++i) {
+        std::cout << "  " << static_cast<ErrorPattern>(i) << ": " << errorPatternScores[i] << std::endl;
+    }
     return {time_frame, root_translation, joint_rotations, joint_translations, meta_data};
 }
 
