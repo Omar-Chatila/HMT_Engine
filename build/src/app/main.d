@@ -10,7 +10,8 @@ build/src/app/main.o: src/app/main.cpp src/app/engine/Engine.h \
  src/opengl/line.h src/imgui/imgui_layers.h src/imgui/Layer.h \
  src/imgui/layer_data.h src/imgui/layers.h src/imgui/example_layer.h \
  src/imgui/imgui_layer.h src/imgui/result_layer.h \
- src/app/motion_file_processor.h
+ src/app/motion_file_processor.h src/tests/tests.h \
+ src/algorithms/distance_measures.h src/algorithms/dtw.h
 src/app/engine/Engine.h:
 include/GLFW/glfw3.h:
 include/imgui/imgui.h:
@@ -41,3 +42,6 @@ src/imgui/example_layer.h:
 src/imgui/imgui_layer.h:
 src/imgui/result_layer.h:
 src/app/motion_file_processor.h:
+src/tests/tests.h:
+src/algorithms/distance_measures.h:
+src/algorithms/dtw.h:

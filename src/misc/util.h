@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 const int JOINT_COUNT = 19;
+const int ERROR_COUNT = 9;
 
 namespace Joint {
     enum Type {
@@ -31,7 +32,8 @@ namespace Joint {
 
 struct Vec3D {
     float x, y, z;
-
+    Vec3D() : x(0.0f), y(0.0f), z(0.0f) {}
+    Vec3D(float p_x, float p_y, float p_z) : x(p_x), y(p_y), z(p_z) {}
     friend std::ostream& operator<<(std::ostream& os, const Vec3D& vec) {
         os << "V(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
         return os;
@@ -71,23 +73,39 @@ enum class ErrorPattern {
     COUNT
 };
 
-const std::unordered_map<std::string, MovementSegment> movementSegmentMap = {
-        {"Squat-preparation", MovementSegment::SQUAT_PREPARATION},
-        {"Squat-going-down", MovementSegment::SQUAT_GOING_DOWN},
-        {"Squat-going-up", MovementSegment::SQUAT_GOING_UP},
-        {"Squat-wrap-up", MovementSegment::SQUAT_WRAP_UP},
+const std::unordered_map<MovementSegment, std::string> movementSegmentMap = {
+        {MovementSegment::SQUAT_PREPARATION, "Squat-preparation"},
+        {MovementSegment::SQUAT_GOING_DOWN, "Squat-going_down"},
+        {MovementSegment::SQUAT_GOING_UP, "Squat-going_up"},
+        {MovementSegment::SQUAT_WRAP_UP, "Squat-wrap_up"},
 };
 
-const std::unordered_map<std::string, ErrorPattern> errorPatternMap = {
-        {"too-deep", ErrorPattern::TOO_DEEP},
-        {"feet-distance-not-sufficient", ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT},
-        {"incorrect-weight-distribution", ErrorPattern::INCORRECT_WEIGHT_DISTRIBUTION},
-        {"hips-do-not-start", ErrorPattern::HIPS_DONT_START},
-        {"wrong-movement-dynamics", ErrorPattern::WRONG_MOVEMENT_DYNAMICS},
-        {"arched-neck", ErrorPattern::ARCHED_NECK},
-        {"hollow-back", ErrorPattern::HOLLOW_BACK},
-        {"knees-sideways", ErrorPattern::KNEES_SIDEWAYS},
-        {"symmetry", ErrorPattern::SYMMETRY},
+const std::unordered_map<ErrorPattern, std::string> errorPatternMap = {
+        {ErrorPattern::TOO_DEEP, "too-deep"},
+        {ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT, "feet-distance-not-sufficient"},
+        {ErrorPattern::INCORRECT_WEIGHT_DISTRIBUTION, "incorrect-weight-distribution"},
+        {ErrorPattern::HIPS_DONT_START, "hips-do-not-start"},
+        {ErrorPattern::WRONG_MOVEMENT_DYNAMICS, "wrong-movement-dynamics"},
+        {ErrorPattern::ARCHED_NECK, "arched_neck"},
+        {ErrorPattern::HOLLOW_BACK, "hollow-back"},
+        {ErrorPattern::KNEES_SIDEWAYS, "knees-sideways"},
+        {ErrorPattern::SYMMETRY, "symmetry"},
+};
+
+struct Meta {
+    MovementSegment segment;
+    std::array<Vec3D, ERROR_COUNT> parameters;
+
+    friend std::ostream& operator<<(std::ostream& os, const Meta& meta) {
+        os << "Movement Segment: " << movementSegmentMap.at(meta.segment) << "\n";
+        os << "Errors and Parameters:\n";
+        
+        for (int i = 0; i < ERROR_COUNT; ++i) {
+            os << "  " << errorPatternMap.at(static_cast<ErrorPattern>(i)) << ": " << meta.parameters[i] << "\n";
+        }
+        
+        return os;
+    }
 };
 
 struct Frame {
@@ -95,7 +113,7 @@ struct Frame {
     Vec3D root_translation;
     Quaternion* joint_rotations = static_cast<Quaternion*>(malloc(JOINT_COUNT * sizeof(Quaternion)));
     Vec3D* joint_translations = static_cast<Vec3D*>(malloc(JOINT_COUNT * sizeof(Vec3D)));
-    std::vector<std::string> labels;
+    Meta meta_info;
 
     friend std::ostream& operator<<(std::ostream& os, const Frame& frame) {
         os << "Frame " << frame.time_frame << ": Root translation: " << frame.root_translation << "\n";
@@ -110,10 +128,7 @@ struct Frame {
             os << "  " << frame.joint_translations[i] << "\n";
         }
 
-        os << "Labels: ";
-        for (const std::string& label : frame.labels) {
-            os << label << " ";
-        }
+        os << frame.meta_info;
         os << "\n";
         
         return os;

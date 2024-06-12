@@ -2,6 +2,7 @@
 #define INPUT_PARSER_H
 
 #include "util.h"
+#include <array>
 
 /*
 # Motion file saved by ICSPACE MotionTool

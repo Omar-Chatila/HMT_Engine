@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "motion_file_processor.h"
+#include "tests.h"
 
 int main() {
     SharedData *sharedData = new SharedData();

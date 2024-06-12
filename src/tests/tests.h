@@ -11,8 +11,8 @@ void test() {
     std::string input_file = R"(resources\test\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();
-    Trajectories* input_trajectories = new Trajectories(input_frames);
-
+    //Trajectories* input_trajectories = new Trajectories(input_frames);
+    /*
     std::cout << "input traj created" << std::endl;
 
     // Parse reference trajectory
@@ -47,8 +47,10 @@ void test() {
     delete reference;
     delete input_trajectories;
     delete input;
+*/
 }
 
+/*
 void test1() {
     Quaternion* joint_rotations1 = new Quaternion[JOINT_COUNT];
     Quaternion* joint_rotations2 = new Quaternion[JOINT_COUNT];
@@ -138,4 +140,6 @@ void test1() {
     std::cout << "df" << std:: endl;
     auto alignment = Dtw::get_cost_and_alignment(matrix, angles.size(), angles2.size());
     std::cout << alignment.first << std::endl;
+
 }
+    */
