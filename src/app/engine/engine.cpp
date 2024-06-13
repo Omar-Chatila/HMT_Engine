@@ -87,6 +87,7 @@ int Renderer::display()
     ImGUI_Layers* app = new ImGUI_Layers();
     app->push_layer<ImGuiLayer>(DR::getI()->getContext(), sharedData);
     app->push_layer<ResultLayer>(sharedData);
+    app->push_layer<ClassifierLayer>(sharedData);
     int lastInpIndex = -1;
     int lastRefIndex = -1;
     while (!glfwWindowShouldClose(window)) {
@@ -134,7 +135,6 @@ int Renderer::display()
             DR::getI()->getContext()->refPaused = lastRefIndex == ref;
             lastInpIndex = in;
             lastRefIndex = ref;
-            std::cout << DR::getI()->getContext()->inpPaused << ":" << DR::getI()->getContext()->refPaused << std::endl;
             DR::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
             update_SpherePos_Aligned(in_frms, ref_frms, mapping, 0, 1);
             map_index++;
@@ -311,13 +311,15 @@ GLFWwindow *Renderer::init_window(UIContext *context) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return nullptr;
     }
-
+    // Get the primary monitor and its video mode
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
     // Create a GLFW window
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Window", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "Window", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

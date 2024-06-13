@@ -1,6 +1,6 @@
 #include "input_parser.h"
 
-Input_parser::Input_parser(const char *path_to_file) : min_x(0.0f), max_x(0.0f), min_y(0.0f), max_y(0.0f), min_z(0.0f), max_z(0.0f) {
+Input_parser::Input_parser(const char *path_to_file) {
     this->file = path_to_file;
 }
 
@@ -53,14 +53,6 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
         float y2 = y + std::stod(coords[1]);
         float z2 = z + std::stod(coords[2]);
         joint_translations[joint_index] = Vec3D{x2, y2, z2};
-
-        // Update min and max values
-        if (x2 < min_x) min_x = x2;
-        if (x2 > max_x) max_x = x2;
-        if (y2 < min_y) min_y = y2;
-        if (y2 > max_y) max_y = y2;
-        if (z2 < min_z) min_z = z2;
-        if (z2 > max_z) max_z = z2;
     }
 
     std::vector<std::string> meta_data;

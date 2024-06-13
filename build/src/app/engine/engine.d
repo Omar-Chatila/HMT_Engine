@@ -10,7 +10,11 @@ build/src/app/engine/engine.o: src/app/engine/engine.cpp \
  src/parsing/motion_data.h src/opengl/Shader.h src/opengl/Sphere.h \
  src/opengl/line.h src/imgui/imgui_layers.h src/imgui/Layer.h \
  src/imgui/layer_data.h src/imgui/layers.h src/imgui/example_layer.h \
- src/imgui/imgui_layer.h src/imgui/result_layer.h
+ src/imgui/my_layers/imgui_layer.h src/imgui/my_layers/result_layer.h \
+ src/imgui/my_layers/../layer_data.h \
+ src/imgui/my_layers/classifier_layer.h include/imgui/implot.h \
+ include/imgui/implot_internal.h include/imgui/imgui_internal.h \
+ include/imgui/imstb_textedit.h
 src/app/engine/Engine.h:
 include/GLFW/glfw3.h:
 include/imgui/imgui.h:
@@ -38,5 +42,11 @@ src/imgui/Layer.h:
 src/imgui/layer_data.h:
 src/imgui/layers.h:
 src/imgui/example_layer.h:
-src/imgui/imgui_layer.h:
-src/imgui/result_layer.h:
+src/imgui/my_layers/imgui_layer.h:
+src/imgui/my_layers/result_layer.h:
+src/imgui/my_layers/../layer_data.h:
+src/imgui/my_layers/classifier_layer.h:
+include/imgui/implot.h:
+include/imgui/implot_internal.h:
+include/imgui/imgui_internal.h:
+include/imgui/imstb_textedit.h:
