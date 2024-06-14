@@ -56,6 +56,7 @@ inline float operator*(const Quaternion& q1, const Quaternion& q2) {
 enum class MovementSegment {
     SQUAT_PREPARATION,
     SQUAT_GOING_DOWN,
+    SQUAT_IS_DOWN,
     SQUAT_GOING_UP,
     SQUAT_WRAP_UP,
 };
@@ -76,6 +77,7 @@ enum class ErrorPattern {
 const std::unordered_map<MovementSegment, std::string> movementSegmentMap = {
         {MovementSegment::SQUAT_PREPARATION, "Squat-preparation"},
         {MovementSegment::SQUAT_GOING_DOWN, "Squat-going_down"},
+        {MovementSegment::SQUAT_IS_DOWN, "Squat-is_down"},
         {MovementSegment::SQUAT_GOING_UP, "Squat-going_up"},
         {MovementSegment::SQUAT_WRAP_UP, "Squat-wrap_up"},
 };
@@ -166,6 +168,53 @@ inline std::vector<std::string> readAllLines(const char* p_file, int start_line)
     return lines;
 }
 
+inline std::array<int, 5> calculateSegments(const std::vector<Frame> &frames) {
+    std::array<int, 5> result = {0, 0, 0, 0, 0};
+    int currentSegment = 0;
+    for (auto& frame : frames) {
+        if (static_cast<int>(frame.meta_info.segment) != currentSegment) {
+            result[currentSegment] = frame.time_frame - 1;
+            currentSegment = static_cast<int>(frame.meta_info.segment);
+        }
+    }
+    result[4] = frames.size() - 1;
+    return result;
+}
+
+inline std::array<int, 10> calcSegmentsAligned(const std::vector<int> &alignmentPath, const std::vector<Frame> &inp_frames, const std::vector<Frame> &ref_frames) {
+    int m = ref_frames.size();
+    std::array<int, 5> inp_result = {0, 0, 0, 0, 0};
+    std::array<int, 5> ref_result = {0, 0, 0, 0, 0};
+    int current_inp_segment = 0;
+    int current_ref_segment = 0;
+    for (int align_index: alignmentPath) {
+        int inp_index = align_index / (m + 1) - 1;
+        int ref_index = align_index % (m + 1) - 1;
+        if (static_cast<int>(inp_frames[inp_index].meta_info.segment) != current_inp_segment) {
+            inp_result[current_inp_segment] = inp_frames[inp_index].time_frame - 1;
+            current_inp_segment = static_cast<int>(inp_frames[inp_index].meta_info.segment);
+        }
+        if (static_cast<int>(ref_frames[ref_index].meta_info.segment) != current_ref_segment) {
+            ref_result[current_ref_segment] = ref_frames[ref_index].time_frame - 1;
+            current_ref_segment = static_cast<int>(ref_frames[ref_index].meta_info.segment);
+        }
+    }
+    inp_result[4] = alignmentPath.size() - 1;
+    ref_result[4] = alignmentPath.size() - 1;
+    for (int i = 0; i < 4; i++) {
+        if (inp_result[i] == 0) inp_result[i] = inp_result[i + 1];
+        if (ref_result[i] == 0) ref_result[i] = ref_result[i + 1];
+    }
+    std::array<int, 10> result;
+    int ind = 0;
+    for (int i = 0; i < 5; i++) {
+        result[ind] = inp_result[i];
+        result[ind + 1] = ref_result[i];
+        ind += 2;
+    }
+    return result;
+}
+
 inline std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::string token;
@@ -174,7 +223,6 @@ inline std::vector<std::string> split(const std::string& str, char delimiter) {
     while (std::getline(ss, token, delimiter)) {
         tokens.push_back(token);
     }
-
     return tokens;
 }
 

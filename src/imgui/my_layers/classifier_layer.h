@@ -18,6 +18,7 @@ private:
     bool is_continuous;
 
     void errorPlot();
+    void segmentPlot();
 };
 
 

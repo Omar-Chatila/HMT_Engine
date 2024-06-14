@@ -21,12 +21,13 @@ int main() {
         }
         sharedData->trajectoryInfos.push_back(info);
     }
+    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),DR::getI()->getInp_frames(),DR::getI()->getRef_frames());
     Renderer* rend = new Renderer(sharedData);
     rend->display();
 
     delete rend;
     delete motionFileProcessor;
     delete sharedData;
-
+    //test();
     return 0;
 }
