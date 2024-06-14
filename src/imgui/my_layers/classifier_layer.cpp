@@ -15,30 +15,51 @@ ClassifierLayer::~ClassifierLayer() {
 
 void ClassifierLayer::onRender() {
     ImGui::Begin("Errors");
-    ImGui::BulletText("Occurrence of each error pattern");
+    errorPlot();
+    ImGui::End();
+}
+
+void ClassifierLayer::errorPlot() {
+    ImGui::Begin("Errors");
+    ImGui::TextColored(ImVec4(0.8f, 0.5f, 0.0f, 1.0f), "Occurrence of each error pattern");
     ImGui::SameLine();
     ImGui::Checkbox("Continuous##", &this->is_continuous);
+    // current frame of alignment path
     this->currentFrame = &DR::getI()->getContext()->c_frame;
+    // input frames (shorter than alignment path)
     std::vector<Frame> inp_frames = DR::getI()->getInp_frames();
-    int num_frames = inp_frames.size();
-    int c_t = *this->currentFrame % num_frames;
-
+    // length of alignment path
+    int num_frames = std::get<1>(*DR::getI()->getContext()->matrix).size();
+    // current corresponding index in input path
+    int c_t = *this->currentFrame;
+    int lastInpIndex = -1;
+    int lastRefIndex = -1;
     static std::vector<float> x_data;
-    static std::vector<std::vector<float>> y_data(ERROR_COUNT + 2, std::vector<float>(num_frames));
+    static std::vector<std::vector<float>> y_data(ERROR_COUNT + 2, std::vector<float>());
 
     x_data.resize(num_frames);
+    for (auto &vec : y_data) {
+        vec.resize(num_frames, 0.0f);
+    }
+
+    int m = DR::getI()->getRef_frames().size();
+
     for (int frame_idx = 0; frame_idx < num_frames; ++frame_idx) {
+        int align_index = std::get<1>(*DR::getI()->getContext()->matrix)[frame_idx];
+        int inp_index = align_index / (m + 1) - 1;
         x_data[frame_idx] = static_cast<float>(frame_idx);
-        std::array<Vec3D, ERROR_COUNT> errors = inp_frames[frame_idx].meta_info.parameters;
+        std::array<Vec3D, ERROR_COUNT> errors = inp_frames[inp_index].meta_info.parameters;
         for (int i = 0; i < ERROR_COUNT; ++i) {
-            y_data[i][frame_idx] = errors[i].x * errors[i].y * errors[i].z;
+            float value = errors[i].x * errors[i].y * errors[i].z;
+            y_data[i][frame_idx] = value;
         }
         y_data[ERROR_COUNT][frame_idx] = -0.05;
         y_data[ERROR_COUNT + 1][frame_idx] = 1.05;
     }
 
     // Determine the number of frames to plot
-    int plot_frames = c_t + 1; // this->is_continuous ? c_t + 1 : num_frames;
+    int plot_frames = this->is_continuous ? c_t + 1 : num_frames;
+    //line 61
     if (ImPlot::BeginPlot("Error Plot", ImVec2(-1, 250))) {
         ImPlot::SetupAxes("Time [ms]", "Values", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
         ImPlot::SetupAxisLimits(ImAxis_X1, 0, num_frames - 1, ImGuiCond_Always);

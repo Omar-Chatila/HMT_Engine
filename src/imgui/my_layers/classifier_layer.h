@@ -16,6 +16,8 @@ public:
 private:
     int *currentFrame;
     bool is_continuous;
+
+    void errorPlot();
 };
 
 

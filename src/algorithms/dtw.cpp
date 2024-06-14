@@ -75,7 +75,7 @@ std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matri
     std::vector<int> alignment;
     const float cost = cost_matrix[index];
 
-    while (index >= m + 2) {
+    while (index > 0) {
         alignment.push_back(index);
         int next_index;
         if (cost_matrix[index - (m + 2)] < cost_matrix[index - 1] && cost_matrix[index - (m + 2)] < cost_matrix[index - m - 1]) {
