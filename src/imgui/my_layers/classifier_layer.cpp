@@ -16,24 +16,16 @@ ClassifierLayer::~ClassifierLayer() {
 void ClassifierLayer::onRender() {
     ImGui::Begin("Errors");
     errorPlot();
+    segmentPlot();
     ImGui::End();
 }
 
 void ClassifierLayer::errorPlot() {
-    ImGui::Begin("Errors");
-    ImGui::TextColored(ImVec4(0.8f, 0.5f, 0.0f, 1.0f), "Occurrence of each error pattern");
-    ImGui::SameLine();
     ImGui::Checkbox("Continuous##", &this->is_continuous);
-    // current frame of alignment path
     this->currentFrame = &DR::getI()->getContext()->c_frame;
-    // input frames (shorter than alignment path)
     std::vector<Frame> inp_frames = DR::getI()->getInp_frames();
-    // length of alignment path
     int num_frames = std::get<1>(*DR::getI()->getContext()->matrix).size();
-    // current corresponding index in input path
     int c_t = *this->currentFrame;
-    int lastInpIndex = -1;
-    int lastRefIndex = -1;
     static std::vector<float> x_data;
     static std::vector<std::vector<float>> y_data(ERROR_COUNT + 2, std::vector<float>());
 
@@ -57,10 +49,8 @@ void ClassifierLayer::errorPlot() {
         y_data[ERROR_COUNT + 1][frame_idx] = 1.05;
     }
 
-    // Determine the number of frames to plot
     int plot_frames = this->is_continuous ? c_t + 1 : num_frames;
-    //line 61
-    if (ImPlot::BeginPlot("Error Plot", ImVec2(-1, 250))) {
+    if (ImPlot::BeginPlot("Occurrence of each error pattern", ImVec2(-1, 200))) {
         ImPlot::SetupAxes("Time [ms]", "Values", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
         ImPlot::SetupAxisLimits(ImAxis_X1, 0, num_frames - 1, ImGuiCond_Always);
         ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1f, 1.1f);
@@ -70,10 +60,45 @@ void ClassifierLayer::errorPlot() {
             std::string label = "";
             if (i < ERROR_COUNT)
                 label = errorPatternMap.at(static_cast<ErrorPattern>(i));
-            ImPlot::PlotLine(label.c_str(), x_data.data(), y_data[i].data(), plot_frames); // Plot up to the determined number of frames
+            ImPlot::PlotLine(label.c_str(), x_data.data(), y_data[i].data(), plot_frames);
         }
-
         ImPlot::EndPlot();
     }
-    ImGui::End();
 }
+
+void ClassifierLayer::segmentPlot() {
+    static ImPlotColormap Liars = -1;
+    if (Liars == -1) {
+        static const ImU32 Liars_Data[6] = { 4282515870, 4282609140, 4287357182, 4294630301, 4294945280, 4294921472 };
+        Liars = ImPlot::AddColormap("Liars", Liars_Data, 5);
+    }
+
+    static const char* politicians[] = { "Input", "Expert" };
+    std::array<int, 10> values = sharedData->alignedSegments;
+    static int data_reg[10];
+    for (int i = 0; i < 10; i++) {
+        data_reg[i] = std::max(values[i], 0);
+    }
+    // Calc interval lengths
+    for (int i = 2; i < 10; i++) {
+        data_reg[i] -= values[i - 2];
+    }
+    static const char* labels_reg[] = { "Squat preparation", "Squat going down", "Squat is down", "Squat going up", "Squat wrap up"};
+
+    ImPlot::PushColormap(Liars);
+    if (ImPlot::BeginPlot("Squat Movement Segments", ImVec2(1670, 200), ImPlotFlags_NoMouseText)) {
+        ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Invert);
+        ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(10, 10));
+        ImPlot::SetupAxisTicks(ImAxis_Y1, 0, 1, 2, politicians, false);
+        ImPlot::PlotBarGroups(labels_reg, data_reg, 5, 2, 0.75, 0, ImPlotBarGroupsFlags_Stacked | ImPlotBarGroupsFlags_Horizontal);
+        ImPlot::PopStyleVar();
+        ImPlot::EndPlot();
+    }
+    ImPlot::PopColormap();
+    float progress = static_cast<float>(DR::getI()->getContext()->c_frame % std::get<1>(*DR::getI()->getContext()->matrix).size()) / std::get<1>(*DR::getI()->getContext()->matrix).size();
+    ImGui::ProgressBar(progress,ImVec2(1670, 2));
+}
+
+
+

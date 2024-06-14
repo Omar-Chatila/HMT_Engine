@@ -35,6 +35,9 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
     m_Context = DR::getI()->getContext();
+    sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
+    sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
+    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),DR::getI()->getInp_frames(),DR::getI()->getRef_frames());
     precomputePathDeviation();
 }
 
