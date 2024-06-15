@@ -72,5 +72,4 @@ inline float quat_dist(const Quaternion* first, const Quaternion* second) {
     }
     return distance;
 }
-
 #endif
