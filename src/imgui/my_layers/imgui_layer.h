@@ -27,11 +27,6 @@ public:
 
     void UpdateFOVWithScroll();
 
-    // Define the interpolateColor function
-    Color interpolateColor(float value, float minVal, float maxVal, const std::vector<Color> &colorStops);
-
-    ImU32 interpolateColor(float value, float minVal, float maxVal, ImU32 colorLow, ImU32 colorHigh);
-
     void precomputePathDeviation();
 
     void precomputeCostDeviation();
@@ -53,6 +48,7 @@ public:
 private:
     UIContext *m_Context;
     std::vector<float> distances;
+    float maxDistance;
     std::vector<ImU32> colors;
     bool showDiagram = false;
     int isCostDeviation = 0;
