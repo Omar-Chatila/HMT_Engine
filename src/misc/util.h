@@ -12,6 +12,7 @@
 const int JOINT_COUNT = 19;
 const int ERROR_COUNT = 9;
 
+
 namespace Joint {
     enum Type {
         HumanoidRoot,
@@ -171,11 +172,13 @@ inline std::vector<std::string> readAllLines(const char* p_file, int start_line)
 inline std::array<int, 5> calculateSegments(const std::vector<Frame> &frames) {
     std::array<int, 5> result = {0, 0, 0, 0, 0};
     int currentSegment = 0;
+    int f_index = 0;
     for (auto& frame : frames) {
         if (static_cast<int>(frame.meta_info.segment) != currentSegment) {
-            result[currentSegment] = frame.time_frame - 1;
+            result[currentSegment] = f_index - 1;
             currentSegment = static_cast<int>(frame.meta_info.segment);
         }
+        f_index++;
     }
     result[4] = frames.size() - 1;
     return result;
@@ -187,20 +190,22 @@ inline std::array<int, 10> calcSegmentsAligned(const std::vector<int> &alignment
     std::array<int, 5> ref_result = {0, 0, 0, 0, 0};
     int current_inp_segment = 0;
     int current_ref_segment = 0;
+    int f_index = 0;
     for (int align_index: alignmentPath) {
         int inp_index = align_index / (m + 1) - 1;
         int ref_index = align_index % (m + 1) - 1;
         if (static_cast<int>(inp_frames[inp_index].meta_info.segment) != current_inp_segment) {
-            inp_result[current_inp_segment] = inp_frames[inp_index].time_frame - 1;
+            inp_result[current_inp_segment] = f_index - 1;
             current_inp_segment = static_cast<int>(inp_frames[inp_index].meta_info.segment);
         }
         if (static_cast<int>(ref_frames[ref_index].meta_info.segment) != current_ref_segment) {
-            ref_result[current_ref_segment] = ref_frames[ref_index].time_frame - 1;
+            ref_result[current_ref_segment] = f_index - 1;
             current_ref_segment = static_cast<int>(ref_frames[ref_index].meta_info.segment);
         }
+        f_index++;
     }
-    inp_result[4] = alignmentPath.size() - 1;
-    ref_result[4] = alignmentPath.size() - 1;
+    inp_result[4] = f_index - 1;
+    ref_result[4] = f_index - 1;
     for (int i = 0; i < 4; i++) {
         if (inp_result[i] == 0) inp_result[i] = inp_result[i + 1];
         if (ref_result[i] == 0) ref_result[i] = ref_result[i + 1];

@@ -7,6 +7,17 @@ std::vector<std::function<float(const Vec3D&, const Vec3D&)>> vec_dist_measures 
         cosine_similarity, cosine_distance1, cosine_distance2, hamming_distance};
 
 std::function<float(const Quaternion*, const Quaternion*)> quaternion_dist = quat_dist;
+std::vector<std::function<float(const Quaternion*, const Quaternion*)>> error_dist = {
+        Joint::too_deep_dist,
+        Joint::feet_too_close_dist,
+        Joint::incorrect_weight_dist,
+        Joint::hips_dont_start_dist,
+        Joint::movement_dyn_dist,
+        Joint::arched_neck_dist,
+        Joint::hollow_back_dist,
+        Joint::knees_sideways_dist,
+        Joint::symmetry_dist
+};
 
 std::tuple<float, std::vector<int>, float*> Trajectoy_analysis::perform_DTW(Joint::Type joint, Distances type) {
     float *c_matrix = Dtw::dtw(input_trajectories.get_positionsTrajectory(joint), 
@@ -27,4 +38,12 @@ float Trajectoy_analysis::perform_EDR(Joint::Type joint, Distances type, float e
     return EditDistance::edr(input_trajectories.get_positionsTrajectory(joint), 
                       reference_trajectories.get_positionsTrajectory(joint), 
                       input_trajectories.size(), reference_trajectories.size(), epsilon, vec_dist_measures[type]);
+}
+
+float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj,
+                                                 const std::vector<Quaternion *> &ref_traj, ErrorPattern errorPattern) {
+    float *c_matrix = Dtw::dtw(inp_traj, ref_traj, error_dist[static_cast<int>(errorPattern)]);
+    int n = inp_traj.size();
+    int m = ref_traj.size();
+    return c_matrix[(m + 1) * (n + 1) - 1];
 }

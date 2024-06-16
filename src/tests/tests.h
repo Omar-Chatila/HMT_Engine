@@ -8,6 +8,15 @@ void test1();
 
 void test() {
     // Parse input trajectory
+    SharedData *sharedData = new SharedData();
+    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
+    const char* default_file = "fb_41_pre_splitted_1.txt";
+    motionFileProcessor->processInputFile(std::string(default_file));
+    DR* disp_req = DR::getI();
+    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
+    manager->updateDisplayRequirements();
+
+    /*
     std::string input_file = R"(resources\test\fb_41_pre_splitted_1.txt)";
     Input_parser* input = new Input_parser(input_file.c_str());
     std::vector<Frame> input_frames = input->get_frames();

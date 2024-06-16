@@ -4,6 +4,7 @@
 #include "input_parser.h"
 #include "display_requirements.h"
 #include "ui_context.h"
+#include "util.h"
 #include <vector>
 #include <array>
 #include <string>
@@ -41,6 +42,7 @@ private:
     std::vector<Frame> refFrames;
     std::tuple<float, std::vector<int>, float*> alignment;
     std::array<float, ALGO_COUNT> algorithms_results;
+    std::array<float, ERROR_COUNT> error_results;
     Input_parser* inputParser;
     Input_parser* refParser;
     Trajectories* inputTrajectories;
