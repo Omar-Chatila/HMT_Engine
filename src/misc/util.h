@@ -172,14 +172,15 @@ inline std::vector<std::string> readAllLines(const char* p_file, int start_line)
 inline std::array<int, 5> calculateSegments(const std::vector<Frame> &frames) {
     std::array<int, 5> result = {0, 0, 0, 0, 0};
     int currentSegment = 0;
-    for (auto& frame : frames) {
-        if (static_cast<int>(frame.meta_info.segment) != currentSegment) {
-            result[currentSegment] = frame.time_frame - 1;
-            currentSegment = static_cast<int>(frame.meta_info.segment);
+    for (size_t i = 0; i < frames.size(); ++i) {
+        int segment = static_cast<int>(frames[i].meta_info.segment);
+        if (segment != currentSegment) {
+            result[currentSegment] = std::max(0, static_cast<int>(i) - 1);
+            currentSegment = segment;
         }
     }
+    result[currentSegment] = frames.size() - 1;
     result[4] = frames.size() - 1;
-    for (int i = 0; i < 5; i++) std::cout << result[i] << ", " << std::endl;
     return result;
 }
 

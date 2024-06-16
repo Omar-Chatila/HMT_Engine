@@ -22,6 +22,8 @@ int main() {
         sharedData->trajectoryInfos.push_back(info);
     }
     sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),DR::getI()->getInp_frames(),DR::getI()->getRef_frames());
+    sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
+    sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
     Renderer* rend = new Renderer(sharedData);
     rend->display();
 

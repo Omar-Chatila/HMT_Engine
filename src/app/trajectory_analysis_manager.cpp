@@ -25,7 +25,7 @@ void TrajectoryAnalysisManager::performAnalysis() {
     context->cost = std::get<0>(alignment);
     algorithms_results[DTW] = std::get<0>(alignment);
     error_results[static_cast<int>(ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT)] = err_result;
-    std::cout << "" << err_result << std::endl;
+    //std::cout << "" << err_result << std::endl;
     //analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 }
 
