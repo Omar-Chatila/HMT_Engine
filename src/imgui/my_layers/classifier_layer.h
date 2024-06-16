@@ -19,6 +19,7 @@ private:
 
     void errorPlot();
     void segmentPlot();
+    void segmentPlotUnAligned();
 };
 
 

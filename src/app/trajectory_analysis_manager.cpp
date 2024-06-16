@@ -21,8 +21,11 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 
 void TrajectoryAnalysisManager::performAnalysis() {
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories());
+    float err_result = analysis->perform_ErrorDetection(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories(), ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT);
     context->cost = std::get<0>(alignment);
     algorithms_results[DTW] = std::get<0>(alignment);
+    error_results[static_cast<int>(ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT)] = err_result;
+    std::cout << "" << err_result << std::endl;
     //analysis->perform_EDR(Joint::l_hip, EUCLID, 3.0);
 }
 

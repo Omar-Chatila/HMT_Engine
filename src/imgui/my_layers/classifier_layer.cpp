@@ -17,6 +17,7 @@ void ClassifierLayer::onRender() {
     ImGui::Begin("Errors");
     errorPlot();
     segmentPlot();
+    segmentPlotUnAligned();
     ImGui::End();
 }
 
@@ -66,6 +67,41 @@ void ClassifierLayer::errorPlot() {
     }
 }
 
+void SetupPlot(const char* title, const char* const* politicians, int* data_reg, const char* const* labels_reg, ImPlotColormap colormap) {
+    ImPlot::PushColormap(colormap);
+    if (ImPlot::BeginPlot(title, ImVec2(1670, 200), ImPlotFlags_NoMouseText)) {
+        ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Invert);
+        ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(10, 10));
+        ImPlot::SetupAxisTicks(ImAxis_Y1, 0, 1, 2, politicians, false);
+        ImPlot::PlotBarGroups(labels_reg, data_reg, 5, 2, 0.75, 0, ImPlotBarGroupsFlags_Stacked | ImPlotBarGroupsFlags_Horizontal);
+        ImPlot::PopStyleVar();
+        ImPlot::EndPlot();
+    }
+    ImPlot::PopColormap();
+}
+
+void PrepareData(const std::array<int, 10>& values, int* data_reg) {
+    for (int i = 0; i < 10; i++) {
+        data_reg[i] = std::max(values[i], 0);
+    }
+    for (int i = 2; i < 10; i++) {
+        data_reg[i] -= values[i - 2];
+    }
+}
+
+void PrepareUnalignedData(const std::array<int, 5>& in_values, const std::array<int, 5>& ref_values, int* data_reg2) {
+    for (int i = 0; i < 10; i++) {
+        if (i % 2 == 0)
+            data_reg2[i] = std::max(in_values[i / 2], 0);
+        else
+            data_reg2[i] = std::max(ref_values[i / 2], 0);
+    }
+    for (int i = 2; i < 10; i++) {
+        data_reg2[i] -= data_reg2[i - 2];
+    }
+}
+
 void ClassifierLayer::segmentPlot() {
     static ImPlotColormap Liars = -1;
     if (Liars == -1) {
@@ -76,29 +112,30 @@ void ClassifierLayer::segmentPlot() {
     static const char* politicians[] = { "Input", "Expert" };
     std::array<int, 10> values = sharedData->alignedSegments;
     static int data_reg[10];
-    for (int i = 0; i < 10; i++) {
-        data_reg[i] = std::max(values[i], 0);
-    }
-    // Calc interval lengths
-    for (int i = 2; i < 10; i++) {
-        data_reg[i] -= values[i - 2];
-    }
-    static const char* labels_reg[] = { "Squat preparation", "Squat going down", "Squat is down", "Squat going up", "Squat wrap up"};
+    PrepareData(values, data_reg);
+    static const char* labels_reg[] = { "Squat preparation", "Squat going down", "Squat is down", "Squat going up", "Squat wrap up" };
 
-    ImPlot::PushColormap(Liars);
-    if (ImPlot::BeginPlot("Squat Movement Segments", ImVec2(1670, 200), ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
-        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Invert);
-        ImPlot::PushStyleVar(ImPlotStyleVar_PlotPadding, ImVec2(10, 10));
-        ImPlot::SetupAxisTicks(ImAxis_Y1, 0, 1, 2, politicians, false);
-        ImPlot::PlotBarGroups(labels_reg, data_reg, 5, 2, 0.75, 0, ImPlotBarGroupsFlags_Stacked | ImPlotBarGroupsFlags_Horizontal);
-        ImPlot::PopStyleVar();
-        ImPlot::EndPlot();
-    }
-    ImPlot::PopColormap();
+    SetupPlot("Movement Segments aligned", politicians, data_reg, labels_reg, Liars);
+
     float progress = static_cast<float>(DR::getI()->getContext()->c_frame % std::get<1>(*DR::getI()->getContext()->matrix).size()) / std::get<1>(*DR::getI()->getContext()->matrix).size();
-    ImGui::ProgressBar(progress,ImVec2(1670, 2));
+    ImGui::Dummy(ImVec2(50, 2));
+    ImGui::SameLine();
+    ImGui::ProgressBar(progress, ImVec2(1605, 2));
 }
 
+void ClassifierLayer::segmentPlotUnAligned() {
+    static ImPlotColormap Liars2 = -1;
+    if (Liars2 == -1) {
+        static const ImU32 Liars_Data2[6] = { 4282515870, 4282609140, 4287357182, 4294630301, 4294945280, 4294921472 };
+        Liars2 = ImPlot::AddColormap("Liars2", Liars_Data2, 5);
+    }
 
+    static const char* politicians2[] = { "Input", "Expert" };
+    std::array<int, 5> in_values = sharedData->inp_segments;
+    std::array<int, 5> ref_values = sharedData->ref_segments;
+    static int data_reg2[10];
+    PrepareUnalignedData(in_values, ref_values, data_reg2);
+    static const char* labels_reg2[] = { "Squat preparation", "Squat going down", "Squat is down", "Squat going up", "Squat wrap up" };
 
+    SetupPlot("Movement Segments not aligned", politicians2, data_reg2, labels_reg2, Liars2);
+}
