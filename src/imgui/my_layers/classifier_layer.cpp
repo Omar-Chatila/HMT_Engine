@@ -97,8 +97,10 @@ void PrepareUnalignedData(const std::array<int, 5>& in_values, const std::array<
         else
             data_reg2[i] = std::max(ref_values[i / 2], 0);
     }
+    int values[10];
+    for (int i = 0; i < 10; i++) values[i] = data_reg2[i];
     for (int i = 2; i < 10; i++) {
-        data_reg2[i] -= data_reg2[i - 2];
+        data_reg2[i] -= values[i - 2];
     }
 }
 

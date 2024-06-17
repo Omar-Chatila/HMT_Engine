@@ -31,7 +31,7 @@ public:
 
     void precomputeCostDeviation();
 
-    void precomputeDeviation(MatrixContext& context, std::vector<float>& distances, std::vector<ImU32>& colors);
+    void precomputeDeviation(MatrixContext& context, std::vector<float>& distances);
 
     void drawDTWDiagram();
 
@@ -48,6 +48,8 @@ public:
 private:
     UIContext *m_Context;
     std::vector<float> distances;
+    float** costM;
+    std::vector<float> costs;
     float maxDistance;
     std::vector<ImU32> colors;
     bool showDiagram = false;

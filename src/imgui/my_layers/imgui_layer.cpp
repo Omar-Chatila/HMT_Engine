@@ -61,14 +61,12 @@ void ImGuiLayer::UpdateFOVWithScroll() {
     }
 }
 
-void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>& distances, std::vector<ImU32>& colors) {
+void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>& distances) {
     int n = context.n;
     int m = context.m;
     const std::vector<int>& align_path = context.align_path;
+    const
     float* mat = context.mat;
-
-    float minDist = std::numeric_limits<float>::infinity();
-    float maxDist = -std::numeric_limits<float>::infinity();
 
     std::vector<std::pair<int, int>> pathCoords;
     for (int idx : align_path) {
@@ -78,24 +76,42 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
     }
 
     distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
+    costM = new float*[n];
+    for (int i = 0; i < n; i++) {
+        costM[i] = new float[m];
+    }
+
 
     for (int i = 0; i <= n; i++) {
         for (int j = 0; j <= m; j++) {
             float minDistanceToPath = std::numeric_limits<float>::infinity();
+            float minCostToPath = std::numeric_limits<float>::infinity();
+            for (auto num : context.align_path) {
+                float costDist = std::abs(mat[i * (m + 1) + j] - mat[num]);
+                minCostToPath = std::min(minCostToPath, costDist);
+            }
             for (const auto& [pi, pj] : pathCoords) {
                 float distance;
-                if (context.isCostDeviation) {
-                    distance = std::abs(mat[i * (m + 1) + j] - mat[pi * (m + 1) + pj]);
-                } else {
-                    distance = std::hypot(i - pi, j - pj);
-                }
+                distance = std::hypot(i - pi, j - pj);
                 if (distance < minDistanceToPath) {
                     minDistanceToPath = distance;
                 }
             }
             distances[i * (m + 1) + j] = minDistanceToPath;
+            if (i > 0 && j > 0) {
+                costM[i - 1][j - 1] = minCostToPath;
+            }
         }
     }
+    std::ofstream myfile;
+    myfile.open ("example.txt");
+    myfile << "Writing this to a file.\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++)
+            myfile << costM[i][j] << ", ";
+        myfile << "\n";
+    }
+    myfile.close();
 }
 
 void ImGuiLayer::precomputeCostDeviation() {
@@ -106,7 +122,7 @@ void ImGuiLayer::precomputeCostDeviation() {
         m_Context->costmatrix,
         true  // isCostDeviation
     };
-    precomputeDeviation(context, distances, colors);
+    precomputeDeviation(context, distances);
 }
 
 void ImGuiLayer::precomputePathDeviation() {
@@ -117,7 +133,7 @@ void ImGuiLayer::precomputePathDeviation() {
         std::get<0>(*m_Context->matrix),
         false  // isCostDeviation
     };
-    precomputeDeviation(context, distances, colors);
+    precomputeDeviation(context, distances);
 }
 
 void ImGuiLayer::drawDTWDiagram() {
@@ -125,14 +141,29 @@ void ImGuiLayer::drawDTWDiagram() {
     int m = std::get<3>(*m_Context->matrix);
     const float rect_size = 1.0f;
     float values1[n + 1][m + 1];
-    int index = 0;
-    for (int i = 0; i <= n; i++) {
-        for (int j = 0; j <= m; j++) {
-            values1[i][j] = distances[index++];
+    if (0){
+        int index = 0;
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
+                values1[i][j] = distances[index++];
+            }
         }
     }
-    static float scale_min = 0.0f;
-    static float scale_max = 15.0f;
+
+    float values2[n][m];
+    auto s_min = 10.0f;
+    auto s_max = 10.0f;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            values2[i][j] = costM[i][j];
+            if (s_max < values2[i][j]) s_max = values2[i][j];
+            if (s_min > values2[i][j]) s_min = values2[i][j];
+        }
+    }
+    static float scale_min = s_min;
+    static float scale_max = 1.0f;
+    //static float scale_max = s_max;
     static ImPlotColormap map = ImPlotColormap_RdBu;
 
     ImGui::SameLine();
@@ -140,7 +171,7 @@ void ImGuiLayer::drawDTWDiagram() {
         map = (map + 1) % ImPlot::GetColormapCount();
         ImPlot::BustColorCache("##Heatmap1");
     }
-    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, 1.0f, 0, 40);
+    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, 0.01f, 0, 600);
 
     static ImPlotHeatmapFlags hm_flags = 0;
 
@@ -148,7 +179,7 @@ void ImGuiLayer::drawDTWDiagram() {
 
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
         ImPlot::SetupAxes(NULL, NULL, 0, 0); // No labels and no gridlines
-        ImPlot::PlotHeatmap("heat", values1[0], n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m + 1, n + 1), hm_flags);
+        ImPlot::PlotHeatmap("heat", values2[0], n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
         ImPlot::EndPlot();
     }
 
