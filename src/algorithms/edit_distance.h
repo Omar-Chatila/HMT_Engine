@@ -13,9 +13,13 @@ class EditDistance {
 
 private:
     static bool match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D&, const Vec3D&)> func);
+    static bool match(Vec3D *vec1, Vec3D *vec2, float epsilon, std::function<float(const Vec3D*, const Vec3D*)> func);
+    static bool match(Quaternion *vec1, Quaternion *vec2, float epsilon, std::function<float(const Quaternion*, const Quaternion*)> func);
 public:
     // Edit distance on real sequences
     static float edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float epsilon, std::function<float(const Vec3D&, const Vec3D&)> func);
+    static float edr(const std::vector<Vec3D *> &inpF, const std::vector<Vec3D *> &refF, float epsilon, std::function<float(const Vec3D*, const Vec3D*)> func);
+    static float edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon, std::function<float(const Quaternion*, const Quaternion*)> func);
     // Time warp edit distance (todo)
 };
 

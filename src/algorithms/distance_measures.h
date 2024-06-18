@@ -15,7 +15,7 @@ inline float abs(const Vec3D &a) {
 }
 
 inline float euclid(const Vec3D &a, const Vec3D &b) {
-    return sqrt(pow(a.x - b.x, 2) +pow(a.y - b.y, 2) +pow(a.z - b.z, 2));
+    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
 }
 
 inline float squared_euclid(const Vec3D &a, const Vec3D &b) {
@@ -69,6 +69,15 @@ inline float quat_dist(const Quaternion* first, const Quaternion* second) {
     float distance = 0.0f;
     for (int i = 0; i < JOINT_COUNT; i++) {
         distance += 1 - std::abs(first[i] * second[i]);
+    }
+    return distance;
+}
+
+// Take distance over all Joints
+inline float vec_dist(const Vec3D* first, const Vec3D* second) {
+    float distance = 0.0f;
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        distance += euclid(first[i], second[i]);
     }
     return distance;
 }

@@ -27,7 +27,11 @@ public:
     ~Trajectories() {}
 
     Vec3D* get_positionsTrajectory(Joint::Type joint) {
-        return positions_per_joint[joint];
+        Vec3D* ppj = new Vec3D[length];
+        for (int i = 0; i < length; i++) {
+            ppj[i] = positions_per_joint[i][static_cast<int>(joint)];
+        }
+        return ppj;
     }
     
     Quaternion* get_anglesTrajectory(Joint::Type joint) {
@@ -36,6 +40,10 @@ public:
 
     const std::vector<Quaternion*>& get_anglesTrajectories() const {
         return angles_per_joint;
+    }
+
+    const std::vector<Vec3D*>& get_positions_trajectories() const {
+        return positions_per_joint;
     }
 
     int size() {

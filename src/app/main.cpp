@@ -3,6 +3,7 @@
 #include "tests.h"
 
 int main() {
+
     SharedData *sharedData = new SharedData();
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char* default_file = "fb_41_pre_splitted_1.txt";
@@ -31,5 +32,6 @@ int main() {
     delete motionFileProcessor;
     delete sharedData;
     //test();
+    //test2();
     return 0;
 }

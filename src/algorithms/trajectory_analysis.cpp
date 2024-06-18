@@ -7,6 +7,7 @@ std::vector<std::function<float(const Vec3D&, const Vec3D&)>> vec_dist_measures 
         cosine_similarity, cosine_distance1, cosine_distance2, hamming_distance};
 
 std::function<float(const Quaternion*, const Quaternion*)> quaternion_dist = quat_dist;
+std::function<float(const Vec3D*, const Vec3D*)> vector_dist = vec_dist;
 std::vector<std::function<float(const Quaternion*, const Quaternion*)>> error_dist = {
         Joint::too_deep_dist,
         Joint::feet_too_close_dist,
@@ -34,10 +35,24 @@ std::tuple<float, std::vector<int>, float*> Trajectoy_analysis::perform_DTW(cons
     return {pair.first, pair.second, c_matrix};
 }
 
+// Perform EDR on specific joint
 float Trajectoy_analysis::perform_EDR(Joint::Type joint, Distances type, float epsilon) {
     return EditDistance::edr(input_trajectories.get_positionsTrajectory(joint), 
                       reference_trajectories.get_positionsTrajectory(joint), 
                       input_trajectories.size(), reference_trajectories.size(), epsilon, vec_dist_measures[type]);
+}
+
+//Perform EDR on all Joint positions
+float Trajectoy_analysis::perform_EDR_Pos(Distances type, float epsilon) {
+    return EditDistance::edr(input_trajectories.get_positions_trajectories(),
+                             reference_trajectories.get_positions_trajectories(),
+                             epsilon, vector_dist);
+}
+
+float Trajectoy_analysis::perform_EDR_Quat(Distances type, float epsilon) {
+    return EditDistance::edr(input_trajectories.get_anglesTrajectories(),
+                             reference_trajectories.get_anglesTrajectories(),
+                             epsilon, quaternion_dist);
 }
 
 float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj,

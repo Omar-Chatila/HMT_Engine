@@ -5,6 +5,7 @@
 #include "dtw.h"
 
 void test1();
+void test2();
 
 void test() {
     // Parse input trajectory
@@ -152,3 +153,91 @@ void test1() {
 
 }
     */
+
+void test2() {
+    Vec3D* joint_rotations1 = new Vec3D[JOINT_COUNT];
+    Vec3D* joint_rotations2 = new Vec3D[JOINT_COUNT];
+    Vec3D* joint_rotations3 = new Vec3D[JOINT_COUNT];
+    Vec3D* joint_rotations4 = new Vec3D[JOINT_COUNT];
+    Vec3D* joint_rotations5 = new Vec3D[JOINT_COUNT];
+    Vec3D* joint_rotations6 = new Vec3D[JOINT_COUNT];
+
+    joint_rotations1[0] = Vec3D(-0.1f, -0.2f, 0.5f);
+    joint_rotations1[1] = Vec3D(0.999726f, -0.020961f, -0.007759f);
+    joint_rotations1[2] = Vec3D(0.999864f, 0.014422f, -0.007761f);
+    joint_rotations1[3] = Vec3D(0.98349f, 0.180619f, 0.001061f);
+    joint_rotations1[4] = Vec3D(0.997289f, -0.073544f, -0.000845f);
+    joint_rotations1[5] = Vec3D(0.997027f, 0.03738f, -0.04256f);
+    joint_rotations1[6] = Vec3D(0.700886f, 0.338549f, -0.363797f);
+    joint_rotations1[7] = Vec3D(0.983605f, -0.019397f, -0.17888f);
+    joint_rotations1[8] = Vec3D(0.998854f, -0.019697f, -0.017401f);
+    joint_rotations1[9] = Vec3D(0.986987f, 0.10084f, 0.12525f);
+    joint_rotations1[10] = Vec3D(0.746249f, 0.306097f, 0.335233f);
+    joint_rotations1[11] = Vec3D(0.969757f, -0.117973f, 0.197718f);
+    joint_rotations1[12] = Vec3D(0.989064f, -0.120319f, -0.067038f);
+    joint_rotations1[13] = Vec3D(0.997188f, -0.022603f, 0.017014f);
+    joint_rotations1[14] = Vec3D(0.992725f, 0.108246f, 0.005206f);
+    joint_rotations1[15] = Vec3D(0.98717f, -0.104636f, 0.116078f);
+    joint_rotations1[16] = Vec3D(0.994777f, -0.044975f, -0.011373f);
+    joint_rotations1[17] = Vec3D(0.991928f, 0.113739f, -0.009885f);
+    joint_rotations1[18] = Vec3D(0.991949f, -0.089173f, -0.078372f);
+
+    srand(0);
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        joint_rotations2[i].x = joint_rotations1[i].x + (rand() % 10) / 10.0;
+        joint_rotations2[i].y = joint_rotations1[i].y + (rand() % 10) / 10.0;
+        joint_rotations2[i].z = joint_rotations1[i].z + (rand() % 10) / 10.0;
+
+        joint_rotations3[i].x = joint_rotations1[i].x + (rand() % 10) / 10.0;
+        joint_rotations3[i].y = joint_rotations1[i].y + (rand() % 10) / 10.0;
+        joint_rotations3[i].z = joint_rotations1[i].z + (rand() % 10) / 10.0;
+
+        joint_rotations4[i].x = joint_rotations1[i].x + (rand() % 10) / 10.0;
+        joint_rotations4[i].y = joint_rotations1[i].y + (rand() % 10) / 10.0;
+        joint_rotations4[i].z = joint_rotations1[i].z + (rand() % 10) / 10.0;
+
+        joint_rotations5[i].x = joint_rotations1[i].x + (rand() % 10) / 10.0;
+        joint_rotations5[i].y = joint_rotations1[i].y + (rand() % 10) / 10.0;
+        joint_rotations5[i].z = joint_rotations1[i].z + (rand() % 10) / 10.0;
+
+        joint_rotations6[i].x = joint_rotations1[i].x + (rand() % 10) / 10.0;
+        joint_rotations6[i].y = joint_rotations1[i].y + (rand() % 10) / 10.0;
+        joint_rotations6[i].z = joint_rotations1[i].z + (rand() % 10) / 10.0;
+
+    }
+
+    // Initialize test frames
+    std::vector<Frame> frames = {
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations1},
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations2},
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations3}
+    };
+
+    // Initialize test frames
+    std::vector<Frame> frames2 = {
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations4 },
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations5 },
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations6}
+    };
+
+    Trajectories *t1 = new Trajectories(frames);
+    Vec3D* hips1 = t1->get_positionsTrajectory(Joint::HumanoidRoot);
+    for (int i = 0; i < 3; i++) {
+        std::cout << hips1[i];
+    }
+    std::cout << std::endl;
+    Trajectories *t2 = new Trajectories(frames2);
+    Vec3D* hips2 = t2->get_positionsTrajectory(Joint::HumanoidRoot);
+    for (int i = 0; i < 3; i++) {
+        std::cout << hips2[i];
+    }
+
+    EditDistance::edr(hips1, hips2, 3, 3, 0.8, vec_dist_measures[EUCLID]);
+
+    delete[] joint_rotations1;
+    delete[] joint_rotations2;
+    delete[] joint_rotations3;
+    delete[] joint_rotations4;
+    delete[] joint_rotations5;
+    delete[] joint_rotations6;
+}
