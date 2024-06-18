@@ -68,18 +68,58 @@ void Renderer::init_fbo() {
 }
 
 
-int Renderer::display()
-{
+int Renderer::display() {
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
     Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
+    Shader floorShader(floor_vertex_shader_path, floor_fragment_shader_path); // New shader for the floor
+
     // Create a sphere
     Sphere sphere(0.04f, 256, 128);
+
+    // Create floor vertex data
+    float floorVertices[] = {
+            // positions          // normals      // texture coords
+            -10.0f, -0.2f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+            10.0f, -0.2f, -10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+            10.0f, -0.2f,  10.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+            -10.0f, -0.2f,  10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
+    };
+    unsigned int floorIndices[] = {
+            0, 1, 2,
+            0, 2, 3
+    };
+
+    unsigned int floorVAO, floorVBO, floorEBO;
+    glGenVertexArrays(1, &floorVAO);
+    glGenBuffers(1, &floorVBO);
+    glGenBuffers(1, &floorEBO);
+
+    glBindVertexArray(floorVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floorEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(floorIndices), floorIndices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
     auto io = init_imgui(window);
     bool show = true;
+
     // Render loop
     int current_frame = 0;
     int map_index = 0;
@@ -90,6 +130,7 @@ int Renderer::display()
     app->push_layer<ClassifierLayer>(sharedData);
     int lastInpIndex = -1;
     int lastRefIndex = -1;
+
     while (!glfwWindowShouldClose(window)) {
         int width = 1600;
         int height = 900;
@@ -104,6 +145,7 @@ int Renderer::display()
         ImGui::NewFrame();
         app->activate();
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
         // Bind the FBO1
         glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
         glViewport(0, 0, DR::getI()->getContext()->inputView->windowWidth, DR::getI()->getContext()->inputView->windowHeight);
@@ -114,6 +156,10 @@ int Renderer::display()
         // Render your scene
         glm::mat4 view = glm::lookAt(DR::getI()->getContext()->refView->camera_pos, DR::getI()->getContext()->refView->center, DR::getI()->getContext()->refView->camera_orientation);
         glm::mat4 projection = glm::perspective(glm::radians(DR::getI()->getContext()->refView->fov), DR::getI()->getContext()->refView->aspectRatio, 0.1f, 100.0f);
+
+        glm::mat4 view2 = glm::lookAt(DR::getI()->getContext()->inputView->camera_pos, DR::getI()->getContext()->inputView->center, DR::getI()->getContext()->inputView->camera_orientation);
+        glm::mat4 projection2 = glm::perspective(glm::radians(DR::getI()->getContext()->inputView->fov), DR::getI()->getContext()->inputView->aspectRatio, 0.1f, 100.0f);
+
         sphereShader.use();
         sphereShader.setUniformMat4("view", view);
         sphereShader.setUniformMat4("projection", projection);
@@ -127,7 +173,6 @@ int Renderer::display()
             // TODO: Das hier nur ein mal getten
             auto alignment = DR::getI()->getAlignment();
             int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
-            int n = in_frms.size();
             int m = ref_frms.size();
             int in = mapping / (m + 1) - 1;
             int ref = mapping % (m + 1) - 1;
@@ -161,12 +206,40 @@ int Renderer::display()
         auto clear_color2 = DR::getI()->getContext()->inputView->clear_color;
         glClearColor(clear_color2.x * clear_color2.w, clear_color2.y * clear_color2.w, clear_color2.z * clear_color2.w, clear_color2.w);
 
+        // Render floor right
+        floorShader.use();
+        floorShader.setUniformMat4("view", view2);
+        floorShader.setUniformMat4("projection", projection2);
+        floorShader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+        floorShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
+        floorShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        floorShader.setUniformMat4("model", glm::mat4(1.0f)); // Identity matrix since the floor is not transformed
+
+        glBindVertexArray(floorVAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo1);
+
+        // Render floor left
+        floorShader.use();
+        floorShader.setUniformMat4("view", view);
+        floorShader.setUniformMat4("projection", projection);
+        floorShader.setUniformVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
+        floorShader.setUniformVec3("viewPos", glm::vec3(3.0f, 3.0f, 3.0f));
+        floorShader.setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        floorShader.setUniformMat4("model", glm::mat4(1.0f)); // Identity matrix since the floor is not transformed
+
+        glBindVertexArray(floorVAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2.0f, 2.0f));  // Adjust window padding
-
 
         ImGui::Begin("Reference Viewport");
         ImVec2 windowSize1 = ImGui::GetContentRegionAvail();
