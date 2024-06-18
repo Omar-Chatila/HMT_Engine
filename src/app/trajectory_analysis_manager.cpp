@@ -26,6 +26,7 @@ void TrajectoryAnalysisManager::performAnalysis() {
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[EDR] = analysis->perform_EDR_Quat(EUCLID, 0.3);
     algorithms_results[TWED] = analysis->perform_TWED_Quat(EUCLID, 0.3f, 1.0f);
+    algorithms_results[LCSS] = analysis->perform_LCSS_Quat(EUCLID, 0.3f, 5.0f);
     error_results[static_cast<int>(ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT)] = err_result;
     //std::cout << "" << err_result << std::endl;
 }

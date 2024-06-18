@@ -62,6 +62,13 @@ float Trajectoy_analysis::perform_TWED_Quat(Distances type, float nu, float lamb
                               nu, lambda, quaternion_dist);
 }
 
+//Perform LCSS on all Joint angles
+float Trajectoy_analysis::perform_LCSS_Quat(Distances type, float epsilon, float delta) {
+    return LCSS::lcss(input_trajectories.get_anglesTrajectories(),
+                      reference_trajectories.get_anglesTrajectories(),
+                      epsilon, delta,quaternion_dist);
+}
+
 float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj,
                                                  const std::vector<Quaternion *> &ref_traj, ErrorPattern errorPattern) {
     float *c_matrix = Dtw::dtw(inp_traj, ref_traj, error_dist[static_cast<int>(errorPattern)]);
@@ -69,3 +76,4 @@ float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *>
     int m = ref_traj.size();
     return c_matrix[(m + 1) * (n + 1) - 1];
 }
+
