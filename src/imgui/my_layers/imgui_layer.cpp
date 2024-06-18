@@ -141,16 +141,15 @@ void ImGuiLayer::drawDTWDiagram() {
     int m = std::get<3>(*m_Context->matrix);
     const float rect_size = 1.0f;
     float values1[n + 1][m + 1];
-    if (0){
-        int index = 0;
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
-                values1[i][j] = distances[index++];
-            }
+    float values2[n][m];
+
+    int index = 0;
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= m; j++) {
+            values1[i][j] = distances[index++];
         }
     }
 
-    float values2[n][m];
     auto s_min = 10.0f;
     auto s_max = 10.0f;
 
@@ -161,17 +160,30 @@ void ImGuiLayer::drawDTWDiagram() {
             if (s_min > values2[i][j]) s_min = values2[i][j];
         }
     }
+    static int selectedArray = 0;
+    static ImPlotColormap map = selectedArray == 0 ? ImPlotColormap_Viridis : ImPlotColormap_Deep;
     static float scale_min = s_min;
-    static float scale_max = 1.0f;
+    static float scale_max = selectedArray == 0 ? 10.0f : 1.0f;
     //static float scale_max = s_max;
-    static ImPlotColormap map = ImPlotColormap_RdBu;
+
+    ImGui::RadioButton("Values1", &selectedArray, 0);
+    ImGui::SameLine();
+    ImGui::RadioButton("Values2", &selectedArray, 1);
 
     ImGui::SameLine();
     if (ImPlot::ColormapButton(ImPlot::GetColormapName(map), ImVec2(225, 0), map)) {
         map = (map + 1) % ImPlot::GetColormapCount();
         ImPlot::BustColorCache("##Heatmap1");
     }
-    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, 0.01f, 0, 600);
+
+    float v_speed, v_min, v_max;
+    if (selectedArray == 0) {
+        v_speed = selectedArray == 0 ? 1.0f : 0.01f;
+        v_min = selectedArray == 0 ? 0.0f : 0.0000001f;
+        v_max = selectedArray == 0 ? 10.0f : 5.0f;
+    }
+
+    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, v_speed, 0.00001f, v_max);
 
     static ImPlotHeatmapFlags hm_flags = 0;
 
@@ -179,19 +191,21 @@ void ImGuiLayer::drawDTWDiagram() {
 
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
         ImPlot::SetupAxes(NULL, NULL, 0, 0); // No labels and no gridlines
-        ImPlot::PlotHeatmap("heat", values2[0], n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
+        if (selectedArray == 0) {
+            ImPlot::PlotHeatmap("heat", values1[0], n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m + 1, n + 1), hm_flags);
+        } else {
+            ImPlot::PlotHeatmap("heat", values2[0], n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
+        }
         ImPlot::EndPlot();
     }
 
     ImGui::SameLine();
     ImPlot::ColormapScale("##HeatScale", scale_min, scale_max, ImVec2(60, 225));
 
-    // Advance the ImGui cursor to claim space in the window (otherwise the window will appear small and needs to be resized)
     float prog = static_cast<float>(m_Context->c_frame % std::get<1>(*m_Context->matrix).size()) / std::get<1>(*m_Context->matrix).size();
     ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
     ImGui::Text("Current Frame: %d", m_Context->c_frame);
 }
-
 
 void ImGuiLayer::showCameraOptions() {
     UpdateFOVWithScroll();

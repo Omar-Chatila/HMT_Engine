@@ -9,6 +9,7 @@
 #include <vector>
 #include "edit_distance.h"
 #include "lcss.h"
+#include "frechet.h"
 #include "error_distances.h"
 
 // For Minkonwski
@@ -36,6 +37,8 @@ public:
     float perform_EDR_Quat(Distances type, float epsilon);
     float perform_TWED_Quat(Distances type, float nu, float lambda);
     float perform_LCSS_Quat(Distances type, float epsilon, float delta);
+    float perform_FRECHET_Quat(Distances type);
+    float perform_FRECHET_Pos(Distances type);
 
     float perform_ErrorDetection(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj, ErrorPattern errorPattern);
 
