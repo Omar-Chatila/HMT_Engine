@@ -69,6 +69,17 @@ float Trajectoy_analysis::perform_LCSS_Quat(Distances type, float epsilon, float
                       epsilon, delta,quaternion_dist);
 }
 
+// Perform Frechet distance on all Joint angles
+float Trajectoy_analysis::perform_FRECHET_Quat(Distances type) {
+    return Frechet::frechet(input_trajectories.get_anglesTrajectories(),
+                            reference_trajectories.get_anglesTrajectories(), quaternion_dist);
+}
+
+float Trajectoy_analysis::perform_FRECHET_Pos(Distances type) {
+    return Frechet::frechet(input_trajectories.get_positions_trajectories(),
+                            reference_trajectories.get_positions_trajectories(), vector_dist);
+}
+
 float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj,
                                                  const std::vector<Quaternion *> &ref_traj, ErrorPattern errorPattern) {
     float *c_matrix = Dtw::dtw(inp_traj, ref_traj, error_dist[static_cast<int>(errorPattern)]);

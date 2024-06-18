@@ -73,7 +73,7 @@ inline float quat_dist(const Quaternion* first, const Quaternion* second) {
     return distance;
 }
 
-// Take distance over all Joints
+// Accumulate euclid distance over all Joints
 inline float vec_dist(const Vec3D* first, const Vec3D* second) {
     float distance = 0.0f;
     for (int i = 0; i < JOINT_COUNT; i++) {
