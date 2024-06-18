@@ -48,11 +48,18 @@ float Trajectoy_analysis::perform_EDR_Pos(Distances type, float epsilon) {
                              reference_trajectories.get_positions_trajectories(),
                              epsilon, vector_dist);
 }
-
+//Perform EDR on all Joint Angles
 float Trajectoy_analysis::perform_EDR_Quat(Distances type, float epsilon) {
     return EditDistance::edr(input_trajectories.get_anglesTrajectories(),
                              reference_trajectories.get_anglesTrajectories(),
                              epsilon, quaternion_dist);
+}
+
+//Perform TWED on all Joint angles
+float Trajectoy_analysis::perform_TWED_Quat(Distances type, float nu, float lambda) {
+    return EditDistance::twed(input_trajectories.get_anglesTrajectories(),
+                              reference_trajectories.get_anglesTrajectories(),
+                              nu, lambda, quaternion_dist);
 }
 
 float Trajectoy_analysis::perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj,

@@ -29,9 +29,12 @@ public:
 
     std::tuple<float, std::vector<int>, float*> perform_DTW(Joint::Type joint, Distances type);
     std::tuple<float, std::vector<int>, float*> perform_DTW(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj);
+
     float perform_EDR(Joint::Type joint, Distances type, float epsilon);
     float perform_EDR_Pos(Distances type, float epsilon);
     float perform_EDR_Quat(Distances type, float epsilon);
+    float perform_TWED_Quat(Distances type, float nu, float lambda);
+
     float perform_ErrorDetection(const std::vector<Quaternion*> &inp_traj, const std::vector<Quaternion*> &ref_traj, ErrorPattern errorPattern);
 
 };
