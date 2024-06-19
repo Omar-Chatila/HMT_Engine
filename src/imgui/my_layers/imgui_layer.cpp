@@ -103,35 +103,32 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
             }
         }
     }
-    std::ofstream myfile;
-    myfile.open ("example.txt");
-    myfile << "Writing this to a file.\n";
-    for (int i = 0; i < n; i++) {
+
+    for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
-            myfile << costM[i][j] << ", ";
-        myfile << "\n";
-    }
-    myfile.close();
+            if (costM[i][j] != 0)
+                costM[i][j] = log10f(costM[i][j]);
+
 }
 
 void ImGuiLayer::precomputeCostDeviation() {
     MatrixContext context{
-        std::get<1>(*m_Context->matrix),
-        std::get<2>(*m_Context->matrix),
-        std::get<3>(*m_Context->matrix),
-        m_Context->costmatrix,
-        true  // isCostDeviation
+            std::get<1>(*m_Context->matrix),
+            std::get<2>(*m_Context->matrix),
+            std::get<3>(*m_Context->matrix),
+            m_Context->costmatrix,
+            true  // isCostDeviation
     };
     precomputeDeviation(context, distances);
 }
 
 void ImGuiLayer::precomputePathDeviation() {
     MatrixContext context{
-        std::get<1>(*m_Context->matrix),
-        std::get<2>(*m_Context->matrix),
-        std::get<3>(*m_Context->matrix),
-        std::get<0>(*m_Context->matrix),
-        false  // isCostDeviation
+            std::get<1>(*m_Context->matrix),
+            std::get<2>(*m_Context->matrix),
+            std::get<3>(*m_Context->matrix),
+            std::get<0>(*m_Context->matrix),
+            false  // isCostDeviation
     };
     precomputeDeviation(context, distances);
 }
@@ -149,6 +146,7 @@ void ImGuiLayer::drawDTWDiagram() {
             values1[i][j] = distances[index++];
         }
     }
+    static int selectedArray = 0;
 
     auto s_min = 10.0f;
     auto s_max = 10.0f;
@@ -160,16 +158,13 @@ void ImGuiLayer::drawDTWDiagram() {
             if (s_min > values2[i][j]) s_min = values2[i][j];
         }
     }
-    static int selectedArray = 0;
-    static ImPlotColormap map = selectedArray == 0 ? ImPlotColormap_Viridis : ImPlotColormap_Deep;
-    static float scale_min = s_min;
-    static float scale_max = selectedArray == 0 ? 10.0f : 1.0f;
-    //static float scale_max = s_max;
-
-    ImGui::RadioButton("Values1", &selectedArray, 0);
+    ImGui::RadioButton("Path", &selectedArray, 0);
     ImGui::SameLine();
-    ImGui::RadioButton("Values2", &selectedArray, 1);
+    ImGui::RadioButton("Costs", &selectedArray, 1);
 
+    static ImPlotColormap map = ImPlotColormap_Viridis;
+    static float scale_min = s_min;
+    static float scale_max = s_max;
     ImGui::SameLine();
     if (ImPlot::ColormapButton(ImPlot::GetColormapName(map), ImVec2(225, 0), map)) {
         map = (map + 1) % ImPlot::GetColormapCount();
@@ -178,12 +173,10 @@ void ImGuiLayer::drawDTWDiagram() {
 
     float v_speed, v_min, v_max;
     if (selectedArray == 0) {
-        v_speed = selectedArray == 0 ? 1.0f : 0.01f;
-        v_min = selectedArray == 0 ? 0.0f : 0.0000001f;
-        v_max = selectedArray == 0 ? 10.0f : 5.0f;
+        v_speed = 0.1f;
     }
 
-    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, v_speed, 0.00001f, v_max);
+    ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, v_speed);
 
     static ImPlotHeatmapFlags hm_flags = 0;
 
@@ -211,7 +204,7 @@ void ImGuiLayer::showCameraOptions() {
     UpdateFOVWithScroll();
     if (ImGui::CollapsingHeader("Camera Settings", ImGuiTreeNodeFlags_CollapsingHeader)) {
         ImGui::SeparatorText("Reference View (left) Camera##ref");
-    //Ref view
+        //Ref view
         // Aspect Ratio
         ImGui::SliderFloat("Aspect Ratio##ref", &m_Context->refView->aspectRatio, 1.0f, 3.0f);
         // FOV
@@ -222,7 +215,7 @@ void ImGuiLayer::showCameraOptions() {
         ImGui::DragFloat3("Orientation##ref", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f, 1.0f);
         // Clear Color
         ImGui::ColorEdit3("Clear Color##ref", (float *)&m_Context->refView->clear_color);
-    //Input view
+        //Input view
         ImGui::SeparatorText("Input View (right) Camera##input");
         ImGui::SliderFloat("Aspect Ratio##input", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
         ImGui::SliderFloat("Fov##input", &m_Context->inputView->fov, -180.0f, 180.0f);
@@ -236,7 +229,7 @@ void ImGuiLayer::showCameraOptions() {
 void ImGuiLayer::show_selectionTable() {
     // Options
     static ImGuiTableFlags flags =
-        ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
 
     if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 10 * 15), 0.0f)) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
@@ -290,67 +283,67 @@ void ImGuiLayer::show_selectionTable() {
 }
 
 void ImGuiLayer::show_DTW_Options() {
-        if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
 
-            ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
-            if (m_Context->aligned) {
-                ImGui::SameLine();
-                ImGuiStyle *style = &ImGui::GetStyle();
-                char txt_green[] = "text green";
-                style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
-                ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-                ImGui::Text(("Cost: " + std::to_string(m_Context->cost)).c_str());
-                ImGui::PopStyleColor();
-            }
-            ImGui::Checkbox("Show Heatmap", &showDiagram);
-            if (showDiagram) {
-                m_Context->aligned = true;
-                drawDTWDiagram();
-            }
+        ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
+        if (m_Context->aligned) {
+            ImGui::SameLine();
+            ImGuiStyle *style = &ImGui::GetStyle();
+            char txt_green[] = "text green";
+            style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
+            ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+            ImGui::Text(("Cost: " + std::to_string(m_Context->cost)).c_str());
+            ImGui::PopStyleColor();
+        }
+        ImGui::Checkbox("Show Heatmap", &showDiagram);
+        if (showDiagram) {
+            m_Context->aligned = true;
+            drawDTWDiagram();
         }
     }
+}
 
 void ImGuiLayer::onRender() {
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-        // Set up the main dock space
-        ImGui::SetNextWindowPos(viewport->Pos);
-        ImGui::SetNextWindowSize(viewport->Size);
-        ImGui::SetNextWindowViewport(viewport->ID);
+    // Set up the main dock space
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
 
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse|
-                                        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                                        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));  // Adjust window padding
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse|
+                                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));  // Adjust window padding
 
-        ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
-        ImGui::PopStyleVar(3);  // Pop all style vars at once
+    ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+    ImGui::PopStyleVar(3);  // Pop all style vars at once
 
-        // Create the dock space
-        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+    // Create the dock space
+    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-        ImGui::End();
+    ImGui::End();
 
-        {
-            static bool show_demo_window = true;
-            static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    {
+        static bool show_demo_window = true;
+        static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-            if (show_demo_window)
-                ImGui::ShowDemoWindow(&show_demo_window);
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
 
-            ImGui::Begin("Visualizer for Motion Data");
+        ImGui::Begin("Visualizer for Motion Data");
 
-            showCameraOptions();
-            ImGui::Checkbox("VSync", &m_Context->vsync);
-            if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
-                show_selectionTable();
-            }
-            show_DTW_Options();
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
+        showCameraOptions();
+        ImGui::Checkbox("VSync", &m_Context->vsync);
+        if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
+            show_selectionTable();
         }
+        show_DTW_Options();
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
     }
+}
