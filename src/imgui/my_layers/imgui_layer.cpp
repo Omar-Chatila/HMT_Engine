@@ -21,7 +21,7 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
     motionFileProcessor->processInputFile(std::string(file));
-    auto kNNResults = motionFileProcessor->getKClosestMatches(5, DTW);
+    auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
     sharedData->trajectoryInfos.clear();
     for (auto result : kNNResults) {
         TrajectoryInfo info;

@@ -9,8 +9,10 @@ class ResultLayer : public Layer {
 public:
     ResultLayer(SharedData *data);
     void onRender() override;
+    void sortTrajectoryInfos();
 
 private:
+    int currentSortIndex;
 };
 
 

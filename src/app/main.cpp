@@ -6,12 +6,12 @@ int main() {
 
     SharedData *sharedData = new SharedData();
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
-    const char* default_file = "fb_41_pre_splitted_1.txt";
+    const char* default_file = "fb_21_pre_splitted_5.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
     DR* disp_req = DR::getI();
     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
-    auto kNNResults = motionFileProcessor->getKClosestMatches(5, DTW);
+    auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
     for (auto result : kNNResults) {
         TrajectoryInfo info;
         info.reference = result->getContext()->reference_file;
