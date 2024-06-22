@@ -65,6 +65,8 @@ void ImGuiLayer::UpdateFOVWithScroll() {
 void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>& distances) {
     int n = context.n;
     int m = context.m;
+    values1 = std::make_unique<float[]>((n + 1) * (m + 1));
+    values2 = std::make_unique<float[]>(n * m);
     const std::vector<int>& align_path = context.align_path;
     auto inp_traj = DR::getI()->getInp_frames();
     auto ref_traj = DR::getI()->getRef_frames();
@@ -99,10 +101,7 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
                     r = num;
                     break;
                 }
-                float costDist = std::abs(mat[i * (m + 1) + j] - mat[num]);
-                minCostToPath = std::min(minCostToPath, costDist);
             }
-
             minCostToPath = std::abs(mat[i * (m + 1) + j] - mat[r]);
             for (const auto& [pi, pj] : pathCoords) {
                 float distance;
@@ -121,7 +120,24 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
             if (costM[i][j] != 0)
-                costM[i][j] = log10f(costM[i][j]);
+                values2[i * m + j] = log10f(costM[i][j]);
+    int index = 0;
+    for (int i = 0; i <= n; i++) {
+        for (int j = 0; j <= m; j++) {
+            values1[i * (m + 1) + j] = distances[index++];
+        }
+    }
+    s_min = 10.0f;
+    s_max = -10.0f;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            values2[i * m + j] = costM[i][j];
+            if (s_max < values2[i * m + j]) s_max = values2[i * m + j];
+            if (s_min > values2[i * m + j]) s_min = values2[i * m + j];
+        }
+    }
+
     delete inT;
     delete reT;
 }
@@ -144,28 +160,7 @@ void ImGuiLayer::drawDTWDiagram() {
     int m = std::get<3>(*m_Context->matrix);
     const float rect_size = 1.0f;
 
-    auto values1 = std::make_unique<float[]>((n + 1) * (m + 1));
-    auto values2 = std::make_unique<float[]>(n * m);
-
-    int index = 0;
-    for (int i = 0; i <= n; i++) {
-        for (int j = 0; j <= m; j++) {
-            values1[i * (m + 1) + j] = distances[index++];
-        }
-    }
-
     static int selectedArray = 0;
-
-    auto s_min = 10.0f;
-    auto s_max = -10.0f;
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            values2[i * m + j] = costM[i][j];
-            if (s_max < values2[i * m + j]) s_max = values2[i * m + j];
-            if (s_min > values2[i * m + j]) s_min = values2[i * m + j];
-        }
-    }
 
     ImGui::RadioButton("Path", &selectedArray, 0);
     ImGui::SameLine();

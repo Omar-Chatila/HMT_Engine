@@ -51,4 +51,8 @@ private:
     int squat_sampleSize;
     int selected_index = -1;
     int alignment_length;
+
+    std::unique_ptr<float[]> values1;
+    std::unique_ptr<float[]> values2;
+    float s_min, s_max;
 };
