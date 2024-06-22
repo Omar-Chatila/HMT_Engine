@@ -3,7 +3,6 @@
 #include "tests.h"
 
 int main() {
-
     SharedData *sharedData = new SharedData();
     MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char* default_file = "fb_21_pre_splitted_5.txt";

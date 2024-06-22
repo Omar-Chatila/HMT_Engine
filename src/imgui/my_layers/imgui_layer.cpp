@@ -138,18 +138,22 @@ void ImGuiLayer::precomputePathDeviation() {
 }
 
 void ImGuiLayer::drawDTWDiagram() {
+    ImGuiIO &io = ImGui::GetIO();
+    io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     int n = std::get<2>(*m_Context->matrix);
     int m = std::get<3>(*m_Context->matrix);
     const float rect_size = 1.0f;
-    float values1[n + 1][m + 1];
-    float values2[n][m];
+
+    auto values1 = std::make_unique<float[]>((n + 1) * (m + 1));
+    auto values2 = std::make_unique<float[]>(n * m);
 
     int index = 0;
     for (int i = 0; i <= n; i++) {
         for (int j = 0; j <= m; j++) {
-            values1[i][j] = distances[index++];
+            values1[i * (m + 1) + j] = distances[index++];
         }
     }
+
     static int selectedArray = 0;
 
     auto s_min = 10.0f;
@@ -157,11 +161,12 @@ void ImGuiLayer::drawDTWDiagram() {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            values2[i][j] = costM[i][j];
-            if (s_max < values2[i][j]) s_max = values2[i][j];
-            if (s_min > values2[i][j]) s_min = values2[i][j];
+            values2[i * m + j] = costM[i][j];
+            if (s_max < values2[i * m + j]) s_max = values2[i * m + j];
+            if (s_min > values2[i * m + j]) s_min = values2[i * m + j];
         }
     }
+
     ImGui::RadioButton("Path", &selectedArray, 0);
     ImGui::SameLine();
     ImGui::RadioButton("Costs", &selectedArray, 1);
@@ -175,23 +180,17 @@ void ImGuiLayer::drawDTWDiagram() {
         ImPlot::BustColorCache("##Heatmap1");
     }
 
-    float v_speed, v_min, v_max;
-    if (selectedArray == 0) {
-        v_speed = 0.1f;
-    }
-
+    float v_speed = 0.1f;
     ImGui::DragFloatRange2("Min / Max", &scale_min, &scale_max, v_speed);
 
     static ImPlotHeatmapFlags hm_flags = 0;
-
     ImPlot::PushColormap(map);
-
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
         ImPlot::SetupAxes(NULL, NULL, 0, 0); // No labels and no gridlines
         if (selectedArray == 0) {
-            ImPlot::PlotHeatmap("heat", values1[0], n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m + 1, n + 1), hm_flags);
+            ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m + 1, n + 1), hm_flags);
         } else {
-            ImPlot::PlotHeatmap("heat", values2[0], n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
+            ImPlot::PlotHeatmap("heat", values2.get(), n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
         }
         ImPlot::EndPlot();
     }
@@ -203,6 +202,7 @@ void ImGuiLayer::drawDTWDiagram() {
     ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
     ImGui::Text("Current Frame: %d", m_Context->c_frame);
 }
+
 
 void ImGuiLayer::showCameraOptions() {
     UpdateFOVWithScroll();
