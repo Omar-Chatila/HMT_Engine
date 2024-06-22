@@ -11,11 +11,6 @@
 #include <math.h>
 #include <Engine.h>
 
-
-struct Color {
-    float r, g, b, a;
-};
-
 struct MatrixContext {
     std::vector<int> align_path;
     int n, m;
@@ -29,8 +24,6 @@ public:
     void UpdateFOVWithScroll();
 
     void precomputePathDeviation();
-
-    void precomputeCostDeviation();
 
     void precomputeDeviation(MatrixContext& context, std::vector<float>& distances);
 

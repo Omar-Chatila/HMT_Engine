@@ -4,6 +4,7 @@
 #include "../layer_data.h"
 #include "motion_file_processor.h"
 #include "Engine.h"
+#include <fstream>
 #include <thread>
 #include <atomic>
 
@@ -65,8 +66,14 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
     int n = context.n;
     int m = context.m;
     const std::vector<int>& align_path = context.align_path;
-    const
-    float* mat = context.mat;
+    auto inp_traj = DR::getI()->getInp_frames();
+    auto ref_traj = DR::getI()->getRef_frames();
+    Trajectories *inT = new Trajectories(inp_traj);
+    Trajectories *reT = new Trajectories(ref_traj);
+    float* mat = Dtw::get_cost_matrix(inT->get_anglesTrajectories(),
+                                    reT->get_anglesTrajectories(),
+                                    quaternion_dist);
+//    float* mat = context.mat;
 
     std::vector<std::pair<int, int>> pathCoords;
     for (int idx : align_path) {
@@ -86,10 +93,17 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
         for (int j = 0; j <= m; j++) {
             float minDistanceToPath = std::numeric_limits<float>::infinity();
             float minCostToPath = std::numeric_limits<float>::infinity();
+            int r = 0;
             for (auto num : context.align_path) {
+                if (num / (m + 1) == i && num % (m + 1) == j) {
+                    r = num;
+                    break;
+                }
                 float costDist = std::abs(mat[i * (m + 1) + j] - mat[num]);
                 minCostToPath = std::min(minCostToPath, costDist);
             }
+
+            minCostToPath = std::abs(mat[i * (m + 1) + j] - mat[r]);
             for (const auto& [pi, pj] : pathCoords) {
                 float distance;
                 distance = std::hypot(i - pi, j - pj);
@@ -108,18 +122,8 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
         for (int j = 0; j < m; j++)
             if (costM[i][j] != 0)
                 costM[i][j] = log10f(costM[i][j]);
-
-}
-
-void ImGuiLayer::precomputeCostDeviation() {
-    MatrixContext context{
-            std::get<1>(*m_Context->matrix),
-            std::get<2>(*m_Context->matrix),
-            std::get<3>(*m_Context->matrix),
-            m_Context->costmatrix,
-            true  // isCostDeviation
-    };
-    precomputeDeviation(context, distances);
+    delete inT;
+    delete reT;
 }
 
 void ImGuiLayer::precomputePathDeviation() {
@@ -149,7 +153,7 @@ void ImGuiLayer::drawDTWDiagram() {
     static int selectedArray = 0;
 
     auto s_min = 10.0f;
-    auto s_max = 10.0f;
+    auto s_max = -10.0f;
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {

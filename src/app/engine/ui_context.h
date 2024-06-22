@@ -45,9 +45,11 @@ public:
     inpPaused(false),
     c_frame(0){
         const char* squats_info = R"(resources\squats_subject_info.csv)";
+        //const char* taichi_info = R"(resources\taichi_subject_info.csv)";
         this->motion_files = motion_info(squats_info);
-        VPContext *inpCont = new VPContext(ImVec4{0.25f, 0.35f, 0.60f, 0.80f}, glm::vec3{0.4f,1.0f, 0.0f}, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, ar, 45.0f, 1280, 720);
-        VPContext *refCont = new VPContext(ImVec4{0.55f, 0.35f, 0.60f, 0.80f}, glm::vec3{0.4f,1.0f, 0.0f}, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, ar, 45.0f, 1280, 720);
+        //this->taichi_files = motion_info(taichi_info);
+        VPContext *inpCont = new VPContext(ImVec4{0.25f, 0.35f, 0.60f, 0.80f}, glm::vec3{0.4f,1.0f, 0.0f}, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.260f, 45.0f, 1280, 720);
+        VPContext *refCont = new VPContext(ImVec4{0.55f, 0.35f, 0.60f, 0.80f}, glm::vec3{-1.1f,0.8f, 0.0f}, glm::vec3(2.0f, 2.1f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.039f, 45.0f, 1280, 720);
         this->inputView = inpCont;
         this->refView = refCont;
     }
