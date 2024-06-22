@@ -30,6 +30,7 @@ int main() {
     delete rend;
     delete motionFileProcessor;
     delete sharedData;
+
     //test();
     //test2();
     return 0;
