@@ -21,7 +21,7 @@ float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2, std:
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= m; ++j) {
             float cost = func(v1[i - 1], v2[j - 1]);
-             S[current] = cost + std::min({S[above], S[left], S[diag_left]});
+            S[current] = cost + std::min({S[above], S[left], S[diag_left]});
         }
     }
     return S;
@@ -31,7 +31,7 @@ float *Dtw::dtw(const std::vector<Quaternion*> &inp_traj, const std::vector<Quat
     const int n = inp_traj.size();
     const int m = ref_traj.size();
 
-    float *S = (float*) calloc((n + 1) * (m + 1), sizeof(float));
+    float *S = (float*) (malloc((n + 1) * (m + 1) * sizeof(float)));
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
         S[i * (m + 1)] = std::numeric_limits<float>::infinity();;
