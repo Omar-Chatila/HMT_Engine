@@ -14,22 +14,6 @@ bool LCSS::match(Quaternion *vec1, Quaternion *vec2, float epsilon,
     return func(vec1, vec2) < epsilon;
 }
 
-/*Algorithm LCSSδ,ε(TA, TB, δ, ε)
-Input: Trajectories TA and TB of lengths m and k, integers δ and ε
-        Output: LCSS value
-
-1. Initialize a (m+1) x (k+1) matrix LCSS with zeros
-
-2. For i from 1 to m:
-a. For j from 1 to k:
-i. If |i - j| ≤ δ:
-- If |TA[i] - TB[j]| ≤ ε:
-LCSS[i][j] = 1 + LCSS[i-1][j-1]
-- Else:
-LCSS[i][j] = max(LCSS[i-1][j], LCSS[i][j-1])
-
-3. Return LCSS[m][k]
- */
 #define INDEX(x, y) ((x)* (m + 1) + (y))
 
 float  LCSS::lcss(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon, float delta,

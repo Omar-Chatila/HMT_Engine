@@ -44,11 +44,19 @@ struct Vec3D {
 struct Quaternion {
     float w, x, y, z;
 
+    Quaternion(float w_, float x_, float y_, float z_)
+            : w(w_), x(x_), y(y_), z(z_) {}
+
+    // Copy constructor
+    Quaternion(const Quaternion& other)
+            : w(other.w), x(other.x), y(other.y), z(other.z) {}
+
     friend std::ostream& operator<<(std::ostream& os, const Quaternion& quat) {
         os << "Q(" << quat.w << ", " << quat.x << ", " << quat.y << ", " << quat.z << ")";
         return os;
     }
 };
+
 
 inline float operator*(const Quaternion& q1, const Quaternion& q2) {
     return q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z;
