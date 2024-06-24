@@ -14,9 +14,10 @@
 struct MatrixContext {
     std::vector<int> align_path;
     int n, m;
-    float* mat;
+    float *mat;
     bool isCostDeviation;
 };
+
 class ImGuiLayer : public Layer {
 public:
     ImGuiLayer(UIContext *context, SharedData *data);
@@ -25,7 +26,7 @@ public:
 
     void precomputePathDeviation();
 
-    void precomputeDeviation(MatrixContext& context, std::vector<float>& distances);
+    void precomputeDeviation(MatrixContext &context, std::vector<float> &distances);
 
     void drawDTWDiagram();
 
@@ -42,10 +43,10 @@ public:
 private:
     UIContext *m_Context;
     std::vector<float> distances;
-    float** costM;
+    float **costM;
     std::vector<float> costs;
     float maxDistance;
-    std::vector<ImU32> colors;
+    std::vector <ImU32> colors;
     bool showDiagram = false;
     int isCostDeviation = 0;
     int squat_sampleSize;
@@ -55,4 +56,6 @@ private:
     std::unique_ptr<float[]> values1;
     std::unique_ptr<float[]> values2;
     float s_min, s_max;
+    std::vector <std::pair<int, int>> pathCoords;
+    std::vector<int> align_path;
 };

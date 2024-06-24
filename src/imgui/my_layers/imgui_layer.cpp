@@ -68,7 +68,7 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
     int m = context.m;
     values1 = std::make_unique<float[]>((n + 1) * (m + 1));
     values2 = std::make_unique<float[]>(n * m);
-    const std::vector<int> &align_path = context.align_path;
+    align_path = context.align_path;
     auto inp_traj = DR::getI()->getInp_frames();
     auto ref_traj = DR::getI()->getRef_frames();
     Trajectories *inT = new Trajectories(inp_traj);
@@ -77,7 +77,6 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
                                       reT->get_anglesTrajectories(),
                                       quaternion_dist);
 
-    std::vector <std::pair<int, int>> pathCoords;
     for (int idx: align_path) {
         int i = idx / (m + 1);
         int j = idx % (m + 1);
@@ -120,11 +119,12 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
             if (costM[i][j] != 0)
-                values2[i * m + j] = log10f(costM[i][j]);
+                values2[(n - i - 1) * m + j] = log10f(costM[i][j]);
+
     int index = 0;
     for (int i = 0; i <= n; i++) {
         for (int j = 0; j <= m; j++) {
-            values1[i * (m + 1) + j] = distances[index++];
+            values1[(n - i) * (m + 1) + j] = distances[index++];
         }
     }
     s_min = 10.0f;
@@ -132,7 +132,6 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            values2[i * m + j] = costM[i][j];
             if (s_max < values2[i * m + j]) s_max = values2[i * m + j];
             if (s_min > values2[i * m + j]) s_min = values2[i * m + j];
         }
@@ -181,7 +180,7 @@ void ImGuiLayer::drawDTWDiagram() {
     static ImPlotHeatmapFlags hm_flags = 0;
     ImPlot::PushColormap(map);
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(NULL, NULL, 0, 0); // No labels and no gridlines
+        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_Opposite, ImPlotAxisFlags_Invert); // No labels and no gridlines
         if (selectedArray == 0) {
             ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0),
                                 ImPlotPoint(m + 1, n + 1), hm_flags);
@@ -192,7 +191,7 @@ void ImGuiLayer::drawDTWDiagram() {
 
         // Get mouse position and display it
         ImPlotPoint mousePos = ImPlot::GetPlotMousePos();
-        ImGui::Text("Mouse Position: (%i, %i)", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y));
+        ImGui::Text("Current Frames: (%i, %i)", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y));
 
         // Draw crosshair lines
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
@@ -200,7 +199,7 @@ void ImGuiLayer::drawDTWDiagram() {
         ImVec2 plot_size = ImPlot::GetPlotSize();
         ImVec2 mouse_pos = ImPlot::PlotToPixels(mousePos);
 
-        if (mousePos.x >= 0 && mousePos.x <= m + 1 && mousePos.y >= 0 && mousePos.x <= n + 1) {
+        if (mousePos.x >= 0 && mousePos.x <= m + 1 && mousePos.y >= 0 && mousePos.y <= n + 1) {
             // Draw vertical line
             draw_list->AddLine(ImVec2(mouse_pos.x, plot_pos.y), ImVec2(mouse_pos.x, plot_pos.y + plot_size.y),
                                IM_COL32(255, 0, 0, 255));
@@ -209,16 +208,19 @@ void ImGuiLayer::drawDTWDiagram() {
                                IM_COL32(255, 0, 0, 255));
         }
 
+        float c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
+        float c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
+        ImVec2 c_point = {c_x, c_y};
+        ImVec2 align_pos = ImPlot::PlotToPixels(c_point);
+        // Draw vertical line
+        draw_list->AddLine(ImVec2(align_pos.x, plot_pos.y), ImVec2(align_pos.x, plot_pos.y + plot_size.y),
+                           IM_COL32(0, 255, 0, 255));
+        // Draw horizontal line
+        draw_list->AddLine(ImVec2(plot_pos.x, align_pos.y), ImVec2(plot_pos.x + plot_size.x, align_pos.y),
+                           IM_COL32(0, 255, 0, 255));
+
         ImPlot::EndPlot();
     }
-
-    ImGui::SameLine();
-    ImPlot::ColormapScale("##HeatScale", scale_min, scale_max, ImVec2(60, 225));
-
-    float prog = static_cast<float>(m_Context->c_frame % std::get<1>(*m_Context->matrix).size()) /
-                 std::get<1>(*m_Context->matrix).size();
-    ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
-    ImGui::Text("Current Frame: %d", m_Context->c_frame);
 }
 
 void ImGuiLayer::showCameraOptions() {
@@ -317,7 +319,6 @@ void ImGuiLayer::show_DTW_Options() {
         if (m_Context->aligned) {
             ImGui::SameLine();
             ImGuiStyle *style = &ImGui::GetStyle();
-            char txt_green[] = "text green";
             style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
             ImGui::Text(("Cost: " + std::to_string(m_Context->cost)).c_str());
@@ -368,12 +369,12 @@ void ImGuiLayer::onRender() {
 
         showCameraOptions();
         ImGui::Checkbox("VSync", &m_Context->vsync);
+        ImGui::SameLine();
+        ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
         if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
             show_selectionTable();
         }
         show_DTW_Options();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                    ImGui::GetIO().Framerate);
         ImGui::End();
     }
 }
