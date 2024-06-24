@@ -19,12 +19,12 @@ ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context
 }
 
 void ImGuiLayer::changeInputFile(int selected_index) {
-    const char* file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
-    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
+    const char *file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
+    MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
     motionFileProcessor->processInputFile(std::string(file));
     auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
     sharedData->trajectoryInfos.clear();
-    for (auto result : kNNResults) {
+    for (auto result: kNNResults) {
         TrajectoryInfo info;
         info.reference = result->getContext()->reference_file;
         info.manager = result;
@@ -35,12 +35,13 @@ void ImGuiLayer::changeInputFile(int selected_index) {
         sharedData->trajectoryInfos.push_back(info);
     }
 
-    TrajectoryAnalysisManager* manager = motionFileProcessor->getClosestMatch(DTW);
+    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
     m_Context = DR::getI()->getContext();
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),DR::getI()->getInp_frames(),DR::getI()->getRef_frames());
+    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),
+                                                      DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
     precomputePathDeviation();
 }
 
@@ -51,41 +52,40 @@ void ImGuiLayer::UpdateFOVWithScroll() {
         m_Context->refView->fov -= io.MouseWheel * 2;
         if (m_Context->refView->fov < -180.0f)
             m_Context->refView->fov = -180.0f;
-        if (m_Context->refView->fov >  180.0f)
+        if (m_Context->refView->fov > 180.0f)
             m_Context->refView->fov = 180.0f;
     } else if (io.MouseWheel != 0.0f && io.KeyAlt) {
         m_Context->inputView->fov -= io.MouseWheel * 2;
         if (m_Context->inputView->fov < -180.0f)
             m_Context->inputView->fov = -180.0f;
-        if (m_Context->inputView->fov >  180.0f)
+        if (m_Context->inputView->fov > 180.0f)
             m_Context->inputView->fov = 180.0f;
     }
 }
 
-void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>& distances) {
+void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> &distances) {
     int n = context.n;
     int m = context.m;
     values1 = std::make_unique<float[]>((n + 1) * (m + 1));
     values2 = std::make_unique<float[]>(n * m);
-    const std::vector<int>& align_path = context.align_path;
+    const std::vector<int> &align_path = context.align_path;
     auto inp_traj = DR::getI()->getInp_frames();
     auto ref_traj = DR::getI()->getRef_frames();
     Trajectories *inT = new Trajectories(inp_traj);
     Trajectories *reT = new Trajectories(ref_traj);
-    float* mat = Dtw::get_cost_matrix(inT->get_anglesTrajectories(),
-                                    reT->get_anglesTrajectories(),
-                                    quaternion_dist);
-//    float* mat = context.mat;
+    float *mat = Dtw::get_cost_matrix(inT->get_anglesTrajectories(),
+                                      reT->get_anglesTrajectories(),
+                                      quaternion_dist);
 
-    std::vector<std::pair<int, int>> pathCoords;
-    for (int idx : align_path) {
+    std::vector <std::pair<int, int>> pathCoords;
+    for (int idx: align_path) {
         int i = idx / (m + 1);
         int j = idx % (m + 1);
         pathCoords.emplace_back(i, j);
     }
 
     distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
-    costM = new float*[n];
+    costM = new float *[n];
     for (int i = 0; i < n; i++) {
         costM[i] = new float[m];
     }
@@ -96,14 +96,14 @@ void ImGuiLayer::precomputeDeviation(MatrixContext& context, std::vector<float>&
             float minDistanceToPath = std::numeric_limits<float>::infinity();
             float minCostToPath = std::numeric_limits<float>::infinity();
             int r = 0;
-            for (auto num : context.align_path) {
+            for (auto num: context.align_path) {
                 if (num / (m + 1) == i && num % (m + 1) == j) {
                     r = num;
                     break;
                 }
             }
             minCostToPath = std::abs(mat[i * (m + 1) + j] - mat[r]);
-            for (const auto& [pi, pj] : pathCoords) {
+            for (const auto &[pi, pj]: pathCoords) {
                 float distance;
                 distance = std::hypot(i - pi, j - pj);
                 if (distance < minDistanceToPath) {
@@ -161,12 +161,12 @@ void ImGuiLayer::drawDTWDiagram() {
     const float rect_size = 1.0f;
 
     static int selectedArray = 0;
-
+    ImGui::SameLine();
     ImGui::RadioButton("Path", &selectedArray, 0);
     ImGui::SameLine();
     ImGui::RadioButton("Costs", &selectedArray, 1);
 
-    static ImPlotColormap map = ImPlotColormap_Viridis;
+    static ImPlotColormap map = ImPlotColormap_Twilight;
     static float scale_min = s_min;
     static float scale_max = s_max;
     ImGui::SameLine();
@@ -183,21 +183,43 @@ void ImGuiLayer::drawDTWDiagram() {
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
         ImPlot::SetupAxes(NULL, NULL, 0, 0); // No labels and no gridlines
         if (selectedArray == 0) {
-            ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m + 1, n + 1), hm_flags);
+            ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0),
+                                ImPlotPoint(m + 1, n + 1), hm_flags);
         } else {
-            ImPlot::PlotHeatmap("heat", values2.get(), n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0), ImPlotPoint(m, n), hm_flags);
+            ImPlot::PlotHeatmap("heat", values2.get(), n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0),
+                                ImPlotPoint(m, n), hm_flags);
         }
+
+        // Get mouse position and display it
+        ImPlotPoint mousePos = ImPlot::GetPlotMousePos();
+        ImGui::Text("Mouse Position: (%i, %i)", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y));
+
+        // Draw crosshair lines
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        ImVec2 plot_pos = ImPlot::GetPlotPos();
+        ImVec2 plot_size = ImPlot::GetPlotSize();
+        ImVec2 mouse_pos = ImPlot::PlotToPixels(mousePos);
+
+        if (mousePos.x >= 0 && mousePos.x <= m + 1 && mousePos.y >= 0 && mousePos.x <= n + 1) {
+            // Draw vertical line
+            draw_list->AddLine(ImVec2(mouse_pos.x, plot_pos.y), ImVec2(mouse_pos.x, plot_pos.y + plot_size.y),
+                               IM_COL32(255, 0, 0, 255));
+            // Draw horizontal line
+            draw_list->AddLine(ImVec2(plot_pos.x, mouse_pos.y), ImVec2(plot_pos.x + plot_size.x, mouse_pos.y),
+                               IM_COL32(255, 0, 0, 255));
+        }
+
         ImPlot::EndPlot();
     }
 
     ImGui::SameLine();
     ImPlot::ColormapScale("##HeatScale", scale_min, scale_max, ImVec2(60, 225));
 
-    float prog = static_cast<float>(m_Context->c_frame % std::get<1>(*m_Context->matrix).size()) / std::get<1>(*m_Context->matrix).size();
+    float prog = static_cast<float>(m_Context->c_frame % std::get<1>(*m_Context->matrix).size()) /
+                 std::get<1>(*m_Context->matrix).size();
     ImGui::ProgressBar(prog, ImVec2((m + 1) * rect_size, 2));
     ImGui::Text("Current Frame: %d", m_Context->c_frame);
 }
-
 
 void ImGuiLayer::showCameraOptions() {
     UpdateFOVWithScroll();
@@ -211,29 +233,35 @@ void ImGuiLayer::showCameraOptions() {
         // Center
         ImGui::DragFloat3("Center##ref", glm::value_ptr(m_Context->refView->center), 0.1f, -3.0f, 3.0f);
         ImGui::DragFloat3("Position##ref", glm::value_ptr(m_Context->refView->camera_pos), 0.1f, -5.0f, 5.0f);
-        ImGui::DragFloat3("Orientation##ref", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f, 1.0f);
+        ImGui::DragFloat3("Orientation##ref", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f,
+                          1.0f);
         // Clear Color
-        ImGui::ColorEdit3("Clear Color##ref", (float *)&m_Context->refView->clear_color);
+        ImGui::ColorEdit3("Clear Color##ref", (float *) &m_Context->refView->clear_color);
         //Input view
         ImGui::SeparatorText("Input View (right) Camera##input");
         ImGui::SliderFloat("Aspect Ratio##input", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
         ImGui::SliderFloat("Fov##input", &m_Context->inputView->fov, -180.0f, 180.0f);
         ImGui::DragFloat3("Center##input", glm::value_ptr(m_Context->inputView->center), 0.1f, -3.0f, 3.0f);
         ImGui::DragFloat3("Position##input", glm::value_ptr(m_Context->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
-        ImGui::DragFloat3("Orientation##input", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f, 1.0f);
-        ImGui::ColorEdit3("Clear Color##input", (float *)&m_Context->inputView->clear_color);
+        ImGui::DragFloat3("Orientation##input", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f,
+                          1.0f);
+        ImGui::ColorEdit3("Clear Color##input", (float *) &m_Context->inputView->clear_color);
     };
 }
 
 void ImGuiLayer::show_selectionTable() {
     // Options
     static ImGuiTableFlags flags =
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_ScrollY;
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
+            ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti | ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody |
+            ImGuiTableFlags_ScrollY;
 
     if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 10 * 15), 0.0f)) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
         ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
-        ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch, 0.0f, 2);
+        ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch, 0.0f,
+                                2);
         ImGui::TableSetupColumn("Sex", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
         ImGui::TableSetupColumn("Age", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
         ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 3);
@@ -249,7 +277,7 @@ void ImGuiLayer::show_selectionTable() {
         clipper.Begin(squat_sampleSize - 16);
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
-                auto pers = m_Context->motion_files->at(row_n  + 16);
+                auto pers = m_Context->motion_files->at(row_n + 16);
                 // Display a data item
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -274,7 +302,8 @@ void ImGuiLayer::show_selectionTable() {
                 ImGui::TableNextColumn();
                 ImGui::Text("%d", pers.right_footed); // Foot
                 ImGui::TableNextColumn();
-                ImGui::Text("%d, %d, %d, %d", pers.experience_trainer,pers.expertise, pers.expertise_practical, pers.expertise_theoretical); // Exp
+                ImGui::Text("%d, %d, %d, %d", pers.experience_trainer, pers.expertise, pers.expertise_practical,
+                            pers.expertise_theoretical); // Exp
                 ImGui::PopID();
             }
         ImGui::EndTable();
@@ -303,17 +332,18 @@ void ImGuiLayer::show_DTW_Options() {
 }
 
 void ImGuiLayer::onRender() {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiIO &io = ImGui::GetIO();
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
 
     // Set up the main dock space
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     ImGui::SetNextWindowViewport(viewport->ID);
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse|
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                                    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+                                    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+                                    ImGuiWindowFlags_NoBackground;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));  // Adjust window padding
@@ -342,7 +372,8 @@ void ImGuiLayer::onRender() {
             show_selectionTable();
         }
         show_DTW_Options();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
         ImGui::End();
     }
 }
