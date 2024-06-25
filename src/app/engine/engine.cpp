@@ -453,7 +453,6 @@ GLFWwindow *Renderer::init_window(UIContext *context) {
     std::string windowTitle = "Motion Visualizer " + context->reference_file + " vs. " + context->input_file + " - " +
                               " OpenGL Version: " + reinterpret_cast<const char *>(glVersion);
     glfwSetWindowTitle(window, windowTitle.c_str());
-
     return window;
 }
 
