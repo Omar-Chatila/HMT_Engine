@@ -8,6 +8,8 @@
 #include <thread>
 #include <atomic>
 
+#define AUTO 0
+#define PICK 1
 
 ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context) {
     sharedData = data;
@@ -191,7 +193,9 @@ void ImGuiLayer::drawDTWDiagram() {
 
         // Get mouse position and display it
         ImPlotPoint mousePos = ImPlot::GetPlotMousePos();
-        ImGui::Text("Current Frames: (%i, %i)", static_cast<int>(mousePos.x), static_cast<int>(mousePos.y));
+        bool isInBounds = mousePos.x >= 0 && mousePos.x < m && mousePos.y >= 0 && mousePos.y < n;
+        float c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
+        float c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
 
         // Draw crosshair lines
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
@@ -199,7 +203,24 @@ void ImGuiLayer::drawDTWDiagram() {
         ImVec2 plot_size = ImPlot::GetPlotSize();
         ImVec2 mouse_pos = ImPlot::PlotToPixels(mousePos);
 
-        if (mousePos.x >= 0 && mousePos.x <= m + 1 && mousePos.y >= 0 && mousePos.y <= n + 1) {
+        static int mode = AUTO;
+        if (ImGui::RadioButton("Auto", &mode, 0)) {
+            mode = AUTO;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Select", &mode, 1)) {
+            mode = PICK;
+        }
+
+        ImGui::SameLine();
+        ImGui::Text("Current Frames: (%i, %i)",
+                    isInBounds && mode == PICK ? static_cast<int>(mousePos.x) : static_cast<int>(c_x),
+                    isInBounds && mode == PICK ? static_cast<int>(mousePos.y) : static_cast<int>(c_y));
+
+
+        // Draw Selection cross-hair
+        if (isInBounds && mode == PICK) {
+            DR::getI()->setMousePos(std::pair<int, int>(static_cast<int>(mousePos.x), static_cast<int>(mousePos.y)));
             // Draw vertical line
             draw_list->AddLine(ImVec2(mouse_pos.x, plot_pos.y), ImVec2(mouse_pos.x, plot_pos.y + plot_size.y),
                                IM_COL32(255, 0, 0, 255));
@@ -208,17 +229,16 @@ void ImGuiLayer::drawDTWDiagram() {
                                IM_COL32(255, 0, 0, 255));
         }
 
-        float c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
-        float c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
         ImVec2 c_point = {c_x, c_y};
         ImVec2 align_pos = ImPlot::PlotToPixels(c_point);
-        // Draw vertical line
-        draw_list->AddLine(ImVec2(align_pos.x, plot_pos.y), ImVec2(align_pos.x, plot_pos.y + plot_size.y),
-                           IM_COL32(0, 255, 0, 255));
-        // Draw horizontal line
-        draw_list->AddLine(ImVec2(plot_pos.x, align_pos.y), ImVec2(plot_pos.x + plot_size.x, align_pos.y),
-                           IM_COL32(0, 255, 0, 255));
-
+        // Draw alignment cross-hair
+        if (mode == AUTO) {
+            draw_list->AddLine(ImVec2(align_pos.x, plot_pos.y), ImVec2(align_pos.x, plot_pos.y + plot_size.y),
+                               IM_COL32(0, 255, 0, 255));
+            draw_list->AddLine(ImVec2(plot_pos.x, align_pos.y), ImVec2(plot_pos.x + plot_size.x, align_pos.y),
+                               IM_COL32(0, 255, 0, 255));
+        }
+        DR::getI()->setMode(mode == AUTO);
         ImPlot::EndPlot();
     }
 }

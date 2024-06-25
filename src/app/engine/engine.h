@@ -35,22 +35,35 @@ private:
 
     SharedData *sharedData;
 
-    std::vector<glm::vec3> ref_spherePositions;
-    std::vector<glm::vec3> input_spherePositions;
+    std::vector <glm::vec3> ref_spherePositions;
+    std::vector <glm::vec3> input_spherePositions;
     GLFWwindow *window;
     GLuint fbo1, fboTexture1, rbo1;
     GLuint fbo2, fboTexture2, rbo2;
 
     void update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame);
+
     void draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphere, Shader &sphereShader);
-    void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping, bool refPause, bool inpPause);
-    GLFWwindow* init_window(UIContext *context);
-    ImGuiIO& init_imgui(GLFWwindow *window);
+
+    void update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int mapping,
+                                  bool refPause, bool inpPause);
+
+    void update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int in, int ref);
+
+    GLFWwindow *init_window(UIContext *context);
+
+    ImGuiIO &init_imgui(GLFWwindow *window);
+
     void init_fbo();
-    void draw_scene(const std::vector<glm::vec3>& spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context, bool ref);
+
+    void
+    draw_scene(const std::vector <glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context,
+               bool ref);
 
 public:
     Renderer(SharedData *shared);
+
     ~Renderer();
+
     int display();
 };
