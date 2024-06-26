@@ -3,11 +3,9 @@
 #include <imgui/implot_internal.h>
 #include "../layer_data.h"
 #include "motion_file_processor.h"
-#include "Engine.h"
 #include <fstream>
 #include <thread>
 #include <atomic>
-#include "image_loader.h"
 
 #define AUTO 0
 #define PICK 1
@@ -19,12 +17,6 @@ ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     squat_sampleSize = this->m_Context->motion_files->size() - 16;
     precomputePathDeviation();
-    my_image_width = 0;
-    my_image_height = 0;
-    my_image_texture = 0;
-    bool ret = LoadTextureFromFile("resources/images/textu.jpg", &my_image_texture, &my_image_width,
-                                   &my_image_height);
-    IM_ASSERT(ret);
 }
 
 void ImGuiLayer::changeInputFile(int selected_index) {
@@ -402,11 +394,6 @@ void ImGuiLayer::onRender() {
             show_selectionTable();
         }
         show_DTW_Options();
-        {
-            ImGui::Text("pointer = %x", my_image_texture);
-            ImGui::Text("size = %d x %d", my_image_width, my_image_height);
-            ImGui::Image((void *) (intptr_t) my_image_texture, ImVec2(my_image_width, my_image_height));
-        }
         ImGui::End();
     }
 }

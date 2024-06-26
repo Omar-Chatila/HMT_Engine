@@ -58,4 +58,5 @@ private:
     float s_min, s_max;
     std::vector <std::pair<int, int>> pathCoords;
     std::vector<int> align_path;
+
 };

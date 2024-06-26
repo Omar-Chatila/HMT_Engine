@@ -132,6 +132,7 @@ int Renderer::display() {
     app->push_layer<ImGuiLayer>(DR::getI()->getContext(), sharedData);
     app->push_layer<ResultLayer>(sharedData);
     app->push_layer<ClassifierLayer>(sharedData);
+    app->push_layer<SetupLayer>();
     int lastInpIndex = -1;
     int lastRefIndex = -1;
 
