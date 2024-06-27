@@ -16,13 +16,13 @@
 #include "frechet.h"
 #include "edit_distance.h"
 
-constexpr const char* rootDirectory = "../../resources/motion_data/";
+constexpr const char *rootDirectory = "../../resources/motion_data/";
 std::vector<std::string> input_files;
 std::vector<std::string> ref_files;
 std::vector<std::string> squat_files;
 
-std::vector<std::vector<Quaternion*>> in_quat_frames;
-std::vector<std::vector<Quaternion*>> ref_quat_frames;
+std::vector<std::vector<Quaternion *>> in_quat_frames;
+std::vector<std::vector<Quaternion *>> ref_quat_frames;
 
 enum Activity {
     SQUATS,
@@ -42,7 +42,7 @@ void initFileLocations(enum Activity activity) {
     std::regex input_file_regex(".*\\.txt");
     std::regex ref_file_regex("expertise.*\\.txt");
 
-    for (const auto& entry : std::filesystem::directory_iterator(activity_path)) {
+    for (const auto &entry: std::filesystem::directory_iterator(activity_path)) {
         std::string file_name = entry.path().filename().string();
         if (std::regex_match(file_name, ref_file_regex)) {
             ref_files.push_back(entry.path().string());
@@ -58,19 +58,19 @@ void initFileLocations(enum Activity activity) {
 void initTrajectories() {
     std::cout << "Initializing Trajectories" << std::endl;
     // Init input trajectories
-    for (auto file : input_files) {
+    for (auto file: input_files) {
         Input_parser *p = new Input_parser(file.c_str());
         std::vector<Frame> frames = p->get_frames();
         Trajectories *t = new Trajectories(frames);
-        std::vector<Quaternion*> quats = t->get_anglesTrajectories();
+        std::vector<Quaternion *> quats = t->get_anglesTrajectories();
         in_quat_frames.push_back(quats);
     }
     // Init ref trajectories
-    for (auto file : ref_files) {
+    for (auto file: ref_files) {
         Input_parser *p = new Input_parser(file.c_str());
         std::vector<Frame> frames = p->get_frames();
         Trajectories *t = new Trajectories(frames);
-        std::vector<Quaternion*> quats = t->get_anglesTrajectories();
+        std::vector<Quaternion *> quats = t->get_anglesTrajectories();
         ref_quat_frames.push_back(quats);
     }
 }
