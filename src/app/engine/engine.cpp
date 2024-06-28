@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "engine.h"
 
 Renderer::Renderer(SharedData *data) {
     for (int i = 0; i < JOINT_COUNT; i++) {
@@ -201,6 +201,7 @@ int Renderer::display() {
                                          DR::getI()->getMousePos().first);
             }
             map_index++;
+
         } else {
             update_SpherePos_noAlign(ref_frms[current_frame % ref_frms.size()],
                                      in_frms[current_frame % in_frms.size()]);
@@ -293,7 +294,7 @@ int Renderer::display() {
 }
 
 void
-Renderer::draw_scene(const std::vector <glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *c,
+Renderer::draw_scene(const std::vector<glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *c,
                      bool ref) {
     glm::mat4 view = glm::lookAt(ref ? c->refView->camera_pos : c->inputView->camera_pos,
                                  ref ? c->refView->center : c->inputView->center,
@@ -390,7 +391,7 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
 }
 
 void
-Renderer::update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int mapping,
+Renderer::update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping,
                                    bool refPause, bool inpPause) {
     int n = input_frames.size();
     int m = ref_frames.size();
@@ -400,7 +401,7 @@ Renderer::update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vecto
 }
 
 void
-Renderer::update_SpherePos_Aligned(std::vector <Frame> &input_frames, std::vector <Frame> &ref_frames, int in,
+Renderer::update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int in,
                                    int ref) {
     for (int i = 0; i < JOINT_COUNT; i++) {
         ref_spherePositions[i].x = ref_frames[ref].joint_translations[i].x - 0.5;
