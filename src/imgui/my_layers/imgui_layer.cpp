@@ -334,14 +334,24 @@ void ImGuiLayer::show_selectionTable() {
 
 void ImGuiLayer::show_DTW_Options() {
     if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
-
         ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
+        static int selectedDtw = 0;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Classic", &selectedDtw, 0)) {
+            this->classic_dtw = true;
+            precomputePathDeviation();
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Weighted", &selectedDtw, 1)) {
+            this->classic_dtw = false;
+            precomputePathDeviation();
+        }
         if (m_Context->aligned) {
             ImGui::SameLine();
             ImGuiStyle *style = &ImGui::GetStyle();
             style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-            ImGui::Text(("Cost: " + std::to_string(m_Context->cost)).c_str());
+            ImGui::Text(("Cost: " + std::to_string(classic_dtw ? m_Context->cost : m_Context->wdtw_cost)).c_str());
             ImGui::PopStyleColor();
         }
         ImGui::Checkbox("Show Heatmap", &showDiagram);

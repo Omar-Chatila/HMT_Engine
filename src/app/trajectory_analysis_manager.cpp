@@ -48,6 +48,7 @@ void TrajectoryAnalysisManager::updateContext() {
     auto mat = new std::tuple{matrixx, std::get<1>(alignment), n, m};
     auto wdtw_mat = new std::tuple{wdtw_matrixx, std::get<1>(wdtw_alignment), n, m};
     context->matrix = mat;
+    context->wdtw_matrix = wdtw_mat;
 }
 
 UIContext *TrajectoryAnalysisManager::getContext() {

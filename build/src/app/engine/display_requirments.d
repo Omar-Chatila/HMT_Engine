@@ -5,6 +5,7 @@ build/src/app/engine/display_requirments.o: \
  src/misc/util.h src/algorithms/trajectory_analysis.h \
  src/parsing/trajectories.h src/algorithms/distance_measures.h \
  src/algorithms/dtw.h src/algorithms/edit_distance.h \
+ src/algorithms/lcss.h src/algorithms/frechet.h \
  src/algorithms/error_distances.h
 src/app/engine/display_requirements.h:
 src/app/engine/ui_context.h:
@@ -17,4 +18,6 @@ src/parsing/trajectories.h:
 src/algorithms/distance_measures.h:
 src/algorithms/dtw.h:
 src/algorithms/edit_distance.h:
+src/algorithms/lcss.h:
+src/algorithms/frechet.h:
 src/algorithms/error_distances.h:
