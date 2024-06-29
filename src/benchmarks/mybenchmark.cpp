@@ -4,12 +4,12 @@
 #define START1 1000
 #define START2 1000
 
-#define STEP1 1000
-#define STEP2 1000
+#define STEP1 500
+#define STEP2 500
 
-#define END1 2000
-#define END2 2000
-#define ITERATIONS 1
+#define END1 7000
+#define END2 7000
+#define ITERATIONS 10
 
 class MotionFileFixture : public benchmark::Fixture {
 public:
