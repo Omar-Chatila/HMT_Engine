@@ -6,9 +6,8 @@ int main(int argc, char *argv[]) {
     std::cout << "JAAAAAAAAAA" << std::endl;
     SharedData *sharedData = new SharedData();
     MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
-    const char *default_file = "fb_02_pre_splitted_1.txt";
+    const char *default_file = "fb_21_pre_splitted_5.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
-    DR *disp_req = DR::getI();
     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
     manager->updateDisplayRequirements();
     auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
@@ -24,6 +23,8 @@ int main(int argc, char *argv[]) {
     }
     sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),
                                                       DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
+    sharedData->wdtw_alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->wdtw_matrix),
+                                                           DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
     Renderer *rend = new Renderer(sharedData);

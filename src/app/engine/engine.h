@@ -51,7 +51,7 @@ private:
 
     GLFWwindow *init_window(UIContext *context);
 
-    ImGuiIO &init_imgui(GLFWwindow *window);
+    ImGuiIO &init_imgui(GLFWwindow *p_window);
 
     void
     update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int in,
@@ -59,7 +59,7 @@ private:
 
     void init_fbo();
 
-    void
+    static void
     draw_scene(const std::vector<glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context,
                bool ref);
 

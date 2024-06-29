@@ -43,20 +43,20 @@ public:
 private:
     UIContext *m_Context;
     std::vector<float> distances;
-    float **costM;
+    float **costM{};
     std::vector<float> costs;
-    float maxDistance;
+    float maxDistance{};
     std::vector<ImU32> colors;
     bool showDiagram = false;
     bool classic_dtw = true;
     int isCostDeviation = 0;
-    int squat_sampleSize;
+    size_t squat_sampleSize;
     int selected_index = -1;
-    int alignment_length;
+    int alignment_length{};
 
     std::unique_ptr<float[]> values1;
     std::unique_ptr<float[]> values2;
-    float s_min, s_max;
+    float s_min{}, s_max{};
     std::vector<std::pair<int, int>> pathCoords;
     std::vector<int> align_path;
 

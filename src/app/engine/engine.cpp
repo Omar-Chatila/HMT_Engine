@@ -2,8 +2,8 @@
 
 Renderer::Renderer(SharedData *data) {
     for (int i = 0; i < JOINT_COUNT; i++) {
-        ref_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
-        input_spherePositions.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
+        ref_spherePositions.emplace_back(0.0f, 0.0f, 0.0f);
+        input_spherePositions.emplace_back(0.0f, 0.0f, 0.0f);
     }
     this->sharedData = data;
     this->window = init_window(DR::getI()->getContext());
@@ -32,7 +32,7 @@ void Renderer::init_fbo() {
     glGenTextures(1, &fboTexture1);
     glBindTexture(GL_TEXTURE_2D, fboTexture1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DR::getI()->getContext()->refView->windowWidth,
-                 DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                 DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture1, 0);
@@ -54,7 +54,7 @@ void Renderer::init_fbo() {
     glGenTextures(1, &fboTexture2);
     glBindTexture(GL_TEXTURE_2D, fboTexture2);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, DR::getI()->getContext()->refView->windowWidth,
-                 DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+                 DR::getI()->getContext()->refView->windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture2, 0);
@@ -75,7 +75,6 @@ void Renderer::init_fbo() {
 int Renderer::display() {
     // Compile and link shaders
     Shader sphereShader(vertexShaderPath, fragmentShaderPath);
-    Shader textured_sphereShader(tex_vertexShaderPath, tex_fragmentShaderPath);
     Shader floorShader(floor_vertex_shader_path, floor_fragment_shader_path); // New shader for the floor
 
     // Create a sphere
@@ -122,13 +121,12 @@ int Renderer::display() {
     glEnable(GL_DEPTH_TEST);
 
     auto io = init_imgui(window);
-    bool show = true;
 
     // Render loop
     int current_frame = 0;
     int map_index = 0;
 
-    ImGUI_Layers *app = new ImGUI_Layers();
+    auto *app = new ImGUI_Layers();
     app->push_layer<ImGuiLayer>(DR::getI()->getContext(), sharedData);
     app->push_layer<ResultLayer>(sharedData);
     app->push_layer<ClassifierLayer>(sharedData);
@@ -184,7 +182,8 @@ int Renderer::display() {
         auto in_frms = DR::getI()->getInp_frames();
         if (DR::getI()->getContext()->aligned) {
             // TODO: Das hier nur ein mal getten
-            auto alignment = DR::getI()->getAlignment();
+            auto alignment = DR::getI()->getContext()->classicDTW ?
+                    DR::getI()->getAlignment() : DR::getI()->getWDTWAlignment();
             int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
             int m = ref_frms.size();
             int in = mapping / (m + 1) - 1;
@@ -195,7 +194,7 @@ int Renderer::display() {
             lastRefIndex = ref;
             DR::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
             if (DR::getI()->is_auto()) {
-                update_SpherePos_Aligned(in_frms, ref_frms, mapping, 0, 1);
+                update_SpherePos_Aligned(in_frms, ref_frms, mapping, false, true);
             } else {
                 update_SpherePos_Aligned(in_frms, ref_frms, DR::getI()->getMousePos().second,
                                          DR::getI()->getMousePos().first);
@@ -215,7 +214,7 @@ int Renderer::display() {
         glViewport(0, 0, DR::getI()->getContext()->refView->windowWidth,
                    DR::getI()->getContext()->refView->windowHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        draw_scene(ref_spherePositions, sphere, sphereShader, DR::getI()->getContext(), 1);
+        draw_scene(ref_spherePositions, sphere, sphereShader, DR::getI()->getContext(), true);
         auto clear_color1 = DR::getI()->getContext()->refView->clear_color;
         glClearColor(clear_color1.x * clear_color1.w, clear_color1.y * clear_color1.w, clear_color1.z * clear_color1.w,
                      clear_color1.w);
@@ -316,7 +315,7 @@ Renderer::draw_scene(const std::vector<glm::vec3> &spherePositions, Sphere &sphe
             color = sphereColors[19];
         }
         sphereShader.setUniformVec3("objectColor", color);
-        glm::mat4 model = glm::mat4(1.0f);
+        auto model = glm::mat4(1.0f);
         model = glm::translate(model, position);
         sphereShader.setUniformMat4("model", model);
         sphere.draw();
@@ -351,7 +350,7 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
         glm::vec3 position = ref_spherePositions[i];
         glm::vec3 color = sphereColors[i];
         sphereShader.setUniformVec3("objectColor", color);
-        glm::mat4 model = glm::mat4(1.0f);
+        auto model = glm::mat4(1.0f);
         model = glm::translate(model, position);
         sphereShader.setUniformMat4("model", model);
         sphere.draw();
@@ -361,7 +360,7 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
         glm::vec3 position = input_spherePositions[i];
         glm::vec3 color = sphereColors[i];
         sphereShader.setUniformVec3("objectColor", color);
-        glm::mat4 model = glm::mat4(1.0f);
+        auto model = glm::mat4(1.0f);
         model = glm::translate(model, position);
         sphereShader.setUniformMat4("model", model);
         sphere.draw();
@@ -373,7 +372,7 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
         glm::vec3 end = ref_spherePositions[bone.second];
         Line line(start, end);
         glUseProgram(line.shaderProgram);
-        glm::mat4 model = glm::mat4(1.0f);
+        auto model = glm::mat4(1.0f);
         line.setMVP(projection * view * model);
         line.draw();
     }
@@ -393,7 +392,6 @@ void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphe
 void
 Renderer::update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping,
                                    bool refPause, bool inpPause) {
-    int n = input_frames.size();
     int m = ref_frames.size();
     int in = mapping / (m + 1) - 1;
     int ref = mapping % (m + 1) - 1;
@@ -458,7 +456,7 @@ GLFWwindow *Renderer::init_window(UIContext *context) {
     return window;
 }
 
-ImGuiIO &Renderer::init_imgui(GLFWwindow *window) {
+ImGuiIO &Renderer::init_imgui(GLFWwindow *p_window) {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -475,7 +473,7 @@ ImGuiIO &Renderer::init_imgui(GLFWwindow *window) {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(p_window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
     return io;

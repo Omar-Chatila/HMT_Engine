@@ -1,7 +1,6 @@
 #include "imgui_layer.h"
 #include <imgui/implot.h>
 #include <imgui/implot_internal.h>
-#include "../layer_data.h"
 #include "motion_file_processor.h"
 #include <fstream>
 #include <thread>
@@ -19,9 +18,9 @@ ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context
     precomputePathDeviation();
 }
 
-void ImGuiLayer::changeInputFile(int selected_index) {
-    const char *file = m_Context->motion_files->at(selected_index + 16).motion_file.c_str();
-    MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
+void ImGuiLayer::changeInputFile(int p_selected_index) {
+    const char *file = m_Context->motion_files->at(p_selected_index + 16).motion_file.c_str();
+    auto *motionFileProcessor = new MotionFileProcessor(SQUATS);
     motionFileProcessor->processInputFile(std::string(file));
     auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
     sharedData->trajectoryInfos.clear();
@@ -42,6 +41,8 @@ void ImGuiLayer::changeInputFile(int selected_index) {
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
     sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),
+                                                      DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
+    sharedData->wdtw_alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->wdtw_matrix),
                                                       DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
     precomputePathDeviation();
 }
@@ -72,8 +73,8 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
     align_path = context.align_path;
     auto inp_traj = DR::getI()->getInp_frames();
     auto ref_traj = DR::getI()->getRef_frames();
-    Trajectories *inT = new Trajectories(inp_traj);
-    Trajectories *reT = new Trajectories(ref_traj);
+    auto *inT = new Trajectories(inp_traj);
+    auto *reT = new Trajectories(ref_traj);
     float *mat = Dtw::get_cost_matrix(inT->get_anglesTrajectories(),
                                       reT->get_anglesTrajectories(),
                                       quaternion_dist);
@@ -94,7 +95,7 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
     for (int i = 0; i <= n; i++) {
         for (int j = 0; j <= m; j++) {
             float minDistanceToPath = std::numeric_limits<float>::infinity();
-            float minCostToPath = std::numeric_limits<float>::infinity();
+            float minCostToPath;
             int r = 0;
             for (auto num: context.align_path) {
                 if (num / (m + 1) == i && num % (m + 1) == j) {
@@ -149,7 +150,7 @@ void ImGuiLayer::precomputePathDeviation() {
             std::get<2>(matrix),
             std::get<3>(matrix),
             std::get<0>(matrix),
-            false  // isCostDeviation
+            false
     };
     precomputeDeviation(context, distances);
 }
@@ -159,7 +160,6 @@ void ImGuiLayer::drawDTWDiagram() {
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
     int n = std::get<2>(*m_Context->matrix);
     int m = std::get<3>(*m_Context->matrix);
-    const float rect_size = 1.0f;
 
     static int selectedArray = 0;
     ImGui::SameLine();
@@ -182,22 +182,22 @@ void ImGuiLayer::drawDTWDiagram() {
     static ImPlotHeatmapFlags hm_flags = 0;
     ImPlot::PushColormap(map);
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_Opposite, ImPlotAxisFlags_Invert); // No labels and no gridlines
+        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Opposite, ImPlotAxisFlags_Invert); // No labels and no gridlines
         if (selectedArray == 0) {
-            ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, NULL, ImPlotPoint(0, 0),
+            ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, nullptr, ImPlotPoint(0, 0),
                                 ImPlotPoint(m + 1, n + 1), hm_flags);
         } else {
-            ImPlot::PlotHeatmap("heat", values2.get(), n, m, scale_min, scale_max, NULL, ImPlotPoint(0, 0),
+            ImPlot::PlotHeatmap("heat", values2.get(), n, m, scale_min, scale_max, nullptr, ImPlotPoint(0, 0),
                                 ImPlotPoint(m, n), hm_flags);
         }
 
         // Get mouse position and display it
         ImPlotPoint mousePos = ImPlot::GetPlotMousePos();
         bool isInBounds = mousePos.x >= 0 && mousePos.x < m && mousePos.y >= 0 && mousePos.y < n;
-        float c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
-        float c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
+        auto c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
+        auto c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
 
-        // Draw crosshair lines
+        // Draw cross-hair lines
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
         ImVec2 plot_pos = ImPlot::GetPlotPos();
         ImVec2 plot_size = ImPlot::GetPlotSize();
@@ -339,11 +339,13 @@ void ImGuiLayer::show_DTW_Options() {
         ImGui::SameLine();
         if (ImGui::RadioButton("Classic", &selectedDtw, 0)) {
             this->classic_dtw = true;
+            m_Context->classicDTW = true;
             precomputePathDeviation();
         }
         ImGui::SameLine();
         if (ImGui::RadioButton("Weighted", &selectedDtw, 1)) {
             this->classic_dtw = false;
+            m_Context->classicDTW = false;
             precomputePathDeviation();
         }
         if (m_Context->aligned) {
@@ -363,7 +365,6 @@ void ImGuiLayer::show_DTW_Options() {
 }
 
 void ImGuiLayer::onRender() {
-    ImGuiIO &io = ImGui::GetIO();
     ImGuiViewport *viewport = ImGui::GetMainViewport();
 
     // Set up the main dock space

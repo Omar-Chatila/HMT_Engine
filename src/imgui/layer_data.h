@@ -18,6 +18,7 @@ public:
     std::array<int, 5> inp_segments;
     std::array<int, 5> ref_segments;
     std::array<int, 10> alignedSegments;
+    std::array<int, 10> wdtw_alignedSegments;
 };
 
 #endif //DISTANCEMEASURES_HMT_LAYER_DATA_H
