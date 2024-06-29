@@ -143,11 +143,12 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
 }
 
 void ImGuiLayer::precomputePathDeviation() {
+    auto matrix = classic_dtw ? *m_Context->matrix : *m_Context->wdtw_matrix;
     MatrixContext context{
-            std::get<1>(*m_Context->matrix),
-            std::get<2>(*m_Context->matrix),
-            std::get<3>(*m_Context->matrix),
-            std::get<0>(*m_Context->matrix),
+            std::get<1>(matrix),
+            std::get<2>(matrix),
+            std::get<3>(matrix),
+            std::get<0>(matrix),
             false  // isCostDeviation
     };
     precomputeDeviation(context, distances);

@@ -1,7 +1,9 @@
 #include "trajectory_analysis_manager.h"
 
-TrajectoryAnalysisManager::TrajectoryAnalysisManager(const std::string& inputFile, const std::string& refFile, UIContext* context)
-    : inputFile(inputFile), refFile(refFile), context(context), inputParser(nullptr), refParser(nullptr), inputTrajectories(nullptr), refTrajectories(nullptr), analysis(nullptr) {
+TrajectoryAnalysisManager::TrajectoryAnalysisManager(const std::string &inputFile, const std::string &refFile,
+                                                     UIContext *context)
+        : inputFile(inputFile), refFile(refFile), context(context), inputParser(nullptr), refParser(nullptr),
+          inputTrajectories(nullptr), refTrajectories(nullptr), analysis(nullptr) {
     inputParser = new Input_parser(inputFile.c_str());
     inputFrames = inputParser->get_frames();
     inputTrajectories = new Trajectories(inputFrames);
@@ -20,16 +22,20 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 }
 
 void TrajectoryAnalysisManager::performAnalysis() {
-    alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories());
-    float err_result = analysis->perform_ErrorDetection(inputTrajectories->get_anglesTrajectories(), refTrajectories->get_anglesTrajectories(), ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT);
+    alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(),
+                                      refTrajectories->get_anglesTrajectories());
+    wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
+                                            refTrajectories->get_anglesTrajectories(), 0.005f,
+                                            1.0f);
     context->cost = std::get<0>(alignment);
+    context->wdtw_cost = std::get<0>(wdtw_alignment);
     algorithms_results[DTW] = std::get<0>(alignment);
+    algorithms_results[WDTW] = std::get<float>(wdtw_alignment);
     algorithms_results[EDR] = analysis->perform_EDR_Quat(EUCLID, 0.3);
     algorithms_results[TWED] = analysis->perform_TWED_Quat(EUCLID, 0.3f, 1.0f);
     algorithms_results[LCSS] = analysis->perform_LCSS_Quat(EUCLID, 0.3f, 5.0f);
     algorithms_results[FRECHET] = analysis->perform_FRECHET_Pos(EUCLID);
-    error_results[static_cast<int>(ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT)] = err_result;
-    //std::cout << "" << err_result << std::endl;
+    algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(EUCLID);
 }
 
 void TrajectoryAnalysisManager::updateContext() {
@@ -37,12 +43,14 @@ void TrajectoryAnalysisManager::updateContext() {
     context->input_file = cropString(inputFile).c_str();
     int n = inputTrajectories->get_anglesTrajectories().size();
     int m = refTrajectories->get_anglesTrajectories().size();
-    float* matrixx = std::get<2>(alignment);
+    float *matrixx = std::get<2>(alignment);
+    float *wdtw_matrixx = std::get<2>(wdtw_alignment);
     auto mat = new std::tuple{matrixx, std::get<1>(alignment), n, m};
+    auto wdtw_mat = new std::tuple{wdtw_matrixx, std::get<1>(wdtw_alignment), n, m};
     context->matrix = mat;
 }
 
-UIContext* TrajectoryAnalysisManager::getContext() {
+UIContext *TrajectoryAnalysisManager::getContext() {
     return context;
 }
 
@@ -52,6 +60,7 @@ float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
 
 void TrajectoryAnalysisManager::updateDisplayRequirements() {
     DR::getI()->setAlignment(this->alignment);
+    DR::getI()->setWDTWAlignment(this->wdtw_alignment);
     DR::getI()->setInpFrames(this->inputFrames);
     DR::getI()->setRefFrames(this->refFrames);
     DR::getI()->setContext(this->context);

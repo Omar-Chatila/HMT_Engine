@@ -1,4 +1,6 @@
 imgui.ini
 build/project.exe
-build/project.exe
-imgui.ini
+build/
+resources/
+src/benchmarks/mybenchmark.o
+src/benchmarks/mybenchmark.exe

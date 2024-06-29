@@ -18,19 +18,23 @@ DR *DR::getI() {
     return instance;
 }
 
-void DR::setAlignment(std::tuple<float, std::vector<int>, float *> &alignment) {
-    instance->alignment = alignment;
+void DR::setAlignment(std::tuple<float, std::vector<int>, float *> &p_alignment) {
+    instance->alignment = p_alignment;
+}
+
+void DR::setWDTWAlignment(std::tuple<float, std::vector<int>, float *> &p_alignment) {
+    instance->wdtw_alignment = p_alignment;
 }
 
 void DR::setContext(UIContext *cont) {
     instance->context = cont;
 }
 
-void DR::setInpFrames(std::vector <Frame> &inp_frms) {
+void DR::setInpFrames(std::vector<Frame> &inp_frms) {
     instance->inp_frames = inp_frms;
 }
 
-void DR::setRefFrames(std::vector <Frame> &ref_frms) {
+void DR::setRefFrames(std::vector<Frame> &ref_frms) {
     instance->ref_frames = ref_frms;
 }
 
@@ -46,11 +50,15 @@ std::tuple<float, std::vector<int>, float *> DR::getAlignment() const {
     return instance->alignment;
 }
 
-std::vector <Frame> DR::getRef_frames() const {
+std::tuple<float, std::vector<int>, float *> DR::getWDTWAlignment() const {
+    return instance->wdtw_alignment;
+}
+
+std::vector<Frame> DR::getRef_frames() const {
     return instance->ref_frames;
 }
 
-std::vector <Frame> DR::getInp_frames() const {
+std::vector<Frame> DR::getInp_frames() const {
     return instance->inp_frames;
 }
 
