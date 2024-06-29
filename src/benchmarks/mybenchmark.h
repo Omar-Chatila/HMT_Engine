@@ -8,21 +8,21 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
-
-#include "input_parser.h"
-#include "trajectories.h"
-#include "dtw.h"
-#include "lcss.h"
-#include "frechet.h"
-#include "edit_distance.h"
+#include "../misc/util.h"
+#include "../parsing/input_parser.h"
+#include "../algorithms/dtw.h"
+#include "../algorithms/lcss.h"
+#include "../algorithms/frechet.h"
+#include "../algorithms/edit_distance.h"
+#include "../parsing/trajectories.h"
 
 constexpr const char *rootDirectory = "../../resources/motion_data/";
 std::vector<std::string> input_files;
 std::vector<std::string> ref_files;
 std::vector<std::string> squat_files;
 
-std::vector<std::vector<Quaternion *>> in_quat_frames;
-std::vector<std::vector<Quaternion *>> ref_quat_frames;
+std::vector<Quaternion *> in_quat_frames;
+std::vector<Quaternion *> ref_quat_frames;
 
 enum Activity {
     SQUATS,
@@ -58,12 +58,14 @@ void initFileLocations(enum Activity activity) {
 void initTrajectories() {
     std::cout << "Initializing Trajectories" << std::endl;
     // Init input trajectories
+    int count = 0;
     for (auto file: input_files) {
+        if (++count == 16) break;
         Input_parser *p = new Input_parser(file.c_str());
         std::vector<Frame> frames = p->get_frames();
         Trajectories *t = new Trajectories(frames);
         std::vector<Quaternion *> quats = t->get_anglesTrajectories();
-        in_quat_frames.push_back(quats);
+        in_quat_frames.insert(std::end(in_quat_frames), std::begin(quats), std::end(quats));
     }
     // Init ref trajectories
     for (auto file: ref_files) {
@@ -71,7 +73,7 @@ void initTrajectories() {
         std::vector<Frame> frames = p->get_frames();
         Trajectories *t = new Trajectories(frames);
         std::vector<Quaternion *> quats = t->get_anglesTrajectories();
-        ref_quat_frames.push_back(quats);
+        ref_quat_frames.insert(std::end(ref_quat_frames), std::begin(quats), std::end(quats));
     }
 }
 
