@@ -4,7 +4,7 @@ SetupLayer::SetupLayer() {
     my_image_width = 0;
     my_image_height = 0;
     my_image_texture = 0;
-    bool ret = LoadTextureFromFile("resources/images/hanim2.png", &my_image_texture, &my_image_width,
+    bool ret = LoadTextureFromFile("../resources/images/sceleton.jpg", &my_image_texture, &my_image_width,
                                    &my_image_height);
     IM_ASSERT(ret);
 }

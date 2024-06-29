@@ -1,7 +1,7 @@
 // Sample app built with Dear ImGui and ImPlot
 // This app uses implot and imgui, but does not output to any backend! It only serves as a proof that an app can be built, linked, and run.
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 #include "../include/imgui/implot.h"
 #include "stdio.h"
 

@@ -1,5 +1,5 @@
 #include "layer.h"
-#include "imgui.h"
+#include <imgui/imgui.h>
 
 class ExampleLayer : public Layer {
 public:

@@ -1,11 +1,12 @@
 #include "engine/engine.h"
 #include "motion_file_processor.h"
-#include "tests.h"
+#include "../tests/tests.h"
 
-int main() {
+int main(int argc, char *argv[]) {
+    std::cout << "JAAAAAAAAAA" << std::endl;
     SharedData *sharedData = new SharedData();
     MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
-    const char *default_file = "fb_21_pre_splitted_5.txt";
+    const char *default_file = "fb_02_pre_splitted_1.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
     DR *disp_req = DR::getI();
     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);

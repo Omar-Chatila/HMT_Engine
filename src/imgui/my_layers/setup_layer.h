@@ -6,7 +6,7 @@
 #include "../layer_data.h"
 #include "util.h"
 #include "../image_loader.h"
-#include <imgui.h>
+#include <imgui/imgui.h>
 #include <vector>
 
 class SetupLayer : public Layer {

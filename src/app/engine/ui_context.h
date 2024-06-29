@@ -1,6 +1,6 @@
 #pragma once
 
-#include <imgui.h>
+#include <imgui/imgui.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -45,7 +45,7 @@ public:
             refPaused(false),
             inpPaused(false),
             c_frame(0) {
-        const char *squats_info = R"(resources\squats_subject_info.csv)";
+        const char *squats_info = R"(..\resources\squats_subject_info.csv)";
         //const char* taichi_info = R"(resources\taichi_subject_info.csv)";
         this->motion_files = motion_info(squats_info);
         //this->taichi_files = motion_info(taichi_info);

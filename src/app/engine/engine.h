@@ -27,12 +27,12 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 class Renderer {
 private:
-    const char *vertexShaderPath = "src/shader/vertex_shader.glsl";
-    const char *fragmentShaderPath = "src/shader/fragment_shader.glsl";
-    const char *tex_vertexShaderPath = "src/shader/vertex_shader.glsl";
-    const char *tex_fragmentShaderPath = "src/shader/textured_fragment_shader.glsl";
-    const char *floor_vertex_shader_path = "src/shader/floorVertexShader.glsl";
-    const char *floor_fragment_shader_path = "src/shader/floorFragmentShader.glsl";
+    const char *vertexShaderPath = "../src/shader/vertex_shader.glsl";
+    const char *fragmentShaderPath = "../src/shader/fragment_shader.glsl";
+    const char *tex_vertexShaderPath = "../src/shader/vertex_shader.glsl";
+    const char *tex_fragmentShaderPath = "../src/shader/textured_fragment_shader.glsl";
+    const char *floor_vertex_shader_path = "../src/shader/floorVertexShader.glsl";
+    const char *floor_fragment_shader_path = "../src/shader/floorFragmentShader.glsl";
 
     SharedData *sharedData;
 

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <unordered_map>
+#include <array>
 
 const int JOINT_COUNT = 19;
 const int ERROR_COUNT = 9;
