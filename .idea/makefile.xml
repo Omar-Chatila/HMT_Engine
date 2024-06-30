@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MakefileBuildTargetsManager">
+    <user-build-targets>
+      <build-target name="bin/DistanceMeasuresHMT_0.0.1">
+        <build-configurations>
+          <build-configuration toolchainName="MinGW">
+            <make-targets>
+              <make-target>bin/DistanceMeasuresHMT_0.0.1</make-target>
+            </make-targets>
+          </build-configuration>
+        </build-configurations>
+      </build-target>
+      <build-target name="rm -rf build">
+        <build-configurations>
+          <build-configuration toolchainName="MinGW">
+            <make-targets>
+              <make-target>rm</make-target>
+              <make-target>-rf</make-target>
+              <make-target>build</make-target>
+            </make-targets>
+          </build-configuration>
+        </build-configurations>
+      </build-target>
+    </user-build-targets>
+  </component>
+</project>

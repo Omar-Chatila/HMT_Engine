@@ -1,3 +1,5 @@
-.vscode/c_cpp_properties.json
-src/run.exe
-.vscode/settings.json
+build/project.exe
+build/
+resources/
+src/benchmarks/mybenchmark.o
+src/benchmarks/mybenchmark.exe
