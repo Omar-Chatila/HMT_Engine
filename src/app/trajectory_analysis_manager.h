@@ -11,11 +11,12 @@
 #include <tuple>
 #include <iostream>
 
-static constexpr int ALGO_COUNT = 8;
+static constexpr int ALGO_COUNT = 9;
 
 enum Algorithm {
     DTW,
     WDTW,
+    WDDTW,
     EDR,
     TWED,
     FRECHET,
@@ -49,6 +50,7 @@ private:
     std::vector<Frame> refFrames;
     std::tuple<float, std::vector<int>, float *> alignment;
     std::tuple<float, std::vector<int>, float *> wdtw_alignment;
+    std::tuple<float, std::vector<int>, float *> wddtw_alignment;
     std::array<float, ALGO_COUNT> algorithms_results;
     std::array<float, ERROR_COUNT> error_results;
     Input_parser *inputParser;

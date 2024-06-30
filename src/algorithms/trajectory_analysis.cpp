@@ -44,6 +44,14 @@ Trajectoy_analysis::perform_WDTW(const std::vector<Quaternion *> &inp_traj, cons
     return {pair.first, pair.second, c_matrix};
 }
 
+std::tuple<float, std::vector<int>, float *>
+Trajectoy_analysis::perform_WDDTW(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj, float g,
+                                  float w_max) {
+    float *c_matrix = Dtw::wddtw(inp_traj, ref_traj, quaternion_dist, g, w_max);
+    auto pair = Dtw::get_cost_and_alignment(c_matrix, inp_traj.size(), ref_traj.size());
+    return {pair.first, pair.second, c_matrix};
+}
+
 // Perform EDR on specific joint
 float Trajectoy_analysis::perform_EDR(Joint::Type joint, Distances type, float epsilon) {
     return EditDistance::edr(input_trajectories.get_positionsTrajectory(joint),

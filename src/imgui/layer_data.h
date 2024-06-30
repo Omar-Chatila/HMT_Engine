@@ -9,7 +9,7 @@
 struct TrajectoryInfo {
     std::string reference;
     std::vector<float> costs;
-    TrajectoryAnalysisManager* manager;
+    TrajectoryAnalysisManager *manager;
 };
 
 class SharedData {
@@ -19,6 +19,7 @@ public:
     std::array<int, 5> ref_segments;
     std::array<int, 10> alignedSegments;
     std::array<int, 10> wdtw_alignedSegments;
+    std::array<int, 10> wddtw_alignedSegments;
 };
 
 #endif //DISTANCEMEASURES_HMT_LAYER_DATA_H
