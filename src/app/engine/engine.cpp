@@ -183,8 +183,8 @@ int Renderer::display() {
         if (DR::getI()->getContext()->aligned) {
             // TODO: Das hier nur ein mal getten
             auto alignment = DR::getI()->getContext()->classicDTW ?
-                    DR::getI()->getAlignment() : DR::getI()->getWDTWAlignment();
-            int mapping = std::get<1>(alignment)[map_index % std::get<1>(alignment).size()];
+                             DR::getI()->getAlignment(CDTW) : DR::getI()->getAlignment(WEIGHTDTW);
+            int mapping = alignment[map_index % alignment.size()];
             int m = ref_frms.size();
             int in = mapping / (m + 1) - 1;
             int ref = mapping % (m + 1) - 1;
@@ -192,7 +192,7 @@ int Renderer::display() {
             DR::getI()->getContext()->refPaused = lastRefIndex == ref;
             lastInpIndex = in;
             lastRefIndex = ref;
-            DR::getI()->getContext()->c_frame = map_index % std::get<1>(alignment).size();
+            DR::getI()->getContext()->c_frame = map_index % alignment.size();
             if (DR::getI()->is_auto()) {
                 update_SpherePos_Aligned(in_frms, ref_frms, mapping, false, true);
             } else {

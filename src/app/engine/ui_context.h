@@ -4,10 +4,40 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <array>
 #include "motion_data.h"
 #include "trajectory_analysis.h"
 
 constexpr float ar = 16.0f / 9.0f;
+
+constexpr int MATCHING_COUNT = 5;
+enum MatchingType {
+    CDTW,
+    WEIGHTDTW,
+    SWDTW,
+    LCFM,
+    LEXFM
+};
+
+struct Matching {
+    MatchingType matchingType;
+    float *distMatrix;
+    std::vector<int> alignmentPath;
+    std::array<int, 10> squat_segments;
+    int n, m;
+    float alignmentCost;
+
+    Matching(MatchingType p_type, float *p_dist_matrix, std::vector<int> &p_alignmentPath,
+             std::array<int, 10> &p_squat_segments,
+             int p_n, int p_m,
+             float p_alignmentCost) : matchingType(p_type), distMatrix(p_dist_matrix), alignmentPath(p_alignmentPath),
+                                      squat_segments(p_squat_segments), n(p_n), m(p_m),
+                                      alignmentCost(p_alignmentCost) {}
+
+    ~Matching() {
+        free(distMatrix);
+    }
+};
 
 struct VPContext {
     ImVec4 clear_color;
@@ -51,11 +81,11 @@ public:
         this->motion_files = motion_info(squats_info);
         //this->taichi_files = motion_info(taichi_info);
         auto *inpCont = new VPContext(ImVec4{0.25f, 0.35f, 0.60f, 0.80f}, glm::vec3{0.4f, 1.0f, 0.0f},
-                                           glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.260f, 45.0f, 1280,
-                                           720);
+                                      glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.260f, 45.0f, 1280,
+                                      720);
         auto *refCont = new VPContext(ImVec4{0.55f, 0.35f, 0.60f, 0.80f}, glm::vec3{-1.1f, 0.8f, 0.0f},
-                                           glm::vec3(2.0f, 2.1f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.039f, 45.0f, 1280,
-                                           720);
+                                      glm::vec3(2.0f, 2.1f, 2.0f), glm::vec3{0.0, 1.0, 0.0}, 1.039f, 45.0f, 1280,
+                                      720);
         this->inputView = inpCont;
         this->refView = refCont;
     }
@@ -73,16 +103,13 @@ public:
 
     Distances dist_func;
     Trajectoy_analysis *analysis{};
-    std::tuple<float *, std::vector<int>, int, int> *matrix{};
-    std::tuple<float *, std::vector<int>, int, int> *wdtw_matrix{};
+    std::array<Matching *, MATCHING_COUNT> matching_algorithms;
     float *costmatrix{};
-    float cost{};
-    float wdtw_cost{};
     int c_frame;
     std::vector<motion_data> *motion_files;
 
     ~UIContext() {
-        free(std::get<0>(*matrix));
-        free(std::get<0>(*wdtw_matrix));
+        for (auto matching: matching_algorithms)
+            delete matching;
     }
 };

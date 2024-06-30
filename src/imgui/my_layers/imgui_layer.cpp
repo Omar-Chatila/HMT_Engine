@@ -40,10 +40,8 @@ void ImGuiLayer::changeInputFile(int p_selected_index) {
     m_Context = DR::getI()->getContext();
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),
-                                                      DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
-    sharedData->wdtw_alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->wdtw_matrix),
-                                                      DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
+    sharedData->alignedSegments = m_Context->matching_algorithms[CDTW]->squat_segments;
+    sharedData->wdtw_alignedSegments = m_Context->matching_algorithms[WEIGHTDTW]->squat_segments;
     precomputePathDeviation();
 }
 
@@ -144,12 +142,13 @@ void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> 
 }
 
 void ImGuiLayer::precomputePathDeviation() {
-    auto matrix = classic_dtw ? *m_Context->matrix : *m_Context->wdtw_matrix;
+    auto selected_matching = classic_dtw ? m_Context->matching_algorithms[CDTW]
+                                         : m_Context->matching_algorithms[WEIGHTDTW];
     MatrixContext context{
-            std::get<1>(matrix),
-            std::get<2>(matrix),
-            std::get<3>(matrix),
-            std::get<0>(matrix),
+            selected_matching->alignmentPath,
+            selected_matching->n,
+            selected_matching->m,
+            selected_matching->distMatrix,
             false
     };
     precomputeDeviation(context, distances);
@@ -158,8 +157,8 @@ void ImGuiLayer::precomputePathDeviation() {
 void ImGuiLayer::drawDTWDiagram() {
     ImGuiIO &io = ImGui::GetIO();
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-    int n = std::get<2>(*m_Context->matrix);
-    int m = std::get<3>(*m_Context->matrix);
+    int n = m_Context->matching_algorithms[CDTW]->n;
+    int m = m_Context->matching_algorithms[CDTW]->m;
 
     static int selectedArray = 0;
     ImGui::SameLine();
@@ -182,7 +181,8 @@ void ImGuiLayer::drawDTWDiagram() {
     static ImPlotHeatmapFlags hm_flags = 0;
     ImPlot::PushColormap(map);
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Opposite, ImPlotAxisFlags_Invert); // No labels and no gridlines
+        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Opposite,
+                          ImPlotAxisFlags_Invert); // No labels and no gridlines
         if (selectedArray == 0) {
             ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, nullptr, ImPlotPoint(0, 0),
                                 ImPlotPoint(m + 1, n + 1), hm_flags);
@@ -353,7 +353,8 @@ void ImGuiLayer::show_DTW_Options() {
             ImGuiStyle *style = &ImGui::GetStyle();
             style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-            ImGui::Text(("Cost: " + std::to_string(classic_dtw ? m_Context->cost : m_Context->wdtw_cost)).c_str());
+            ImGui::Text(("Cost: " + std::to_string(classic_dtw ? m_Context->matching_algorithms[CDTW]->alignmentCost
+                                                               : m_Context->matching_algorithms[WEIGHTDTW]->alignmentCost)).c_str());
             ImGui::PopStyleColor();
         }
         ImGui::Checkbox("Show Heatmap", &showDiagram);

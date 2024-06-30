@@ -4,8 +4,8 @@
 
 int main(int argc, char *argv[]) {
     std::cout << "JAAAAAAAAAA" << std::endl;
-    SharedData *sharedData = new SharedData();
-    MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
+    auto *sharedData = new SharedData();
+    auto *motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char *default_file = "fb_21_pre_splitted_5.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
     TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
@@ -21,13 +21,11 @@ int main(int argc, char *argv[]) {
         }
         sharedData->trajectoryInfos.push_back(info);
     }
-    sharedData->alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->matrix),
-                                                      DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
-    sharedData->wdtw_alignedSegments = calcSegmentsAligned(std::get<1>(*DR::getI()->getContext()->wdtw_matrix),
-                                                           DR::getI()->getInp_frames(), DR::getI()->getRef_frames());
+    sharedData->alignedSegments = DR::getI()->getContext()->matching_algorithms[CDTW]->squat_segments;
+    sharedData->wdtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->squat_segments;
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-    Renderer *rend = new Renderer(sharedData);
+    auto *rend = new Renderer(sharedData);
     rend->display();
 
     delete rend;

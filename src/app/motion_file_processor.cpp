@@ -1,12 +1,12 @@
 #include "motion_file_processor.h"
 
-MotionFileProcessor::MotionFileProcessor(Activity p_activity): activity(p_activity) {
+MotionFileProcessor::MotionFileProcessor(Activity p_activity) : activity(p_activity) {
     initFileLocations();
 }
 
 
 MotionFileProcessor::~MotionFileProcessor() {
-    std::for_each(trajectoryManagers.begin(), trajectoryManagers.end(), [](TrajectoryAnalysisManager* manager) {
+    std::for_each(trajectoryManagers.begin(), trajectoryManagers.end(), [](TrajectoryAnalysisManager *manager) {
         delete manager;
     });
     trajectoryManagers.clear();
@@ -24,7 +24,7 @@ void MotionFileProcessor::initFileLocations() {
     std::regex input_file_regex(".*\\.txt");
     std::regex ref_file_regex("expertise.*\\.txt");
 
-    for (const auto& entry : std::filesystem::directory_iterator(activity_path)) {
+    for (const auto &entry: std::filesystem::directory_iterator(activity_path)) {
         std::string file_name = entry.path().filename().string();
         if (std::regex_match(file_name, ref_file_regex)) {
             this->ref_files.push_back(entry.path().string());
@@ -36,9 +36,9 @@ void MotionFileProcessor::initFileLocations() {
 
 void MotionFileProcessor::processAllFiles() {
     std::cout << "Create all Trajectories" << std::endl;
-    for (const auto& inputFile : input_files) {
+    for (const auto &inputFile: input_files) {
         UIContext *c = new UIContext();
-        for (const auto& refFile : ref_files) {
+        for (const auto &refFile: ref_files) {
             TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inputFile, refFile, c);
             manager->performAnalysis();
             trajectoryManagers.push_back(manager);
@@ -53,18 +53,18 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
     } else {
         inp_file = std::string(rootDirectory) + "taichi/" + input;
     }
-    for (const auto& refFile : ref_files) {
-        UIContext *context = new UIContext();
-        TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inp_file, refFile, context);
+    for (const auto &refFile: ref_files) {
+        auto *context = new UIContext();
+        auto *manager = new TrajectoryAnalysisManager(inp_file, refFile, context);
         manager->performAnalysis();
         trajectoryManagers.push_back(manager);
     }
 }
 
-TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm algorithm) {
+TrajectoryAnalysisManager *MotionFileProcessor::getClosestMatch(enum Algorithm algorithm) {
     float minCost = 1000000.0f;
-    TrajectoryAnalysisManager* closest = trajectoryManagers.front();
-    for (const auto manager : trajectoryManagers) {
+    TrajectoryAnalysisManager *closest = trajectoryManagers.front();
+    for (const auto manager: trajectoryManagers) {
         auto currentResult = manager->getAlgorithmResult(algorithm);
         if (currentResult < minCost) {
             minCost = currentResult;
@@ -76,8 +76,8 @@ TrajectoryAnalysisManager* MotionFileProcessor::getClosestMatch(enum Algorithm a
 }
 
 std::vector<TrajectoryAnalysisManager *> MotionFileProcessor::getKClosestMatches(int k, enum Algorithm algorithm) {
-    std::vector<std::pair<float, TrajectoryAnalysisManager*>> costs;
-    for (const auto manager : trajectoryManagers) {
+    std::vector<std::pair<float, TrajectoryAnalysisManager *>> costs;
+    for (const auto manager: trajectoryManagers) {
         float cost = manager->getAlgorithmResult(algorithm);
         costs.push_back(std::make_pair(cost, manager));
     }
@@ -90,7 +90,7 @@ std::vector<TrajectoryAnalysisManager *> MotionFileProcessor::getKClosestMatches
         kClosest.push_back(costs[i].second);
     }
 
-    for (auto manager : kClosest) {
+    for (auto manager: kClosest) {
         manager->updateContext();
     }
 

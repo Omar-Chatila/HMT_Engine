@@ -17,10 +17,6 @@ public:
 
     void setContext(UIContext *context);
 
-    void setAlignment(std::tuple<float, std::vector<int>, float *> &alignment);
-
-    void setWDTWAlignment(std::tuple<float, std::vector<int>, float *> &alignment);
-
     void setMousePos(const std::pair<int, int> &mouse_pos);
 
     void setMode(bool mode);
@@ -31,9 +27,7 @@ public:
 
     UIContext *getContext() const;
 
-    std::tuple<float, std::vector<int>, float *> getAlignment() const;
-
-    std::tuple<float, std::vector<int>, float *> getWDTWAlignment() const;
+    std::vector<int> getAlignment(MatchingType matchingType) const;
 
     std::pair<int, int> getMousePos() const;
 

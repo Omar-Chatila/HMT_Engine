@@ -25,7 +25,9 @@ void ClassifierLayer::errorPlot() {
     ImGui::Checkbox("Continuous##", &this->is_continuous);
     this->currentFrame = &DR::getI()->getContext()->c_frame;
     std::vector<Frame> inp_frames = DR::getI()->getInp_frames();
-    int num_frames = std::get<1>(*DR::getI()->getContext()->matrix).size();
+    int num_frames = DR::getI()->getContext()->classicDTW
+                     ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath.size() :
+                     DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath.size();
     int c_t = *this->currentFrame;
     static std::vector<float> x_data;
     static std::vector<std::vector<float>> y_data(ERROR_COUNT + 2, std::vector<float>());
@@ -38,7 +40,9 @@ void ClassifierLayer::errorPlot() {
     int m = DR::getI()->getRef_frames().size();
 
     for (int frame_idx = 0; frame_idx < num_frames; ++frame_idx) {
-        int align_index = std::get<1>(*DR::getI()->getContext()->matrix)[frame_idx];
+        int align_index = DR::getI()->getContext()->classicDTW
+                          ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath[frame_idx] :
+                          DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath[frame_idx];
         int inp_index = align_index / (m + 1) - 1;
         x_data[frame_idx] = static_cast<float>(frame_idx);
         std::array<Vec3D, ERROR_COUNT> errors = inp_frames[inp_index].meta_info.parameters;
@@ -124,9 +128,11 @@ void ClassifierLayer::segmentPlot() {
 
     SetupPlot("Movement Segments aligned", politicians, data_reg, labels_reg, Liars);
 
+    int path_size = DR::getI()->getContext()->classicDTW
+                    ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath.size() :
+                    DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath.size();
     float progress = static_cast<float>(DR::getI()->getContext()->c_frame %
-                                        std::get<1>(*DR::getI()->getContext()->matrix).size()) /
-                     std::get<1>(*DR::getI()->getContext()->matrix).size();
+                                        path_size) / path_size;
     ImGui::Dummy(ImVec2(50, 2));
     ImGui::SameLine();
     ImGui::ProgressBar(progress, ImVec2(1605, 2));

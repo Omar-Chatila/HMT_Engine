@@ -27,8 +27,6 @@ void TrajectoryAnalysisManager::performAnalysis() {
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
                                             refTrajectories->get_anglesTrajectories(), 0.005f,
                                             1.0f);
-    context->cost = std::get<0>(alignment);
-    context->wdtw_cost = std::get<0>(wdtw_alignment);
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[WDTW] = std::get<float>(wdtw_alignment);
     algorithms_results[EDR] = analysis->perform_EDR_Quat(EUCLID, 0.3);
@@ -39,16 +37,26 @@ void TrajectoryAnalysisManager::performAnalysis() {
 }
 
 void TrajectoryAnalysisManager::updateContext() {
-    context->reference_file = cropString(refFile).c_str();
-    context->input_file = cropString(inputFile).c_str();
+    context->reference_file = cropString(refFile);
+    context->input_file = cropString(inputFile);
     int n = inputTrajectories->get_anglesTrajectories().size();
     int m = refTrajectories->get_anglesTrajectories().size();
     float *matrixx = std::get<2>(alignment);
     float *wdtw_matrixx = std::get<2>(wdtw_alignment);
     auto mat = new std::tuple{matrixx, std::get<1>(alignment), n, m};
     auto wdtw_mat = new std::tuple{wdtw_matrixx, std::get<1>(wdtw_alignment), n, m};
-    context->matrix = mat;
-    context->wdtw_matrix = wdtw_mat;
+
+    // Classic DTW
+    auto cdtw_segments = calcSegmentsAligned(std::get<1>(alignment), inputFrames, refFrames);
+    auto cdtw_matching = new Matching(CDTW, std::get<2>(alignment), std::get<1>(alignment), cdtw_segments, n, m,
+                                      std::get<0>(alignment));
+    context->matching_algorithms[CDTW] = cdtw_matching;
+
+    // Weighted DTW
+    auto wdtw_segments = calcSegmentsAligned(std::get<1>(wdtw_alignment), inputFrames, refFrames);
+    auto wdtw_matching = new Matching(CDTW, std::get<2>(wdtw_alignment), std::get<1>(wdtw_alignment), wdtw_segments, n,
+                                      m, std::get<0>(wdtw_alignment));
+    context->matching_algorithms[WEIGHTDTW] = wdtw_matching;
 }
 
 UIContext *TrajectoryAnalysisManager::getContext() {
@@ -60,8 +68,6 @@ float TrajectoryAnalysisManager::getAlgorithmResult(enum Algorithm algorithm) {
 }
 
 void TrajectoryAnalysisManager::updateDisplayRequirements() {
-    DR::getI()->setAlignment(this->alignment);
-    DR::getI()->setWDTWAlignment(this->wdtw_alignment);
     DR::getI()->setInpFrames(this->inputFrames);
     DR::getI()->setRefFrames(this->refFrames);
     DR::getI()->setContext(this->context);
