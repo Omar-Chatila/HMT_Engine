@@ -52,8 +52,8 @@ struct Quaternion {
             : w(w_), x(x_), y(y_), z(z_) {}
 
     // Copy constructor
-    Quaternion(const Quaternion &other)
-            : w(other.w), x(other.x), y(other.y), z(other.z) {}
+    Quaternion(const Quaternion *other)
+            : w(other->w), x(other->x), y(other->y), z(other->z) {}
 
     friend std::ostream &operator<<(std::ostream &os, const Quaternion &quat) {
         os << "Q(" << quat.w << ", " << quat.x << ", " << quat.y << ", " << quat.z << ")";
