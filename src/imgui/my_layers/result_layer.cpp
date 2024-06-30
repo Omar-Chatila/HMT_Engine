@@ -25,10 +25,11 @@ void ResultLayer::onRender() {
     sortTrajectoryInfos();
 
     ImGui::Begin("Results");
-    if (ImGui::BeginTable("TrajectoryCosts", 9, ImGuiTableFlags_Borders)) {
+    if (ImGui::BeginTable("TrajectoryCosts", 10, ImGuiTableFlags_Borders)) {
         ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("DTW", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("WDTW", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("WDDTW", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("EDR", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("TWED", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("FRECHET", ImGuiTableColumnFlags_None);

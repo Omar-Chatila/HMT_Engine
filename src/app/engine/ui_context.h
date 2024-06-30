@@ -14,6 +14,7 @@ constexpr int MATCHING_COUNT = 5;
 enum MatchingType {
     CDTW,
     WEIGHTDTW,
+    WEIGHTDDTW,
     SWDTW,
     LCFM,
     LEXFM
@@ -104,7 +105,6 @@ public:
     Distances dist_func;
     Trajectoy_analysis *analysis{};
     std::array<Matching *, MATCHING_COUNT> matching_algorithms;
-    float *costmatrix{};
     int c_frame;
     std::vector<motion_data> *motion_files;
 

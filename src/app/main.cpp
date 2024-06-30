@@ -19,11 +19,11 @@ int main(int argc, char *argv[]) {
             float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
             info.costs.push_back(cost);
         }
-
         sharedData->trajectoryInfos.push_back(info);
     }
     sharedData->alignedSegments = DR::getI()->getContext()->matching_algorithms[CDTW]->squat_segments;
     sharedData->wdtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->squat_segments;
+    sharedData->wddtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDDTW]->squat_segments;
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
     auto *rend = new Renderer(sharedData);
