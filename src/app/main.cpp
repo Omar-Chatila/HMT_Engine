@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
             float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
             info.costs.push_back(cost);
         }
+
         sharedData->trajectoryInfos.push_back(info);
     }
     sharedData->alignedSegments = DR::getI()->getContext()->matching_algorithms[CDTW]->squat_segments;
