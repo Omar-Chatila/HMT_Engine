@@ -9,20 +9,32 @@
 #include <imgui/imgui.h>
 #include <vector>
 
+static int my_image_width;
+static int my_image_height;
+static GLuint my_image_texture;
+
+static int wdtw_tooltip_width;
+static int wdtw_tooltip_height;
+static GLuint wdtw_tooltip_texture;
+
+static int wdtw_tooltip_width2;
+static int wdtw_tooltip_height2;
+static GLuint wdtw_tooltip_texture2;
+
 class SetupLayer : public Layer {
 public:
     SetupLayer();
 
     void onRender() override;
 
+
 private:
-    void
+    static void
     addLineCheckBox(ImDrawList *draw_list, ImVec2 &image_pos, const char *label, int s_x, int s_y);
 
-    std::vector <Joint::Type> selectedJoints;
-    int my_image_width;
-    int my_image_height;
-    GLuint my_image_texture;
+    static void ShowAlgorithmSettings();
+
+    std::vector<Joint::Type> selectedJoints;
 };
 
 #endif //DISTANCEMEASURES_HMT_SETUP_LAYER_H

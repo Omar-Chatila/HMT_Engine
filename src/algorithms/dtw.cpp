@@ -99,7 +99,7 @@ std::vector<Quaternion *> deep_copy(const std::vector<Quaternion *> &original) {
         for (int i = 0; i < JOINT_COUNT; i++) {
             joints[i] = new Quaternion(q[i]);
         }
-        copy.push_back(joints); // Assuming a copy constructor exists
+        copy.push_back(joints);
     }
     return copy;
 }
