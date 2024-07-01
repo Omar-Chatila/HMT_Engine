@@ -25,19 +25,19 @@ void TrajectoryAnalysisManager::performAnalysis() {
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(),
                                       refTrajectories->get_anglesTrajectories());
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
-                                            refTrajectories->get_anglesTrajectories(), 0.005f,
-                                            1.0f);
+                                            refTrajectories->get_anglesTrajectories(), WDTW_S::g,
+                                            WDTW_S::w_max);
     wddtw_alignment = analysis->perform_WDDTW(inputTrajectories->get_anglesTrajectories(),
-                                              refTrajectories->get_anglesTrajectories(), 0.005f,
-                                              1.0f);
+                                              refTrajectories->get_anglesTrajectories(), WDDTW_S::g,
+                                              WDDTW_S::w_max);
 
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[WDTW] = std::get<float>(wdtw_alignment);
-    algorithms_results[EDR] = analysis->perform_EDR_Quat(EUCLID, 0.3);
-    algorithms_results[TWED] = analysis->perform_TWED_Quat(EUCLID, 0.3f, 1.0f);
-    algorithms_results[LCSS] = analysis->perform_LCSS_Quat(EUCLID, 0.3f, 5.0f);
-    algorithms_results[FRECHET] = analysis->perform_FRECHET_Pos(EUCLID);
-    algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(EUCLID);
+    algorithms_results[EDR] = analysis->perform_EDR_Quat(EDR_S::distance, EDR_S::epsilon);
+    algorithms_results[TWED] = analysis->perform_TWED_Quat(TWED_S::distance, TWED_S::nu, TWED_S::lambda);
+    algorithms_results[LCSS] = analysis->perform_LCSS_Quat(LCSS_S::distance, LCSS_S::epsilon, LCSS_S::delta);
+    algorithms_results[FRECHET] = analysis->perform_FRECHET_Pos(FRECHET_S::distance);
+    algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(FRECHET_S::distance);
     algorithms_results[WDDTW] = std::get<float>(wddtw_alignment);
 }
 

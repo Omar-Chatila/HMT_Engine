@@ -4,6 +4,7 @@
 #include "input_parser.h"
 #include "display_requirements.h"
 #include "ui_context.h"
+#include "algo_settings.h"
 #include "util.h"
 #include <vector>
 #include <array>

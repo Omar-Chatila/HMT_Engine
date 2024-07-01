@@ -7,7 +7,7 @@
 enum Distances {
     EUCLID, SQUARED_EUCLID, MANHATTAN, MINKOWSKI, MAX_NORM, MIN_DISTANCE,
     CANBERRA_DISTANCE, SCALAR_PRODUCT, COSINE_SIMILARITY, COSINE_DISTANCE1,
-    COSINE_DISTANCE2, HAMMING_DISTANCE, QUATERNION_DISTANCE
+    COSINE_DISTANCE2, HAMMING_DISTANCE
 };
 
 inline float abs(const Vec3D &a) {
@@ -19,7 +19,7 @@ inline float euclid(const Vec3D &a, const Vec3D &b) {
 }
 
 inline float squared_euclid(const Vec3D &a, const Vec3D &b) {
-    return pow(a.x - b.x, 2) +pow(a.y - b.y, 2) +pow(a.z - b.z, 2);
+    return pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2);
 }
 
 inline float manhattan(const Vec3D &a, const Vec3D &b) {
@@ -27,7 +27,9 @@ inline float manhattan(const Vec3D &a, const Vec3D &b) {
 }
 
 inline float minkowski(const Vec3D &a, const Vec3D &b, float p = 2) {
-    return std::pow(std::pow(std::abs(a.x - b.x), p) + std::pow(std::abs(a.y - b.y), p) + std::pow(std::abs(a.z - b.z), p), 1/p);
+    return std::pow(
+            std::pow(std::abs(a.x - b.x), p) + std::pow(std::abs(a.y - b.y), p) + std::pow(std::abs(a.z - b.z), p),
+            1 / p);
 }
 
 inline float maximum_norm(const Vec3D &a, const Vec3D &b) {
@@ -40,8 +42,8 @@ inline float minimum_distance(const Vec3D &a, const Vec3D &b) {
 
 inline float canberra_distance(const Vec3D &a, const Vec3D &b) {
     return std::abs(a.x - b.x) / (std::abs(a.x) + std::abs(b.x)) +
-            std::abs(a.y - b.y) / (std::abs(a.y) + std::abs(b.y)) +
-            std::abs(a.z - b.z) / (std::abs(a.z) + std::abs(b.z));
+           std::abs(a.y - b.y) / (std::abs(a.y) + std::abs(b.y)) +
+           std::abs(a.z - b.z) / (std::abs(a.z) + std::abs(b.z));
 }
 
 inline float scalar_product(const Vec3D &a, const Vec3D &b) {
@@ -65,7 +67,7 @@ inline float hamming_distance(const Vec3D &a, const Vec3D &b) {
 }
 
 // Metrics for 3D Rotations: Comparison and Analysis Du Q. Huynh: phi_4 Formel 20
-inline float quat_dist(const Quaternion* first, const Quaternion* second) {
+inline float quat_dist(const Quaternion *first, const Quaternion *second) {
     float distance = 0.0f;
     for (int i = 0; i < JOINT_COUNT; i++) {
         distance += 1 - std::abs(first[i] * second[i]);
@@ -74,11 +76,12 @@ inline float quat_dist(const Quaternion* first, const Quaternion* second) {
 }
 
 // Accumulate euclid distance over all Joints
-inline float vec_dist(const Vec3D* first, const Vec3D* second) {
+inline float vec_dist(const Vec3D *first, const Vec3D *second) {
     float distance = 0.0f;
     for (int i = 0; i < JOINT_COUNT; i++) {
         distance += euclid(first[i], second[i]);
     }
     return distance;
 }
+
 #endif

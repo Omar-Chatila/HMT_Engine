@@ -8,21 +8,22 @@
 #include "../image_loader.h"
 #include <imgui/imgui.h>
 #include <vector>
-
-static int my_image_width;
-static int my_image_height;
-static GLuint my_image_texture;
-
-static int wdtw_tooltip_width;
-static int wdtw_tooltip_height;
-static GLuint wdtw_tooltip_texture;
-
-static int wdtw_tooltip_width2;
-static int wdtw_tooltip_height2;
-static GLuint wdtw_tooltip_texture2;
+#include "algo_settings.h"
 
 class SetupLayer : public Layer {
 public:
+    static int my_image_width;
+    static int my_image_height;
+    static GLuint my_image_texture;
+
+    static int wdtw_tooltip_width;
+    static int wdtw_tooltip_height;
+    static GLuint wdtw_tooltip_texture;
+
+    static int wdtw_tooltip_width2;
+    static int wdtw_tooltip_height2;
+    static GLuint wdtw_tooltip_texture2;
+
     SetupLayer();
 
     void onRender() override;

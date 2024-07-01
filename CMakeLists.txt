@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 # Add the filesystem library for GCC and Clang
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs")
-endif()
+endif ()
 
 add_subdirectory(lib/glm)
 add_subdirectory(lib/glfw-3.4)
@@ -49,12 +49,13 @@ set(LIBS_SOURCES
         imgui/implot_demo.cpp
         imgui/implot_items.cpp
         misc/cpp/imgui_stdlib.cpp
+        src/algorithms/algo_settings.h
 )
 
 # Create the executable target
 add_executable(${PROJECT_NAME} ${PROJ_SOURCES} ${LIBS_SOURCES})
 #set_target_properties(${PROJECT_NAME} RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Specify include directories
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -93,4 +94,4 @@ if (WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE
             opengl32 # Link against OpenGL32 library explicitly on Windows
     )
-endif()
+endif ()

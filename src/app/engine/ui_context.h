@@ -33,7 +33,8 @@ struct Matching {
              int p_n, int p_m,
              float p_alignmentCost) : matchingType(p_type), distMatrix(p_dist_matrix), alignmentPath(p_alignmentPath),
                                       squat_segments(p_squat_segments), n(p_n), m(p_m),
-                                      alignmentCost(p_alignmentCost) {}
+                                      alignmentCost(p_alignmentCost) {
+    }
 
     ~Matching() {
         free(distMatrix);
