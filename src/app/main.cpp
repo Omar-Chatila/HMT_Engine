@@ -8,9 +8,9 @@ int main(int argc, char *argv[]) {
     auto *motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char *default_file = "fb_21_pre_splitted_5.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
-    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
-    manager->updateDisplayRequirements();
     auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
+    TrajectoryAnalysisManager *manager = kNNResults.front();
+    manager->updateDisplayRequirements();
     for (auto result: kNNResults) {
         TrajectoryInfo info;
         info.reference = result->getContext()->reference_file;
@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
     sharedData->wddtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDDTW]->squat_segments;
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
+    sharedData->currentAnalysis = motionFileProcessor;
     auto *rend = new Renderer(sharedData);
     rend->display();
 

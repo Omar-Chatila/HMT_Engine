@@ -20,9 +20,10 @@ ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context
 
 void ImGuiLayer::changeInputFile(int p_selected_index) {
     const char *file = m_Context->motion_files->at(p_selected_index + 16).motion_file.c_str();
-    auto *motionFileProcessor = new MotionFileProcessor(SQUATS);
+    auto *motionFileProcessor = sharedData->currentAnalysis;
     motionFileProcessor->processInputFile(std::string(file));
-    auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
+    auto algo = this->classic_dtw ? DTW : WDTW;
+    auto kNNResults = motionFileProcessor->getKClosestMatches(16, algo);
     sharedData->trajectoryInfos.clear();
     for (auto result: kNNResults) {
         TrajectoryInfo info;
@@ -35,8 +36,8 @@ void ImGuiLayer::changeInputFile(int p_selected_index) {
         sharedData->trajectoryInfos.push_back(info);
     }
 
-    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
-    manager->updateDisplayRequirements();
+    TrajectoryAnalysisManager *bestMatch = kNNResults.front();
+    bestMatch->updateDisplayRequirements();
     m_Context = DR::getI()->getContext();
     sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
     sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
@@ -340,12 +341,18 @@ void ImGuiLayer::show_DTW_Options() {
         if (ImGui::RadioButton("Classic", &selectedDtw, 0)) {
             this->classic_dtw = true;
             m_Context->classicDTW = true;
+            auto kNNResults = sharedData->currentAnalysis->getKClosestMatches(16, DTW);
+            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
+            bestMatch->updateDisplayRequirements();
             precomputePathDeviation();
         }
         ImGui::SameLine();
         if (ImGui::RadioButton("Weighted", &selectedDtw, 1)) {
             this->classic_dtw = false;
             m_Context->classicDTW = false;
+            auto kNNResults = sharedData->currentAnalysis->getKClosestMatches(16, WDTW);
+            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
+            bestMatch->updateDisplayRequirements();
             precomputePathDeviation();
         }
         if (m_Context->aligned) {

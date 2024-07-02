@@ -44,8 +44,6 @@ private:
 
     void update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame);
 
-    void draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphere, Shader &sphereShader);
-
     void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping,
                                   bool refPause, bool inpPause);
 

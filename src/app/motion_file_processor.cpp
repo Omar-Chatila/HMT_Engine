@@ -35,11 +35,13 @@ void MotionFileProcessor::initFileLocations() {
 }
 
 void MotionFileProcessor::processAllFiles() {
+    for (auto &manager: trajectoryManagers) delete manager;
+    trajectoryManagers.clear();
     std::cout << "Create all Trajectories" << std::endl;
     for (const auto &inputFile: input_files) {
-        UIContext *c = new UIContext();
+        auto *c = new UIContext();
         for (const auto &refFile: ref_files) {
-            TrajectoryAnalysisManager *manager = new TrajectoryAnalysisManager(inputFile, refFile, c);
+            auto *manager = new TrajectoryAnalysisManager(inputFile, refFile, c);
             manager->performAnalysis();
             trajectoryManagers.push_back(manager);
         }
@@ -47,6 +49,8 @@ void MotionFileProcessor::processAllFiles() {
 }
 
 void MotionFileProcessor::processInputFile(const std::string &input) {
+    for (auto &manager: trajectoryManagers) delete manager;
+    trajectoryManagers.clear();
     std::string inp_file;
     if (activity == SQUATS) {
         inp_file = std::string(rootDirectory) + "squats/" + input;
@@ -61,25 +65,17 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
     }
 }
 
-TrajectoryAnalysisManager *MotionFileProcessor::getClosestMatch(enum Algorithm algorithm) {
-    float minCost = 1000000.0f;
-    TrajectoryAnalysisManager *closest = trajectoryManagers.front();
-    for (const auto manager: trajectoryManagers) {
-        auto currentResult = manager->getAlgorithmResult(algorithm);
-        if (currentResult < minCost) {
-            minCost = currentResult;
-            closest = manager;
-        }
+void MotionFileProcessor::updateTrajectoryManagers() {
+    for (auto &manager: trajectoryManagers) {
+        manager->performAnalysis();
     }
-    closest->updateContext();
-    return closest;
 }
 
 std::vector<TrajectoryAnalysisManager *> MotionFileProcessor::getKClosestMatches(int k, enum Algorithm algorithm) {
     std::vector<std::pair<float, TrajectoryAnalysisManager *>> costs;
     for (const auto manager: trajectoryManagers) {
         float cost = manager->getAlgorithmResult(algorithm);
-        costs.push_back(std::make_pair(cost, manager));
+        costs.emplace_back(cost, manager);
     }
     std::sort(costs.begin(), costs.end(), [](const auto &a, const auto &b) {
         return a.first < b.first;

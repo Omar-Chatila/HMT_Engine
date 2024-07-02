@@ -5,16 +5,18 @@
 #include "dtw.h"
 
 void test1();
+
 void test2();
 
 void test() {
     // Parse input trajectory
     SharedData *sharedData = new SharedData();
-    MotionFileProcessor* motionFileProcessor = new MotionFileProcessor(SQUATS);
-    const char* default_file = "fb_41_pre_splitted_1.txt";
+    MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
+    const char *default_file = "fb_41_pre_splitted_1.txt";
     motionFileProcessor->processInputFile(std::string(default_file));
-    DR* disp_req = DR::getI();
-    TrajectoryAnalysisManager *manager = motionFileProcessor->getClosestMatch(DTW);
+    DR *disp_req = DR::getI();
+    auto results = motionFileProcessor->getKClosestMatches(3, DTW);
+    TrajectoryAnalysisManager *manager = results.front();
     manager->updateDisplayRequirements();
 
     /*
@@ -155,12 +157,12 @@ void test1() {
     */
 
 void test2() {
-    Vec3D* joint_rotations1 = new Vec3D[JOINT_COUNT];
-    Vec3D* joint_rotations2 = new Vec3D[JOINT_COUNT];
-    Vec3D* joint_rotations3 = new Vec3D[JOINT_COUNT];
-    Vec3D* joint_rotations4 = new Vec3D[JOINT_COUNT];
-    Vec3D* joint_rotations5 = new Vec3D[JOINT_COUNT];
-    Vec3D* joint_rotations6 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations1 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations2 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations3 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations4 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations5 = new Vec3D[JOINT_COUNT];
+    Vec3D *joint_rotations6 = new Vec3D[JOINT_COUNT];
 
     joint_rotations1[0] = Vec3D(-0.1f, -0.2f, 0.5f);
     joint_rotations1[1] = Vec3D(0.999726f, -0.020961f, -0.007759f);
@@ -215,19 +217,19 @@ void test2() {
 
     // Initialize test frames
     std::vector<Frame> frames2 = {
-            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations4 },
-            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations5 },
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations4},
+            {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations5},
             {1, {1.0f, 2.0f, 3.0f}, nullptr, joint_rotations6}
     };
 
     Trajectories *t1 = new Trajectories(frames);
-    Vec3D* hips1 = t1->get_positionsTrajectory(Joint::HumanoidRoot);
+    Vec3D *hips1 = t1->get_positionsTrajectory(Joint::HumanoidRoot);
     for (int i = 0; i < 3; i++) {
         std::cout << hips1[i];
     }
     std::cout << std::endl;
     Trajectories *t2 = new Trajectories(frames2);
-    Vec3D* hips2 = t2->get_positionsTrajectory(Joint::HumanoidRoot);
+    Vec3D *hips2 = t2->get_positionsTrajectory(Joint::HumanoidRoot);
     for (int i = 0; i < 3; i++) {
         std::cout << hips2[i];
     }

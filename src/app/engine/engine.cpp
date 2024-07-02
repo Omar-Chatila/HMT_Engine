@@ -130,7 +130,7 @@ int Renderer::display() {
     app->push_layer<ImGuiLayer>(DR::getI()->getContext(), sharedData);
     app->push_layer<ResultLayer>(sharedData);
     app->push_layer<ClassifierLayer>(sharedData);
-    app->push_layer<SetupLayer>();
+    app->push_layer<SetupLayer>(sharedData);
     int lastInpIndex = -1;
     int lastRefIndex = -1;
 
@@ -343,50 +343,6 @@ void Renderer::update_SpherePos_noAlign(Frame &ref_frame, Frame &inp_frame) {
         input_spherePositions[i].y = inp_frame.joint_translations[i].y;
         input_spherePositions[i].z = inp_frame.joint_translations[i].z;
     }
-}
-
-void Renderer::draw_objects(glm::mat4 &projection, glm::mat4 &view, Sphere &sphere, Shader &sphereShader) {
-    for (size_t i = 0; i < JOINT_COUNT; i++) {
-        glm::vec3 position = ref_spherePositions[i];
-        glm::vec3 color = sphereColors[i];
-        sphereShader.setUniformVec3("objectColor", color);
-        auto model = glm::mat4(1.0f);
-        model = glm::translate(model, position);
-        sphereShader.setUniformMat4("model", model);
-        sphere.draw();
-    }
-
-    for (size_t i = 0; i < JOINT_COUNT; i++) {
-        glm::vec3 position = input_spherePositions[i];
-        glm::vec3 color = sphereColors[i];
-        sphereShader.setUniformVec3("objectColor", color);
-        auto model = glm::mat4(1.0f);
-        model = glm::translate(model, position);
-        sphereShader.setUniformMat4("model", model);
-        sphere.draw();
-    }
-
-    sphereShader.unuse();  // Unbind the sphere shader program
-    for (auto &bone: Joint::bones) {
-        glm::vec3 start = ref_spherePositions[bone.first];
-        glm::vec3 end = ref_spherePositions[bone.second];
-        Line line(start, end);
-        glUseProgram(line.shaderProgram);
-        auto model = glm::mat4(1.0f);
-        line.setMVP(projection * view * model);
-        line.draw();
-    }
-
-    for (auto &bone: Joint::bones) {
-        glm::vec3 start = input_spherePositions[bone.first];
-        glm::vec3 end = input_spherePositions[bone.second];
-        Line line(start, end);
-        glUseProgram(line.shaderProgram);
-        glm::mat4 model = glm::mat4(1.0f);
-        line.setMVP(projection * view * model);
-        line.draw();
-    }
-    glUseProgram(0);
 }
 
 void

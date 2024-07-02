@@ -1,14 +1,22 @@
 #pragma once
+
 #include "layer_data.h"
 
-class Layer{
+class Layer {
 public:
-	virtual ~Layer() = default;
+    virtual ~Layer() = default;
 
-	virtual void onAttach() {};
-	virtual void onDettach() {};
-	virtual void onRender() {};
+    virtual void onAttach() {};
+
+    virtual void onDettach() {};
+
+    virtual void onRender() {};
 
 protected:
-    SharedData* sharedData;
+    SharedData *sharedData;
+    std::unique_ptr<float[]> values1;
+    std::unique_ptr<float[]> values2;
+    float s_min{}, s_max{};
+    std::vector<std::pair<int, int>> pathCoords;
+    std::vector<int> align_path;
 };

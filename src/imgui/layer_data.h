@@ -5,6 +5,7 @@
 #include <array>
 #include <string>
 #include "trajectory_analysis_manager.h"
+#include "motion_file_processor.h"
 
 struct TrajectoryInfo {
     std::string reference;
@@ -14,6 +15,7 @@ struct TrajectoryInfo {
 
 class SharedData {
 public:
+    MotionFileProcessor *currentAnalysis;
     std::vector<TrajectoryInfo> trajectoryInfos;
     std::array<int, 5> inp_segments;
     std::array<int, 5> ref_segments;

@@ -1,5 +1,9 @@
 build/project.exe
 build/
-resources/
+.vscode
+.idea
+cmake-build-debug
+cmake-build-debug-coverage
+
 src/benchmarks/mybenchmark.o
 src/benchmarks/mybenchmark.exe

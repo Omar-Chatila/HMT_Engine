@@ -12,6 +12,19 @@
 
 class SetupLayer : public Layer {
 public:
+    SetupLayer(SharedData *data);
+
+    void onRender() override;
+
+
+private:
+    static void
+    addLineCheckBox(ImDrawList *draw_list, ImVec2 &image_pos, const char *label, int s_x, int s_y);
+
+    void ShowAlgorithmSettings();
+
+    std::vector<Joint::Type> selectedJoints;
+
     static int my_image_width;
     static int my_image_height;
     static GLuint my_image_texture;
@@ -23,19 +36,6 @@ public:
     static int wdtw_tooltip_width2;
     static int wdtw_tooltip_height2;
     static GLuint wdtw_tooltip_texture2;
-
-    SetupLayer();
-
-    void onRender() override;
-
-
-private:
-    static void
-    addLineCheckBox(ImDrawList *draw_list, ImVec2 &image_pos, const char *label, int s_x, int s_y);
-
-    static void ShowAlgorithmSettings();
-
-    std::vector<Joint::Type> selectedJoints;
 };
 
 #endif //DISTANCEMEASURES_HMT_SETUP_LAYER_H

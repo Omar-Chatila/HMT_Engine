@@ -17,7 +17,7 @@ enum Activity {
 
 class MotionFileProcessor {
 private:
-    static constexpr const char* rootDirectory = "../resources/motion_data/";
+    static constexpr const char *rootDirectory = "../resources/motion_data/";
     Activity activity;
     std::vector<TrajectoryAnalysisManager *> trajectoryManagers;
     std::vector<std::string> input_files;
@@ -27,10 +27,15 @@ private:
 
 public:
     explicit MotionFileProcessor(enum Activity p_activity);
+
     ~MotionFileProcessor();
+
     void processAllFiles();
+
     void processInputFile(const std::string &input);
-    TrajectoryAnalysisManager* getClosestMatch(enum Algorithm algorithm);
+
+    void updateTrajectoryManagers();
+
     std::vector<TrajectoryAnalysisManager *> getKClosestMatches(int k, enum Algorithm algorithm);
 };
 

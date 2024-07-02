@@ -22,22 +22,26 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 }
 
 void TrajectoryAnalysisManager::performAnalysis() {
+    AlgoSettings &settings = AlgoSettings::getInstance();
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(),
                                       refTrajectories->get_anglesTrajectories());
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
-                                            refTrajectories->get_anglesTrajectories(), WDTW_S::g,
-                                            WDTW_S::w_max);
+                                            refTrajectories->get_anglesTrajectories(), settings.wdtw_g,
+                                            settings.wdtw_w_max);
     wddtw_alignment = analysis->perform_WDDTW(inputTrajectories->get_anglesTrajectories(),
-                                              refTrajectories->get_anglesTrajectories(), WDDTW_S::g,
-                                              WDDTW_S::w_max);
+                                              refTrajectories->get_anglesTrajectories(), settings.wddtw_g,
+                                              settings.wddtw_w_max);
 
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[WDTW] = std::get<float>(wdtw_alignment);
-    algorithms_results[EDR] = analysis->perform_EDR_Quat(EDR_S::distance, EDR_S::epsilon);
-    algorithms_results[TWED] = analysis->perform_TWED_Quat(TWED_S::distance, TWED_S::nu, TWED_S::lambda);
-    algorithms_results[LCSS] = analysis->perform_LCSS_Quat(LCSS_S::distance, LCSS_S::epsilon, LCSS_S::delta);
-    algorithms_results[FRECHET] = analysis->perform_FRECHET_Pos(FRECHET_S::distance);
-    algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(FRECHET_S::distance);
+    algorithms_results[EDR] = analysis->perform_EDR_Quat(settings.edr_distance, settings.edr_epsilon);
+    std::cout << settings.edr_epsilon << std::endl;
+    algorithms_results[TWED] = analysis->perform_TWED_Quat(settings.twed_distance, settings.twed_nu,
+                                                           settings.twed_lambda);
+    algorithms_results[LCSS] = analysis->perform_LCSS_Quat(settings.lcss_distance, settings.lcss_epsilon,
+                                                           settings.lcss_delta);
+    algorithms_results[FRECHET] = analysis->perform_FRECHET_Pos(settings.frechet_distance);
+    algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(settings.frechet_distance);
     algorithms_results[WDDTW] = std::get<float>(wddtw_alignment);
 }
 

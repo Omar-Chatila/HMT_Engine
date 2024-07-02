@@ -7,8 +7,10 @@
 
 class ResultLayer : public Layer {
 public:
-    ResultLayer(SharedData *data);
+    explicit ResultLayer(SharedData *data);
+
     void onRender() override;
+
     void sortTrajectoryInfos();
 
 private:
