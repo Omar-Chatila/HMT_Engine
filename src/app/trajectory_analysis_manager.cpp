@@ -24,18 +24,17 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 void TrajectoryAnalysisManager::performAnalysis() {
     AlgoSettings &settings = AlgoSettings::getInstance();
     alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(),
-                                      refTrajectories->get_anglesTrajectories());
+                                      refTrajectories->get_anglesTrajectories(), EUCLID);
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
                                             refTrajectories->get_anglesTrajectories(), settings.wdtw_g,
-                                            settings.wdtw_w_max);
+                                            settings.wdtw_w_max, EUCLID);
     wddtw_alignment = analysis->perform_WDDTW(inputTrajectories->get_anglesTrajectories(),
                                               refTrajectories->get_anglesTrajectories(), settings.wddtw_g,
-                                              settings.wddtw_w_max);
+                                              settings.wddtw_w_max, EUCLID);
 
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[WDTW] = std::get<float>(wdtw_alignment);
     algorithms_results[EDR] = analysis->perform_EDR_Quat(settings.edr_distance, settings.edr_epsilon);
-    std::cout << settings.edr_epsilon << std::endl;
     algorithms_results[TWED] = analysis->perform_TWED_Quat(settings.twed_distance, settings.twed_nu,
                                                            settings.twed_lambda);
     algorithms_results[LCSS] = analysis->perform_LCSS_Quat(settings.lcss_distance, settings.lcss_epsilon,

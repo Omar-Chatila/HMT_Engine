@@ -27,8 +27,16 @@ SetupLayer::SetupLayer(SharedData *data) {
     IM_ASSERT(ret);
 }
 
+void addTooltip(const char *text) {
+    if (ImGui::BeginItemTooltip()) {
+        ImGui::Text(text);
+        ImGui::EndTooltip();
+    }
+}
+
 void SetupLayer::onRender() {
     ShowAlgorithmSettings();
+    AlgoSettings &settings = AlgoSettings::getInstance();
     ImGui::Begin("Setup");
     ImGui::SameLine();
     // Display the image
@@ -37,14 +45,49 @@ void SetupLayer::onRender() {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
     // Get the position of the upper-left corner of the image
     ImVec2 image_pos = ImGui::GetItemRectMin();
-
-    // Left-shoulder
-    addLineCheckBox(draw_list, image_pos, "r_shoulder", 205, 102);
-    addLineCheckBox(draw_list, image_pos, "r_sternoclavicular", 240, 100);
-    addLineCheckBox(draw_list, image_pos, "vc5", 260, 95);
-    addLineCheckBox(draw_list, image_pos, "skullbase", 260, 60);
-    addLineCheckBox(draw_list, image_pos, "l_sternoclavicular", 280, 100);
-
+    ImGui::SetCursorScreenPos({image_pos.x, image_pos.y});
+    if (ImGui::Button("All")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), true);
+    ImGui::SetCursorScreenPos({image_pos.x, image_pos.y + 25});
+    if (ImGui::Button("None")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), false);
+    const int midX = 100;
+    addCheckBox(image_pos, "skullbase", midX, 36, settings.selected_joints[Joint::skullbase]);
+    addTooltip("Skull base");
+    addCheckBox(image_pos, "r_shoulder", 56, 90, settings.selected_joints[Joint::r_shoulder]);
+    addTooltip("Right shoulder");
+    addCheckBox(image_pos, "r_sternoclavicular", 80, 80, settings.selected_joints[Joint::r_sternoclavicular]);
+    addTooltip("Right sternoclavicular joint");
+    addCheckBox(image_pos, "vc7", midX, 80, settings.selected_joints[Joint::vc7]);
+    addTooltip("Cervical vertebra 7");
+    addCheckBox(image_pos, "vt10", midX, 130, settings.selected_joints[Joint::vt10]);
+    addTooltip("Thoracic vertebra 10");
+    addCheckBox(image_pos, "vl5", midX, 195, settings.selected_joints[Joint::vl5]);
+    addTooltip("Lumbar vertebra 5");
+    addCheckBox(image_pos, "HumanoidRoot", midX, 220, settings.selected_joints[Joint::HumanoidRoot]);
+    addTooltip("Humanoid root");
+    addCheckBox(image_pos, "l_hip", midX + 30, 220, settings.selected_joints[Joint::l_hip]);
+    addTooltip("Left hip");
+    addCheckBox(image_pos, "r_hip", midX - 30, 220, settings.selected_joints[Joint::r_hip]);
+    addTooltip("Right hip");
+    addCheckBox(image_pos, "l_sternoclavicular", 120, 80, settings.selected_joints[Joint::l_sternoclavicular]);
+    addTooltip("Left sternoclavicular joint");
+    addCheckBox(image_pos, "l_shoulder", 144, 90, settings.selected_joints[Joint::l_shoulder]);
+    addTooltip("Left shoulder");
+    addCheckBox(image_pos, "r_elbow", 46, 161, settings.selected_joints[Joint::r_elbow]);
+    addTooltip("Right elbow");
+    addCheckBox(image_pos, "l_elbow", 154, 161, settings.selected_joints[Joint::l_elbow]);
+    addTooltip("Left elbow");
+    addCheckBox(image_pos, "r_wrist", 28, 215, settings.selected_joints[Joint::r_wrist]);
+    addTooltip("Right wrist");
+    addCheckBox(image_pos, "l_wrist", 172, 215, settings.selected_joints[Joint::l_wrist]);
+    addTooltip("Left wrist");
+    addCheckBox(image_pos, "r_knee", 69, 326, settings.selected_joints[Joint::r_knee]);
+    addTooltip("Right knee");
+    addCheckBox(image_pos, "l_knee", 131, 326, settings.selected_joints[Joint::l_knee]);
+    addTooltip("Left knee");
+    addCheckBox(image_pos, "r_ankle", 66, 430, settings.selected_joints[Joint::r_ankle]);
+    addTooltip("Right ankle");
+    addCheckBox(image_pos, "l_ankle", 134, 430, settings.selected_joints[Joint::l_ankle]);
+    addTooltip("Left ankle");
     ImGui::End();
 }
 
@@ -100,7 +143,6 @@ void SetupLayer::ShowAlgorithmSettings() {
         ImGui::Text("EDR Settings");
         ImGui::Combo("##edr", &edr_distanceMetric, distanceOptions, IM_ARRAYSIZE(distanceOptions));
         ImGui::SliderFloat("eps##edr", &settings.edr_epsilon, 0.0f, 1.0f);
-        std::cout << "EDR epsilon updated in loop: " << settings.edr_epsilon << std::endl;
         settings.edr_distance = static_cast<Distances>(edr_distanceMetric);
 
         // TWED
@@ -157,11 +199,11 @@ void SetupLayer::ShowAlgorithmSettings() {
     }
 }
 
-void SetupLayer::addLineCheckBox(ImDrawList *draw_list, ImVec2 &image_pos, const char *label, int s_x, int s_y) {
-    ImVec2 checkbox_pos(image_pos.x + s_x, image_pos.y + s_y);
+void SetupLayer::addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int s_y, bool &checkbox_value) {
+    ImVec2 checkbox_pos(image_pos.x + s_x - 10, image_pos.y + s_y);
     ImGui::SetCursorScreenPos(checkbox_pos);
-    static bool checkbox_value = false;
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 255, 255));
-    ImGui::Checkbox("##box", &checkbox_value);
-    ImGui::PopStyleColor();
+    std::string checkbox_label = std::string("##box") + label;
+    ImGui::Checkbox(checkbox_label.c_str(), &checkbox_value);
 }
+
+

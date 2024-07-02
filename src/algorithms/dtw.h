@@ -6,6 +6,7 @@
 #include <sstream>
 #include <functional>
 #include "distance_measures.h"
+#include "algo_settings.h"
 
 #define CURRENT_INDEX i * (m + 1) + j
 #define ABOVE_INDEX ((i - 1) * (m + 1) + j)
@@ -21,19 +22,25 @@ public:
                       std::function<float(const Vec3D &, const Vec3D &)> &func);
 
     static float *dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                      std::function<float(const Quaternion *, const Quaternion *)> &func);
+                      std::function<float(const Quaternion *, const Quaternion *,
+                                          const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
 
     static float *wdtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                       std::function<float(const Quaternion *, const Quaternion *)> &func, float g, float w_max);
+                       std::function<float(const Quaternion *, const Quaternion *,
+                                           const std::array<bool, JOINT_COUNT> &selectedJ)> &func, float g,
+                       float w_max);
 
     static float *wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                        std::function<float(const Quaternion *, const Quaternion *)> &func, float g, float w_max);
+                        std::function<float(const Quaternion *, const Quaternion *,
+                                            const std::array<bool, JOINT_COUNT> &selectedJ)> &func, float g,
+                        float w_max);
 
     static float *wdtw(const std::vector<Vec3D *> &inp_traj, const std::vector<Vec3D *> &ref_traj,
                        std::function<float(const Vec3D *, const Vec3D *)> &func, float g, float w_max);
 
     static float *get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                                  std::function<float(const Quaternion *, const Quaternion *)> &func);
+                                  std::function<float(const Quaternion *, const Quaternion *,
+                                                      const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
 
     static std::pair<float, std::vector<int>> get_cost_and_alignment(float *cost_matrix, int n, int m);
 };

@@ -2,6 +2,7 @@
 #define DISTANCEMEASURESHMT_ALGO_SETTINGS_H
 
 #include "distance_measures.h"
+#include <array>
 
 class AlgoSettings {
 public:
@@ -13,6 +14,8 @@ public:
     AlgoSettings(const AlgoSettings &) = delete;
 
     void operator=(const AlgoSettings &) = delete;
+
+    std::array<bool, JOINT_COUNT> selected_joints{};
 
     Distances dtw_distance;
 
@@ -46,7 +49,9 @@ private:
               wddtw_g(0.005f), wddtw_w_max(1.0f), wddtw_distance(Distances::EUCLID),
               twed_nu(0.3f), twed_lambda(1.0f), twed_distance(Distances::EUCLID),
               lcss_epsilon(0.3f), lcss_delta(5.0f), lcss_distance(Distances::EUCLID),
-              frechet_distance(Distances::EUCLID) {}
+              frechet_distance(Distances::EUCLID) {
+        std::fill(selected_joints.begin(), selected_joints.end(), true);
+    }
 };
 
 #endif // DISTANCEMEASURESHMT_ALGO_SETTINGS_H

@@ -18,8 +18,7 @@ public:
 
 
 private:
-    static void
-    addLineCheckBox(ImDrawList *draw_list, ImVec2 &image_pos, const char *label, int s_x, int s_y);
+    static void addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int s_y, bool &val);
 
     void ShowAlgorithmSettings();
 

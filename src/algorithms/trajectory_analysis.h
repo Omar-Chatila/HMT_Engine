@@ -4,6 +4,7 @@
 #include <functional>
 #include "trajectories.h"
 #include "util.h"
+#include <array>
 #include "distance_measures.h"
 #include "dtw.h"
 #include <vector>
@@ -16,7 +17,8 @@
 const float p = 3;
 
 extern std::vector<std::function<float(const Vec3D &, const Vec3D &)>> vec_dist_measures;
-extern std::function<float(const Quaternion *, const Quaternion *)> quaternion_dist;
+extern std::function<float(const Quaternion *, const Quaternion *,
+                           const std::array<bool, JOINT_COUNT> &selectedJ)> quaternion_dist;
 extern std::function<float(const Vec3D *, const Vec3D *)> vector_dist;
 extern std::vector<std::function<float(const Quaternion *, const Quaternion *)>> error_dist;
 
@@ -33,15 +35,16 @@ public:
     std::tuple<float, std::vector<int>, float *> perform_DTW(Joint::Type joint, Distances type);
 
     std::tuple<float, std::vector<int>, float *>
-    perform_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj);
+    perform_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, Distances dist);
 
     std::tuple<float, std::vector<int>, float *>
     perform_WDTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, float g,
-                 float w_max);
+                 float w_max,
+                 Distances dist);
 
     std::tuple<float, std::vector<int>, float *>
     perform_WDDTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, float g,
-                  float w_max);
+                  float w_max, Distances dist);
 
     float perform_EDR(Joint::Type joint, Distances type, float epsilon);
 
@@ -56,9 +59,6 @@ public:
     float perform_FRECHET_Quat(Distances type);
 
     float perform_FRECHET_Pos(Distances type);
-
-    float perform_ErrorDetection(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                                 ErrorPattern errorPattern);
 
 };
 

@@ -67,10 +67,12 @@ inline float hamming_distance(const Vec3D &a, const Vec3D &b) {
 }
 
 // Metrics for 3D Rotations: Comparison and Analysis Du Q. Huynh: phi_4 Formel 20
-inline float quat_dist(const Quaternion *first, const Quaternion *second) {
+inline float
+quat_dist(const Quaternion *first, const Quaternion *second, const std::array<bool, JOINT_COUNT> selectedJoints) {
     float distance = 0.0f;
     for (int i = 0; i < JOINT_COUNT; i++) {
-        distance += 1 - std::abs(first[i] * second[i]);
+        if (selectedJoints[i])
+            distance += 1 - std::abs(first[i] * second[i]);
     }
     return distance;
 }

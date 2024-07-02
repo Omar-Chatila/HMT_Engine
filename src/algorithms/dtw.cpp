@@ -26,11 +26,12 @@ float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2,
 }
 
 float *Dtw::dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                std::function<float(const Quaternion *, const Quaternion *)> &func) {
+                std::function<float(const Quaternion *, const Quaternion *,
+                                    const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
     const int n = inp_traj.size();
     const int m = ref_traj.size();
 
-    float *S = (float *) (malloc((n + 1) * (m + 1) * sizeof(float)));
+    auto *S = (float *) (malloc((n + 1) * (m + 1) * sizeof(float)));
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
         S[i * (m + 1)] = std::numeric_limits<float>::infinity();
@@ -41,7 +42,7 @@ float *Dtw::dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Qua
 
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= m; ++j) {
-            float cost = func(inp_traj[i - 1], ref_traj[j - 1]);
+            float cost = func(inp_traj[i - 1], ref_traj[j - 1], AlgoSettings::getInstance().selected_joints);
             S[CURRENT_INDEX] = cost + std::min({S[ABOVE_INDEX], S[LEFT_INDEX], S[DIAG_LEFT_INDEX]});
         }
     }
@@ -49,11 +50,12 @@ float *Dtw::dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Qua
 }
 
 float MLWF(int i, int j, float g, float w_max, int m_c) {
-    return w_max / (1 + expf(-g * (std::abs(i - j) - m_c)));;
+    return w_max / (1 + expf(-g * (static_cast<float>(std::abs(i - j) - m_c))));;
 }
 
 float *Dtw::wdtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                 std::function<float(const Quaternion *, const Quaternion *)> &func, float g, float w_max) {
+                 std::function<float(const Quaternion *, const Quaternion *,
+                                     const std::array<bool, JOINT_COUNT> &selectedJ)> &func, float g, float w_max) {
     const int n = inp_traj.size();
     const int m = ref_traj.size();
     const int m_c = (n + m) / 2;
@@ -68,7 +70,8 @@ float *Dtw::wdtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Qu
 
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= m; ++j) {
-            float cost = MLWF(i, j, g, w_max, m_c) * func(inp_traj[i - 1], ref_traj[j - 1]);
+            float cost = MLWF(i, j, g, w_max, m_c) *
+                         func(inp_traj[i - 1], ref_traj[j - 1], AlgoSettings::getInstance().selected_joints);
             S[CURRENT_INDEX] = cost + std::min({S[ABOVE_INDEX], S[LEFT_INDEX], S[DIAG_LEFT_INDEX]});
         }
     }
@@ -105,7 +108,8 @@ std::vector<Quaternion *> deep_copy(const std::vector<Quaternion *> &original) {
 }
 
 float *Dtw::wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                  std::function<float(const Quaternion *, const Quaternion *)> &func, float g, float w_max) {
+                  std::function<float(const Quaternion *, const Quaternion *,
+                                      const std::array<bool, JOINT_COUNT> &selectedJ)> &func, float g, float w_max) {
     std::vector<Quaternion *> inp_traj_copy = deep_copy(inp_traj);
     std::vector<Quaternion *> ref_traj_copy = deep_copy(ref_traj);
 
@@ -128,7 +132,8 @@ float *Dtw::wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Q
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= m; ++j) {
             float weight = MLWF(i, j, g, w_max, m_c);
-            float cost = weight * func(inp_traj_copy[i - 1], ref_traj_copy[j - 1]);
+            float cost = weight *
+                         func(inp_traj_copy[i - 1], ref_traj_copy[j - 1], AlgoSettings::getInstance().selected_joints);
             S[i * (m + 1) + j] = cost + std::min({S[ABOVE_INDEX], S[LEFT_INDEX], S[DIAG_LEFT_INDEX]});
         }
     }
@@ -163,7 +168,8 @@ std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matri
 }
 
 float *Dtw::get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
-                            std::function<float(const Quaternion *, const Quaternion *)> &func) {
+                            std::function<float(const Quaternion *, const Quaternion *,
+                                                const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
     const int n = inp_traj.size();
     const int m = ref_traj.size();
 
@@ -178,7 +184,7 @@ float *Dtw::get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std
 
     for (int i = 1; i <= n; ++i) {
         for (int j = 1; j <= m; ++j) {
-            S[CURRENT_INDEX] = func(inp_traj[i - 1], ref_traj[j - 1]);
+            S[CURRENT_INDEX] = func(inp_traj[i - 1], ref_traj[j - 1], AlgoSettings::getInstance().selected_joints);
         }
     }
     return S;

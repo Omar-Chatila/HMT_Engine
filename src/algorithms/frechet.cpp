@@ -1,15 +1,17 @@
 #include "frechet.h"
+#include "algo_settings.h"
 
 #define INDEX(x, y) ((x)* (m) + (y))
 
 float Frechet::frechet(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF,
-                       std::function<float(const Quaternion *, const Quaternion *)> func) {
+                       std::function<float(const Quaternion *, const Quaternion *,
+                                           const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
     size_t n = inpF.size();
     size_t m = refF.size();
     float *C = new float[n * m]();
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            float d = func(inpF[i], refF[j]);
+            float d = func(inpF[i], refF[j], AlgoSettings::getInstance().selected_joints);
             if (i > 0 && j > 0)
                 C[INDEX(i, j)] = std::max(
                         std::min(C[INDEX(i - 1, j)], std::min(C[INDEX(i - 1, j - 1)], C[INDEX(i, j - 1)])), d);
