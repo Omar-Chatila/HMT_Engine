@@ -12,10 +12,9 @@
 
 class SetupLayer : public Layer {
 public:
-    SetupLayer(SharedData *data);
+    explicit SetupLayer(SharedData *data);
 
     void onRender() override;
-
 
 private:
     static void addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int s_y, bool &val);

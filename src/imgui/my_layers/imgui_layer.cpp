@@ -9,7 +9,8 @@
 #define AUTO 0
 #define PICK 1
 
-ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) : m_Context(context) {
+ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) {
+    m_Context = context;
     sharedData = data;
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();

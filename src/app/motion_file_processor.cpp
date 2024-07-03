@@ -68,6 +68,7 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
 void MotionFileProcessor::updateTrajectoryManagers() {
     for (auto &manager: trajectoryManagers) {
         manager->performAnalysis();
+        manager->updateContext();
     }
 }
 

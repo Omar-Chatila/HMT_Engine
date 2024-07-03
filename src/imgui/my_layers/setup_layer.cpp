@@ -41,8 +41,6 @@ void SetupLayer::onRender() {
     ImGui::SameLine();
     // Display the image
     ImGui::Image((void *) (intptr_t) my_image_texture, ImVec2(my_image_width, my_image_height));
-    // Get the draw list for custom drawing
-    ImDrawList *draw_list = ImGui::GetWindowDrawList();
     // Get the position of the upper-left corner of the image
     ImVec2 image_pos = ImGui::GetItemRectMin();
     ImGui::SetCursorScreenPos({image_pos.x, image_pos.y});
@@ -93,7 +91,7 @@ void SetupLayer::onRender() {
 
 void SetupLayer::ShowAlgorithmSettings() {
     const char *distanceOptions[] = {"EUCLID", "MANHATTAN", "CHEBYSHEV"};
-    static int distanceMetric = 0; // 0: EUCLID, 1: MANHATTAN, etc.
+    static int distanceMetric = 0;
     static int wdtw_distanceMetric = 0;
     static int wddtw_distanceMetric = 0;
     static int edr_distanceMetric = 0;
@@ -174,7 +172,8 @@ void SetupLayer::ShowAlgorithmSettings() {
         if (ImGui::Button("Apply Settings")) {
             auto motionFileProcessor = sharedData->currentAnalysis;
             motionFileProcessor->updateTrajectoryManagers();
-            auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
+            auto algo = DR::getI()->getContext()->classicDTW ? DTW : WDTW;
+            auto kNNResults = motionFileProcessor->getKClosestMatches(16, algo);
             sharedData->trajectoryInfos.clear();
             for (auto result: kNNResults) {
                 TrajectoryInfo info;
@@ -186,9 +185,9 @@ void SetupLayer::ShowAlgorithmSettings() {
                 }
                 sharedData->trajectoryInfos.push_back(info);
             }
-            TrajectoryAnalysisManager *manager = kNNResults.front();
-            manager->updateDisplayRequirements();
-            auto m_Context = DR::getI()->getContext();
+            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
+            bestMatch->updateDisplayRequirements();
+            m_Context = bestMatch->getContext();
             sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
             sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
             sharedData->alignedSegments = m_Context->matching_algorithms[CDTW]->squat_segments;

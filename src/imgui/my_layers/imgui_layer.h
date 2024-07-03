@@ -38,13 +38,11 @@ public:
 
     void onRender() override;
 
-    void changeInputFile(int selected_index);
+    void changeInputFile(int p_selected_index);
 
 private:
-    UIContext *m_Context;
     std::vector<float> distances;
     float **costM{};
-    std::vector<float> costs;
     std::vector<ImU32> colors;
     bool showDiagram = false;
     bool classic_dtw = true;
