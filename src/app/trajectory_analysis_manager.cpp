@@ -23,8 +23,9 @@ TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
 
 void TrajectoryAnalysisManager::performAnalysis() {
     AlgoSettings &settings = AlgoSettings::getInstance();
-    alignment = analysis->perform_DTW(inputTrajectories->get_anglesTrajectories(),
-                                      refTrajectories->get_anglesTrajectories(), EUCLID);
+    alignment = analysis->perform_standardized_DTW(
+            inputTrajectories->get_anglesTrajectories(),
+            refTrajectories->get_anglesTrajectories(), EUCLID);
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
                                             refTrajectories->get_anglesTrajectories(), settings.wdtw_g,
                                             settings.wdtw_w_max, EUCLID);

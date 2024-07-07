@@ -36,6 +36,10 @@ public:
 
     std::tuple<float, std::vector<int>, float *>
     perform_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, Distances dist);
+    
+    std::tuple<float, std::vector<int>, float *>
+    perform_standardized_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                             Distances dist);
 
     std::tuple<float, std::vector<int>, float *>
     perform_WDTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, float g,
@@ -45,6 +49,7 @@ public:
     std::tuple<float, std::vector<int>, float *>
     perform_WDDTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, float g,
                   float w_max, Distances dist);
+
 
     float perform_EDR(Joint::Type joint, Distances type, float epsilon);
 

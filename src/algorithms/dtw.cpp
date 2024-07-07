@@ -1,6 +1,8 @@
 #include <cmath>
 #include <algorithm>
 #include "dtw.h"
+#include "trajectories.h"
+#include <imgui.h>
 
 float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2,
                 std::function<float(const Vec3D &, const Vec3D &)> &func) {
@@ -46,11 +48,19 @@ float *Dtw::dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Qua
             S[CURRENT_INDEX] = cost + std::min({S[ABOVE_INDEX], S[LEFT_INDEX], S[DIAG_LEFT_INDEX]});
         }
     }
+    //write_matrix_to_file(S, n + 1, m + 1, "dtw_matrix.txt");
     return S;
 }
 
+float *Dtw::standardized_dtw(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
+                             std::function<float(const Quaternion *, const Quaternion *,
+                                                 const std::array<bool, JOINT_COUNT> &)> &func) {
+    return dtw(inp_traj, ref_traj, func);
+}
+
+
 float MLWF(int i, int j, float g, float w_max, int m_c) {
-    return w_max / (1 + expf(-g * (static_cast<float>(std::abs(i - j) - m_c))));;
+    return w_max / (1 + expf(-g * (static_cast<float>(std::abs(i - j) - m_c))));
 }
 
 float *Dtw::wdtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
@@ -94,19 +104,6 @@ void derivative_transform(const std::vector<Quaternion *> &trajectory) {
     }
 }
 
-std::vector<Quaternion *> deep_copy(const std::vector<Quaternion *> &original) {
-    std::vector<Quaternion *> copy;
-    copy.reserve(original.size());
-    for (auto *q: original) {
-        auto *joints = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
-        for (int i = 0; i < JOINT_COUNT; i++) {
-            joints[i] = new Quaternion(q[i]);
-        }
-        copy.push_back(joints);
-    }
-    return copy;
-}
-
 float *Dtw::wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
                   std::function<float(const Quaternion *, const Quaternion *,
                                       const std::array<bool, JOINT_COUNT> &selectedJ)> &func, float g, float w_max) {
@@ -139,8 +136,8 @@ float *Dtw::wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Q
     }
 
     // Clean up
-    for (auto *q: inp_traj_copy) delete q;
-    for (auto *q: ref_traj_copy) delete q;
+    //for (auto *q: inp_traj_copy) delete q;
+    //for (auto *q: ref_traj_copy) delete q;
 
     return S;
 }
@@ -187,6 +184,19 @@ float *Dtw::get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std
             S[CURRENT_INDEX] = func(inp_traj[i - 1], ref_traj[j - 1], AlgoSettings::getInstance().selected_joints);
         }
     }
+    //write_matrix_to_file(S, n + 1, m + 1, "costMatrix.txt");
     return S;
 }
 
+std::vector<Quaternion *> Dtw::deep_copy(const vector<Quaternion *> &original) {
+    std::vector<Quaternion *> copy;
+    copy.reserve(original.size());
+    for (auto *q: original) {
+        auto *joints = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
+        for (int i = 0; i < JOINT_COUNT; i++) {
+            joints[i] = new Quaternion(q[i]);
+        }
+        copy.push_back(joints);
+    }
+    return copy;
+}

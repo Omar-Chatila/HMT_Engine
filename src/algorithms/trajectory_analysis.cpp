@@ -35,6 +35,20 @@ Trajectoy_analysis::perform_DTW(const std::vector<Quaternion *> &inp_traj, const
                                 Distances dist) {
     float *c_matrix = Dtw::dtw(inp_traj, ref_traj, quaternion_dist);
     auto pair = Dtw::get_cost_and_alignment(c_matrix, inp_traj.size(), ref_traj.size());
+    std::cout << pair.second.size() << std::endl;
+    return {pair.first, pair.second, c_matrix};
+}
+
+std::tuple<float, std::vector<int>, float *>
+Trajectoy_analysis::perform_standardized_DTW(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
+                                             Distances dist) {
+    auto inp_max = Trajectories::max_rotations(inp_traj);
+    auto ref_max = Trajectories::max_rotations(ref_traj);
+    std::vector<Quaternion *> normalized_inp_traj = Dtw::normalize_trajectory(inp_traj, inp_max);
+    std::vector<Quaternion *> normalized_ref_traj = Dtw::normalize_trajectory(ref_traj, ref_max);
+    float *c_matrix = Dtw::standardized_dtw(normalized_inp_traj, normalized_ref_traj, quaternion_dist);
+    auto pair = Dtw::get_cost_and_alignment(c_matrix, inp_traj.size(), ref_traj.size());
+    std::cout << pair.second.size() << std::endl;
     return {pair.first, pair.second, c_matrix};
 }
 
@@ -102,5 +116,7 @@ float Trajectoy_analysis::perform_FRECHET_Pos(Distances type) {
     return Frechet::frechet(input_trajectories.get_positions_trajectories(),
                             reference_trajectories.get_positions_trajectories(), vector_dist);
 }
+
+
 
 

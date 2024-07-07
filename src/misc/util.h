@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <cmath>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -51,6 +52,8 @@ struct Quaternion {
     Quaternion(float w_, float x_, float y_, float z_)
             : w(w_), x(x_), y(y_), z(z_) {}
 
+    Quaternion() : w(0.0f), x(0.0f), y(0.0f), z(0.0f) {}
+
     // Copy constructor
     Quaternion(const Quaternion *other)
             : w(other->w), x(other->x), y(other->y), z(other->z) {}
@@ -76,6 +79,15 @@ inline Quaternion operator+(const Quaternion &q1, const Quaternion &q2) {
 
 inline Quaternion operator/(const Quaternion &q1, const float divisor) {
     return {q1.w / divisor, q1.x / divisor, q1.y / divisor, q1.z / divisor};
+}
+
+inline Quaternion operator/(const Quaternion &q1, const Quaternion &q2) {
+    return {q2.w != 0 ? q1.w / q2.w : q1.w, q2.x != 0 ? q1.x / q2.x : q1.x, q2.y != 0 ? q1.y / q2.y : q1.y,
+            q2.z != 0 ? q1.z / q2.z : q1.z};
+}
+
+inline float norm(const Quaternion &q) {
+    return std::sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
 }
 
 enum class MovementSegment {
