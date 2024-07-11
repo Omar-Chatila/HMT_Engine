@@ -1,19 +1,18 @@
 #include "result_layer.h"
 #include <algorithm> // For std::min_element and std::max_element
 
-ResultLayer::ResultLayer(SharedData *data) {
-    sharedData = data;
+ResultLayer::ResultLayer(Data *p_data) : data(p_data) {
     currentSortIndex = 0;
 }
 
 void ResultLayer::sortTrajectoryInfos() {
     if (currentSortIndex == LCSS) {
-        std::sort(sharedData->trajectoryInfos.begin(), sharedData->trajectoryInfos.end(),
+        std::sort(data->motionFileProcessor->trajectoryInfos.begin(), data->motionFileProcessor->trajectoryInfos.end(),
                   [this](const TrajectoryInfo &a, const TrajectoryInfo &b) {
                       return a.costs[currentSortIndex] > b.costs[currentSortIndex]; // Sort in descending order
                   });
     } else {
-        std::sort(sharedData->trajectoryInfos.begin(), sharedData->trajectoryInfos.end(),
+        std::sort(data->motionFileProcessor->trajectoryInfos.begin(), data->motionFileProcessor->trajectoryInfos.end(),
                   [this](const TrajectoryInfo &a, const TrajectoryInfo &b) {
                       return a.costs[currentSortIndex] < b.costs[currentSortIndex];
                   });
@@ -22,8 +21,6 @@ void ResultLayer::sortTrajectoryInfos() {
 
 
 void ResultLayer::onRender() {
-    sortTrajectoryInfos();
-
     ImGui::Begin("Results");
     if (ImGui::BeginTable("TrajectoryCosts", 10, ImGuiTableFlags_Borders)) {
         ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_None);
@@ -47,6 +44,7 @@ void ResultLayer::onRender() {
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4) ImColor::HSV(i / 7.0f, 0.8f, 0.8f));
             if (ImGui::Button("Sort")) {
                 this->currentSortIndex = i;
+                sortTrajectoryInfos();
             }
             ImGui::PopStyleColor(3);
             ImGui::PopID();
@@ -58,7 +56,7 @@ void ResultLayer::onRender() {
         std::vector<std::vector<float>> top3Costs(ALGO_COUNT);
         for (int i = 0; i < ALGO_COUNT - 1; i++) {
             std::vector<float> costs;
-            for (const auto &info: sharedData->trajectoryInfos) {
+            for (const auto &info: data->motionFileProcessor->trajectoryInfos) {
                 costs.push_back(info.costs[i]);
             }
             std::sort(costs.begin(), costs.end());
@@ -70,7 +68,7 @@ void ResultLayer::onRender() {
         // Handle LCSS column separately (find top 3 highest costs)
         {
             std::vector<float> costs;
-            for (const auto &info: sharedData->trajectoryInfos) {
+            for (const auto &info: data->motionFileProcessor->trajectoryInfos) {
                 costs.push_back(info.costs[LCSS]);
             }
             std::sort(costs.rbegin(), costs.rend()); // Sort in descending order
@@ -81,7 +79,7 @@ void ResultLayer::onRender() {
 
         // Render best 3 costs with colors
         int fileIndex = 1;
-        for (const auto &info: sharedData->trajectoryInfos) {
+        for (const auto &info: data->motionFileProcessor->trajectoryInfos) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("#%d: %s", fileIndex++, info.reference.c_str());

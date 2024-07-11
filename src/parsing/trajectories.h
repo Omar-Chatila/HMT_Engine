@@ -9,7 +9,7 @@ private:
     int length;
     std::vector<Vec3D *> positions_per_joint;
     std::vector<Quaternion *> angles_per_joint;
-    std::vector<Frame> &frames;
+    std::vector<Frame> frames;
 
 public:
     explicit Trajectories(std::vector<Frame> &p_frames) :
@@ -23,7 +23,10 @@ public:
         }
     }
 
-    ~Trajectories() = default;
+    ~Trajectories() {
+        for (const auto &vecs: positions_per_joint) free(vecs);
+        for (const auto &quats: angles_per_joint) free(quats);
+    }
 
     Vec3D *get_positionsTrajectory(Joint::Type joint) {
         auto *ppj = new Vec3D[length];
@@ -31,6 +34,10 @@ public:
             ppj[i] = positions_per_joint[i][static_cast<int>(joint)];
         }
         return ppj;
+    }
+
+    std::vector<Frame> getFrames() {
+        return this->frames;
     }
 
     Quaternion *get_anglesTrajectory(Joint::Type joint) {
@@ -49,7 +56,6 @@ public:
         return this->length;
     }
 
-    // Hier stattdessen durch größte norm teilen
     static std::vector<std::pair<Quaternion, Quaternion>> max_rotations(const std::vector<Quaternion *> &trajectory) {
         std::vector<Quaternion> max(JOINT_COUNT, Quaternion(-std::numeric_limits<float>::infinity(),
                                                             -std::numeric_limits<float>::infinity(),

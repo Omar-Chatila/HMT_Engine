@@ -12,7 +12,7 @@
 
 class SetupLayer : public Layer {
 public:
-    explicit SetupLayer(SharedData *data);
+    explicit SetupLayer(Data *p_data);
 
     void onRender() override;
 
@@ -22,6 +22,8 @@ private:
     void ShowAlgorithmSettings();
 
     std::vector<Joint::Type> selectedJoints;
+
+    Data *data;
 
     static int my_image_width;
     static int my_image_height;

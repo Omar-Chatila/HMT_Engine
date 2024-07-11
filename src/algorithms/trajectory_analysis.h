@@ -30,13 +30,13 @@ public:
     Trajectoy_analysis(const Trajectories &p_input, const Trajectories &p_reference)
             : input_trajectories{p_input}, reference_trajectories{p_reference} {}
 
-    ~Trajectoy_analysis() {};
+    ~Trajectoy_analysis() = default;
 
     std::tuple<float, std::vector<int>, float *> perform_DTW(Joint::Type joint, Distances type);
 
     std::tuple<float, std::vector<int>, float *>
     perform_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, Distances dist);
-    
+
     std::tuple<float, std::vector<int>, float *>
     perform_standardized_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
                              Distances dist);

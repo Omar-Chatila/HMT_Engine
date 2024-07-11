@@ -184,7 +184,7 @@ inline std::string cropString(const std::string &input, char token) {
 }
 
 inline std::string cropString(const std::string &input) {
-    return cropString(input, '\\');
+    return cropString(input, '/');
 }
 
 

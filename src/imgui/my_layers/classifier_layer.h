@@ -3,22 +3,28 @@
 
 #include "../layer.h"
 #include "../layer_data.h"
+#include "util.h"
 #include <imgui/imgui.h>
 #include <imgui/implot.h>
 #include <imgui/implot_internal.h>
 
-class ClassifierLayer : public Layer{
+class ClassifierLayer : public Layer {
 public:
-    ClassifierLayer(SharedData *data);
+    explicit ClassifierLayer(Data *p_data);
+
     ~ClassifierLayer();
+
     void onRender() override;
 
 private:
-    int *currentFrame;
+    int currentFrame;
     bool is_continuous;
+    Data *data;
 
     void errorPlot();
+
     void segmentPlot();
+
     void segmentPlotUnAligned();
 };
 

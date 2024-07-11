@@ -10,10 +10,11 @@ void test2();
 
 void test() {
     // Parse input trajectory
+    /*
     SharedData *sharedData = new SharedData();
     MotionFileProcessor *motionFileProcessor = new MotionFileProcessor(SQUATS);
     const char *default_file = "fb_41_pre_splitted_1.txt";
-    motionFileProcessor->processInputFile(std::string(default_file));
+    //motionFileProcessor->processInputFile(std::string(default_file));
     DR *disp_req = DR::getI();
     auto results = motionFileProcessor->getKClosestMatches(3, DTW);
     TrajectoryAnalysisManager *manager = results.front();

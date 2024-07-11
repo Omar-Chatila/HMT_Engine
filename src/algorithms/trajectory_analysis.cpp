@@ -35,7 +35,6 @@ Trajectoy_analysis::perform_DTW(const std::vector<Quaternion *> &inp_traj, const
                                 Distances dist) {
     float *c_matrix = Dtw::dtw(inp_traj, ref_traj, quaternion_dist);
     auto pair = Dtw::get_cost_and_alignment(c_matrix, inp_traj.size(), ref_traj.size());
-    std::cout << pair.second.size() << std::endl;
     return {pair.first, pair.second, c_matrix};
 }
 

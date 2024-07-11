@@ -26,8 +26,8 @@ set(PROJ_SOURCES
         src/app/main.cpp
         src/app/trajectory_analysis_manager.cpp
         src/app/motion_file_processor.cpp
-        src/app/engine/display_requirments.cpp
         src/app/engine/engine.cpp
+        src/imgui/layer.cpp
         src/imgui/image_loader.cpp
         src/imgui/imgui_layers.cpp
         src/imgui/my_layers/imgui_layer.cpp
@@ -43,13 +43,12 @@ set(PROJ_SOURCES
 
 # Add ImGui and other libraries sources
 set(LIBS_SOURCES
-        imgui/example_implot.cpp
         imgui/imgui_impl_glfw.cpp
         imgui/implot.cpp
-        imgui/implot_demo.cpp
         imgui/implot_items.cpp
+        imgui/example_implot.cpp
+        imgui/implot_demo.cpp
         misc/cpp/imgui_stdlib.cpp
-        src/algorithms/algo_settings.h
 )
 
 # Create the executable target
@@ -59,11 +58,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Specify include directories
 target_include_directories(${PROJECT_NAME} PUBLIC
-        include/
         include/imgui/
+        include/
         lib/
         src/
         src/app/
+        src/data/
         src/algorithms/
         src/app/engine/
         src/imgui/

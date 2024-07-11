@@ -4,12 +4,7 @@ Input_parser::Input_parser(const char *path_to_file) {
     this->file = path_to_file;
 }
 
-Input_parser::~Input_parser() {
-    for (Frame f : this->frames) {
-        free(f.joint_rotations);
-        free(f.joint_translations);
-    }
-}
+Input_parser::~Input_parser() = default;
 
 Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     // separate movement data and meta info
@@ -30,8 +25,8 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     parts.erase(parts.begin());
 
     int joint_index = 0;
-    Quaternion* joint_rotations = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
-    Vec3D* joint_translations = (Vec3D *) (malloc(JOINT_COUNT * sizeof(Vec3D)));
+    Quaternion *joint_rotations = (Quaternion *) (malloc(JOINT_COUNT * sizeof(Quaternion)));
+    Vec3D *joint_translations = (Vec3D *) (malloc(JOINT_COUNT * sizeof(Vec3D)));
 
     // Extract joint rotations
     for (; joint_index < JOINT_COUNT; joint_index++) {
@@ -62,13 +57,13 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     std::vector<std::string> labels = split(metaData, ',');
     std::string segment = labels[0];
 
-    for (const auto& [segIndex, segType] : movementSegmentMap) {
+    for (const auto &[segIndex, segType]: movementSegmentMap) {
         if (segment.find(segType) != std::string::npos) {
             currentSegment = segIndex;
             break;
         }
     }
- 
+
     std::array<Vec3D, ERROR_COUNT> parameters;
 
     // PSPS
@@ -76,9 +71,9 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
     // Single errors~2~2~2
     std::vector<std::string> errors_n_confidences = split(errors, ' ');
     std::string not_active = "not-active";
-    
-    for (auto& single_error : errors_n_confidences) {
-        for (const auto& [errPattern, errType] : errorPatternMap) {
+
+    for (auto &single_error: errors_n_confidences) {
+        for (const auto &[errPattern, errType]: errorPatternMap) {
             int errIndex = static_cast<int>(errPattern);
             bool found = single_error.find(errType) != std::string::npos;
             if (found && single_error.find(not_active) == std::string::npos) {
@@ -89,7 +84,7 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
                 parameters[errIndex] = Vec3D{confidence, intensity, intensityConfidence};
                 break;
             }
-        }     
+        }
     }
     return {time_frame, root_translation, joint_rotations, joint_translations, {currentSegment, parameters}};
 }
@@ -97,7 +92,7 @@ Frame Input_parser::line_to_frame(std::string &line, int time_frame) {
 std::vector<Frame> Input_parser::get_frames() {
     std::vector<std::string> lines = readAllLines(this->file, 15);
     int time_frame = 0;
-    for (auto& line : lines) {
+    for (auto &line: lines) {
         this->frames.push_back(line_to_frame(line, time_frame++));
     }
     return this->frames;

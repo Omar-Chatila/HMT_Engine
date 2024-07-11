@@ -1,40 +1,45 @@
 #include "engine/engine.h"
 #include "motion_file_processor.h"
+#include "data.h"
 #include "../tests/tests.h"
+#include <chrono>
+
+Data *Data::instance = nullptr;
 
 int main(int argc, char *argv[]) {
-    std::cout << "JAAAAAAAAAA" << std::endl;
-    auto *sharedData = new SharedData();
+    // start time measurement
+    std::chrono::time_point<std::chrono::system_clock> cpu_start = std::chrono::system_clock::now();
+    std::cout << "Process all files..." << std::endl;
+    // Parse all files
     auto *motionFileProcessor = new MotionFileProcessor(SQUATS);
+    motionFileProcessor->processAllFiles();
+    std::chrono::time_point<std::chrono::system_clock> cpu_end = std::chrono::system_clock::now();
+    auto cpu_total_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cpu_end - cpu_start).count();
+    std::cout << cpu_total_time_ms << " ms" << std::endl;
+
+    // Create objects for algorithms executions
+    motionFileProcessor->createTrajectoryAnalysisManagers();
+    std::cout << "All files processed." << std::endl;
+
+    // Load first file
     const char *default_file = "fb_21_pre_splitted_5.txt";
+    std::cout << "Load default file: " << default_file << std::endl;
     motionFileProcessor->processInputFile(std::string(default_file));
-    auto kNNResults = motionFileProcessor->getKClosestMatches(16, DTW);
+    std::cout << "find closest matches" << std::endl;
+
+    // Find best match based on DTW
+    auto kNNResults = motionFileProcessor->getKClosestMatches(16, std::string(default_file), DTW);
     TrajectoryAnalysisManager *manager = kNNResults.front();
-    manager->updateDisplayRequirements();
-    for (auto result: kNNResults) {
-        TrajectoryInfo info;
-        info.reference = result->getContext()->reference_file;
-        info.manager = result;
-        for (int i = 0; i < ALGO_COUNT; i++) {
-            float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
-            info.costs.push_back(cost);
-        }
-        sharedData->trajectoryInfos.push_back(info);
-    }
-    sharedData->alignedSegments = DR::getI()->getContext()->matching_algorithms[CDTW]->squat_segments;
-    sharedData->wdtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->squat_segments;
-    sharedData->wddtw_alignedSegments = DR::getI()->getContext()->matching_algorithms[WEIGHTDDTW]->squat_segments;
-    sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
-    sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-    sharedData->currentAnalysis = motionFileProcessor;
-    auto *rend = new Renderer(sharedData);
+    manager->setSegmentsAndMatchings();
+    Data *data = Data::getInstance(motionFileProcessor, manager);
+
+    // Start engine
+    std::cout << "Start GUI" << std::endl;
+    auto *rend = new Renderer(data);
     rend->display();
 
+    // Let the OS free most the memory...
+    Data::free();
     delete rend;
-    delete motionFileProcessor;
-    delete sharedData;
-
-    //test();
-    //test2();
     return 0;
 }

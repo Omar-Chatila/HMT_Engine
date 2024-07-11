@@ -12,8 +12,7 @@ int SetupLayer::wdtw_tooltip_width2;
 int SetupLayer::wdtw_tooltip_height2;
 GLuint SetupLayer::wdtw_tooltip_texture2;
 
-SetupLayer::SetupLayer(SharedData *data) {
-    sharedData = data;
+SetupLayer::SetupLayer(Data *p_data) : data(p_data) {
     bool ret = LoadTextureFromFile("../resources/images/hanim2.png", &my_image_texture, &my_image_width,
                                    &my_image_height);
     bool tt = LoadTextureFromFile("../resources/images/tooltips/wdtwtt1.png", &wdtw_tooltip_texture,
@@ -124,7 +123,7 @@ void SetupLayer::ShowAlgorithmSettings() {
             ImGui::EndTooltip();
         }
         ImGui::Combo("##wdtw", &wdtw_distanceMetric, distanceOptions, IM_ARRAYSIZE(distanceOptions));
-        ImGui::SliderFloat("g##wdtw", &settings.wdtw_g, 0.0f, 0.1f);
+        ImGui::SliderFloat("g##wdtw", &settings.wdtw_g, 0.0f, 0.05f);
         ImGui::SliderFloat("w_max##wdtw", &settings.wdtw_w_max, 0.0f, 10.0f);
         settings.wdtw_distance = static_cast<Distances>(wdtw_distanceMetric);
 
@@ -132,7 +131,7 @@ void SetupLayer::ShowAlgorithmSettings() {
         ImGui::Separator();
         ImGui::Text("WDDTW Settings");
         ImGui::Combo("##wddtw", &wddtw_distanceMetric, distanceOptions, IM_ARRAYSIZE(distanceOptions));
-        ImGui::SliderFloat("g##wddtw", &settings.wddtw_g, 0.0f, 0.1f);
+        ImGui::SliderFloat("g##wddtw", &settings.wddtw_g, 0.0f, 0.3f);
         ImGui::SliderFloat("w_max##wddtw", &settings.wddtw_w_max, 0.0f, 10.0f);
         settings.wddtw_distance = static_cast<Distances>(wddtw_distanceMetric);
 
@@ -170,28 +169,17 @@ void SetupLayer::ShowAlgorithmSettings() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4) ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4) ImColor::HSV(4 / 7.0f, 0.8f, 0.8f));
         if (ImGui::Button("Apply Settings")) {
-            auto motionFileProcessor = sharedData->currentAnalysis;
-            motionFileProcessor->updateTrajectoryManagers();
-            auto algo = DR::getI()->getContext()->classicDTW ? DTW : WDTW;
-            auto kNNResults = motionFileProcessor->getKClosestMatches(16, algo);
-            sharedData->trajectoryInfos.clear();
-            for (auto result: kNNResults) {
-                TrajectoryInfo info;
-                info.reference = result->getContext()->reference_file;
-                info.manager = result;
-                for (int i = 0; i < ALGO_COUNT; i++) {
-                    float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
-                    info.costs.push_back(cost);
-                }
-                sharedData->trajectoryInfos.push_back(info);
-            }
-            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
-            bestMatch->updateDisplayRequirements();
-            m_Context = bestMatch->getContext();
-            sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
-            sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-            sharedData->alignedSegments = m_Context->matching_algorithms[CDTW]->squat_segments;
-            sharedData->wdtw_alignedSegments = m_Context->matching_algorithms[WEIGHTDTW]->squat_segments;
+            auto motionFileProcessor = data->motionFileProcessor;
+            auto currentFile = data->bestMatch->inputFile;
+            data->motionFileProcessor->processInputFile(data->bestMatch->inputFile);
+            auto knnResults = motionFileProcessor->getKClosestMatches(16, currentFile,
+                                                                      data->dtwMap[data->mainLayerContext->dtwVariant]);
+            data->bestMatch = knnResults.front();
+            data->mainLayerContext->reference_file = data->bestMatch->refFile;
+            data->mainLayerContext->input_file = data->bestMatch->inputFile;
+            data->bestMatch->setSegmentsAndMatchings();
+            data->mainLayerContext->mousePos = {0.0f, 0.0f};
+            precomputePathDeviation();
         }
         ImGui::PopStyleColor(3);
         ImGui::End();

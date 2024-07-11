@@ -11,8 +11,9 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include "data/data.h"
 #include "enums.h"
-#include "trajectory_analysis_manager.h"
+#include "motion_file_processor.h"
 #include "Shader.h"
 #include "Sphere.h"
 #include "line.h"
@@ -34,7 +35,7 @@ private:
     const char *floor_vertex_shader_path = "../src/shader/floorVertexShader.glsl";
     const char *floor_fragment_shader_path = "../src/shader/floorFragmentShader.glsl";
 
-    SharedData *sharedData;
+    Data *data;
 
     std::vector<glm::vec3> ref_spherePositions;
     std::vector<glm::vec3> input_spherePositions;
@@ -47,7 +48,7 @@ private:
     void update_SpherePos_Aligned(std::vector<Frame> &input_frames, std::vector<Frame> &ref_frames, int mapping,
                                   bool refPause, bool inpPause);
 
-    GLFWwindow *init_window(UIContext *context);
+    GLFWwindow *init_window();
 
     ImGuiIO &init_imgui(GLFWwindow *p_window);
 
@@ -57,12 +58,12 @@ private:
 
     void init_fbo();
 
-    static void
-    draw_scene(const std::vector<glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader, UIContext *context,
+    void
+    draw_scene(const std::vector<glm::vec3> &spherePositions, Sphere &sphere, Shader &sphereShader,
                bool ref);
 
 public:
-    Renderer(SharedData *shared);
+    Renderer(Data *p_data);
 
     ~Renderer();
 

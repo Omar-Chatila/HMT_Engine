@@ -9,41 +9,24 @@
 #define AUTO 0
 #define PICK 1
 
-ImGuiLayer::ImGuiLayer(UIContext *context, SharedData *data) {
-    m_Context = context;
-    sharedData = data;
+ImGuiLayer::ImGuiLayer(Data *p_data) : data(p_data) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    squat_sampleSize = this->m_Context->motion_files->size() - 16;
+    squat_sampleSize = this->data->motionInfo->size() - 16;
     precomputePathDeviation();
 }
 
 void ImGuiLayer::changeInputFile(int p_selected_index) {
-    const char *file = m_Context->motion_files->at(p_selected_index + 16).motion_file.c_str();
-    auto *motionFileProcessor = sharedData->currentAnalysis;
-    motionFileProcessor->processInputFile(std::string(file));
-    auto algo = this->classic_dtw ? DTW : WDTW;
-    auto kNNResults = motionFileProcessor->getKClosestMatches(16, algo);
-    sharedData->trajectoryInfos.clear();
-    for (auto result: kNNResults) {
-        TrajectoryInfo info;
-        info.reference = result->getContext()->reference_file;
-        info.manager = result;
-        for (int i = 0; i < ALGO_COUNT; i++) {
-            float cost = result->getAlgorithmResult(static_cast<Algorithm>(i));
-            info.costs.push_back(cost);
-        }
-        sharedData->trajectoryInfos.push_back(info);
-    }
-
-    TrajectoryAnalysisManager *bestMatch = kNNResults.front();
-    bestMatch->updateDisplayRequirements();
-    m_Context = DR::getI()->getContext();
-    sharedData->inp_segments = calculateSegments(DR::getI()->getInp_frames());
-    sharedData->ref_segments = calculateSegments(DR::getI()->getRef_frames());
-    sharedData->alignedSegments = m_Context->matching_algorithms[CDTW]->squat_segments;
-    sharedData->wdtw_alignedSegments = m_Context->matching_algorithms[WEIGHTDTW]->squat_segments;
+    const char *file = this->data->motionInfo->at(p_selected_index + 16).motion_file.c_str();
+    data->motionFileProcessor->processInputFile(std::string(file));
+    auto algo = data->dtwMap[data->mainLayerContext->dtwVariant];
+    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, std::string(file), algo);
+    data->bestMatch = kNNResults.front();
+    data->mainLayerContext->reference_file = data->bestMatch->refFile;
+    data->mainLayerContext->input_file = data->bestMatch->inputFile;
+    data->bestMatch->setSegmentsAndMatchings();
+    data->mainLayerContext->mousePos = {0.0f, 0.0f};
     precomputePathDeviation();
 }
 
@@ -51,116 +34,26 @@ void ImGuiLayer::UpdateFOVWithScroll() {
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     if (io.MouseWheel != 0.0f && io.KeyCtrl) {
-        m_Context->refView->fov -= io.MouseWheel * 2;
-        if (m_Context->refView->fov < -180.0f)
-            m_Context->refView->fov = -180.0f;
-        if (m_Context->refView->fov > 180.0f)
-            m_Context->refView->fov = 180.0f;
+        data->refView->fov -= io.MouseWheel * 2;
+        if (data->refView->fov < -180.0f)
+            data->refView->fov = -180.0f;
+        if (data->refView->fov > 180.0f)
+            data->refView->fov = 180.0f;
     } else if (io.MouseWheel != 0.0f && io.KeyAlt) {
-        m_Context->inputView->fov -= io.MouseWheel * 2;
-        if (m_Context->inputView->fov < -180.0f)
-            m_Context->inputView->fov = -180.0f;
-        if (m_Context->inputView->fov > 180.0f)
-            m_Context->inputView->fov = 180.0f;
+        data->inputView->fov -= io.MouseWheel * 2;
+        if (data->inputView->fov < -180.0f)
+            data->inputView->fov = -180.0f;
+        if (data->inputView->fov > 180.0f)
+            data->inputView->fov = 180.0f;
     }
-}
-
-void ImGuiLayer::precomputeDeviation(MatrixContext &context, std::vector<float> &distances) {
-    int n = context.n;
-    int m = context.m;
-    values1 = std::make_unique<float[]>((n + 1) * (m + 1));
-    values2 = std::make_unique<float[]>(n * m);
-    align_path = context.align_path;
-    auto inp_traj = DR::getI()->getInp_frames();
-    auto ref_traj = DR::getI()->getRef_frames();
-    auto *inT = new Trajectories(inp_traj);
-    auto *reT = new Trajectories(ref_traj);
-    float *mat = Dtw::get_cost_matrix(inT->get_anglesTrajectories(),
-                                      reT->get_anglesTrajectories(),
-                                      quaternion_dist);
-
-    for (int idx: align_path) {
-        int i = idx / (m + 1);
-        int j = idx % (m + 1);
-        pathCoords.emplace_back(i, j);
-    }
-
-    distances.resize((n + 1) * (m + 1), std::numeric_limits<float>::infinity());
-    costM = new float *[n];
-    for (int i = 0; i < n; i++) {
-        costM[i] = new float[m];
-    }
-
-
-    for (int i = 0; i <= n; i++) {
-        for (int j = 0; j <= m; j++) {
-            float minDistanceToPath = std::numeric_limits<float>::infinity();
-            float minCostToPath;
-            int r = 0;
-            for (auto num: context.align_path) {
-                if (num / (m + 1) == i && num % (m + 1) == j) {
-                    r = num;
-                    break;
-                }
-            }
-            minCostToPath = std::abs(mat[i * (m + 1) + j] - mat[r]);
-            for (const auto &[pi, pj]: pathCoords) {
-                float distance;
-                distance = std::hypot(i - pi, j - pj);
-                if (distance < minDistanceToPath) {
-                    minDistanceToPath = distance;
-                }
-            }
-            distances[i * (m + 1) + j] = minDistanceToPath;
-            if (i > 0 && j > 0) {
-                costM[i - 1][j - 1] = minCostToPath;
-            }
-        }
-    }
-
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < m; j++)
-            if (costM[i][j] != 0)
-                values2[(n - i - 1) * m + j] = log10f(costM[i][j]);
-
-    int index = 0;
-    for (int i = 0; i <= n; i++) {
-        for (int j = 0; j <= m; j++) {
-            values1[(n - i) * (m + 1) + j] = distances[index++];
-        }
-    }
-    s_min = 10.0f;
-    s_max = -10.0f;
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            if (s_max < values2[i * m + j]) s_max = values2[i * m + j];
-            if (s_min > values2[i * m + j]) s_min = values2[i * m + j];
-        }
-    }
-
-    delete inT;
-    delete reT;
-}
-
-void ImGuiLayer::precomputePathDeviation() {
-    auto selected_matching = classic_dtw ? m_Context->matching_algorithms[CDTW]
-                                         : m_Context->matching_algorithms[WEIGHTDTW];
-    MatrixContext context{
-            selected_matching->alignmentPath,
-            selected_matching->n,
-            selected_matching->m,
-            selected_matching->distMatrix,
-            false
-    };
-    precomputeDeviation(context, distances);
 }
 
 void ImGuiLayer::drawDTWDiagram() {
     ImGuiIO &io = ImGui::GetIO();
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-    int n = m_Context->matching_algorithms[CDTW]->n;
-    int m = m_Context->matching_algorithms[CDTW]->m;
+    auto algo = static_cast<int>(data->mainLayerContext->dtwVariant);
+    int n = data->bestMatch->matching_algorithms[algo]->n;
+    int m = data->bestMatch->matching_algorithms[algo]->m;
 
     static int selectedArray = 0;
     ImGui::SameLine();
@@ -168,7 +61,7 @@ void ImGuiLayer::drawDTWDiagram() {
     ImGui::SameLine();
     ImGui::RadioButton("Costs", &selectedArray, 1);
 
-    static ImPlotColormap map = ImPlotColormap_Twilight;
+    static ImPlotColormap map = ImPlotColormap_Viridis;
     static float scale_min = s_min;
     static float scale_max = s_max;
     ImGui::SameLine();
@@ -196,8 +89,9 @@ void ImGuiLayer::drawDTWDiagram() {
         // Get mouse position and display it
         ImPlotPoint mousePos = ImPlot::GetPlotMousePos();
         bool isInBounds = mousePos.x >= 0 && mousePos.x < m && mousePos.y >= 0 && mousePos.y < n;
-        auto c_x = static_cast<float>(align_path[m_Context->c_frame] % (m + 1));
-        auto c_y = static_cast<float>(align_path[m_Context->c_frame] / (m + 1));
+        auto c_x = static_cast<float>(align_path[data->mainLayerContext->c_frame] % (m + 1));
+        auto c_y = static_cast<float>(align_path[data->mainLayerContext->c_frame] / (m + 1));
+        bool isBoundsAuto = c_x >= 0 && c_x < static_cast<float>(m) && c_y >= 0 && c_y < static_cast<float>(n);
 
         // Draw cross-hair lines
         ImDrawList *draw_list = ImGui::GetWindowDrawList();
@@ -222,7 +116,8 @@ void ImGuiLayer::drawDTWDiagram() {
 
         // Draw Selection cross-hair
         if (isInBounds && mode == PICK) {
-            DR::getI()->setMousePos(std::pair<int, int>(static_cast<int>(mousePos.x), static_cast<int>(mousePos.y)));
+            data->mainLayerContext->mousePos = (std::pair<int, int>(static_cast<int>(mousePos.x),
+                                                                    static_cast<int>(mousePos.y)));
             // Draw vertical line
             draw_list->AddLine(ImVec2(mouse_pos.x, plot_pos.y), ImVec2(mouse_pos.x, plot_pos.y + plot_size.y),
                                IM_COL32(255, 0, 0, 255));
@@ -234,13 +129,13 @@ void ImGuiLayer::drawDTWDiagram() {
         ImVec2 c_point = {c_x, c_y};
         ImVec2 align_pos = ImPlot::PlotToPixels(c_point);
         // Draw alignment cross-hair
-        if (mode == AUTO) {
+        if (mode == AUTO && isBoundsAuto) {
             draw_list->AddLine(ImVec2(align_pos.x, plot_pos.y), ImVec2(align_pos.x, plot_pos.y + plot_size.y),
                                IM_COL32(0, 255, 0, 255));
             draw_list->AddLine(ImVec2(plot_pos.x, align_pos.y), ImVec2(plot_pos.x + plot_size.x, align_pos.y),
                                IM_COL32(0, 255, 0, 255));
         }
-        DR::getI()->setMode(mode == AUTO);
+        data->mainLayerContext->autoMode = (mode == AUTO);
         ImPlot::EndPlot();
     }
 }
@@ -251,25 +146,25 @@ void ImGuiLayer::showCameraOptions() {
         ImGui::SeparatorText("Reference View (left) Camera##ref");
         //Ref view
         // Aspect Ratio
-        ImGui::SliderFloat("Aspect Ratio##ref", &m_Context->refView->aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Aspect Ratio##ref", &data->refView->aspectRatio, 1.0f, 3.0f);
         // FOV
-        ImGui::SliderFloat("Fov##ref", &m_Context->refView->fov, -180.0f, 180.0f);
+        ImGui::SliderFloat("Fov##ref", &data->refView->fov, -180.0f, 180.0f);
         // Center
-        ImGui::DragFloat3("Center##ref", glm::value_ptr(m_Context->refView->center), 0.1f, -3.0f, 3.0f);
-        ImGui::DragFloat3("Position##ref", glm::value_ptr(m_Context->refView->camera_pos), 0.1f, -5.0f, 5.0f);
-        ImGui::DragFloat3("Orientation##ref", glm::value_ptr(m_Context->refView->camera_orientation), 0.1f, -1.0f,
+        ImGui::DragFloat3("Center##ref", glm::value_ptr(data->refView->center), 0.1f, -3.0f, 3.0f);
+        ImGui::DragFloat3("Position##ref", glm::value_ptr(data->refView->camera_pos), 0.1f, -5.0f, 5.0f);
+        ImGui::DragFloat3("Orientation##ref", glm::value_ptr(data->refView->camera_orientation), 0.1f, -1.0f,
                           1.0f);
         // Clear Color
-        ImGui::ColorEdit3("Clear Color##ref", (float *) &m_Context->refView->clear_color);
+        ImGui::ColorEdit3("Clear Color##ref", (float *) &data->refView->clear_color);
         //Input view
         ImGui::SeparatorText("Input View (right) Camera##input");
-        ImGui::SliderFloat("Aspect Ratio##input", &m_Context->inputView->aspectRatio, 1.0f, 3.0f);
-        ImGui::SliderFloat("Fov##input", &m_Context->inputView->fov, -180.0f, 180.0f);
-        ImGui::DragFloat3("Center##input", glm::value_ptr(m_Context->inputView->center), 0.1f, -3.0f, 3.0f);
-        ImGui::DragFloat3("Position##input", glm::value_ptr(m_Context->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
-        ImGui::DragFloat3("Orientation##input", glm::value_ptr(m_Context->inputView->camera_orientation), 0.1f, -1.0f,
+        ImGui::SliderFloat("Aspect Ratio##input", &data->inputView->aspectRatio, 1.0f, 3.0f);
+        ImGui::SliderFloat("Fov##input", &data->inputView->fov, -180.0f, 180.0f);
+        ImGui::DragFloat3("Center##input", glm::value_ptr(data->inputView->center), 0.1f, -3.0f, 3.0f);
+        ImGui::DragFloat3("Position##input", glm::value_ptr(data->inputView->camera_pos), 0.1f, -5.0f, 5.0f);
+        ImGui::DragFloat3("Orientation##input", glm::value_ptr(data->inputView->camera_orientation), 0.1f, -1.0f,
                           1.0f);
-        ImGui::ColorEdit3("Clear Color##input", (float *) &m_Context->inputView->clear_color);
+        ImGui::ColorEdit3("Clear Color##input", (float *) &data->inputView->clear_color);
     };
 }
 
@@ -301,7 +196,7 @@ void ImGuiLayer::show_selectionTable() {
         clipper.Begin(squat_sampleSize - 16);
         while (clipper.Step())
             for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++) {
-                auto pers = m_Context->motion_files->at(row_n + 16);
+                auto pers = data->motionInfo->at(row_n + 16);
                 // Display a data item
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -336,38 +231,38 @@ void ImGuiLayer::show_selectionTable() {
 
 void ImGuiLayer::show_DTW_Options() {
     if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::Checkbox("DTW Aligned", &m_Context->aligned);
+        ImGui::Checkbox("DTW Aligned", &data->mainLayerContext->aligned);
         static int selectedDtw = 0;
         ImGui::SameLine();
         if (ImGui::RadioButton("Classic", &selectedDtw, 0)) {
-            this->classic_dtw = true;
-            m_Context->classicDTW = true;
-            auto kNNResults = sharedData->currentAnalysis->getKClosestMatches(16, DTW);
-            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
-            bestMatch->updateDisplayRequirements();
+            auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile, DTW);
+            this->data->bestMatch = kNNResults.front();
+            data->bestMatch->setSegmentsAndMatchings();
+            this->data->mainLayerContext->dtwVariant = CLASSIC;
+            data->mainLayerContext->mousePos = {0.0f, 0.0f};
             precomputePathDeviation();
         }
         ImGui::SameLine();
         if (ImGui::RadioButton("Weighted", &selectedDtw, 1)) {
-            this->classic_dtw = false;
-            m_Context->classicDTW = false;
-            auto kNNResults = sharedData->currentAnalysis->getKClosestMatches(16, WDTW);
-            TrajectoryAnalysisManager *bestMatch = kNNResults.front();
-            bestMatch->updateDisplayRequirements();
+            auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile, WDTW);
+            this->data->mainLayerContext->dtwVariant = WEIGHTED;
+            data->bestMatch = kNNResults.front();
+            data->bestMatch->setSegmentsAndMatchings();
+            data->mainLayerContext->mousePos = {0.0f, 0.0f};
             precomputePathDeviation();
         }
-        if (m_Context->aligned) {
+        if (data->mainLayerContext->aligned) {
             ImGui::SameLine();
             ImGuiStyle *style = &ImGui::GetStyle();
             style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-            ImGui::Text(("Cost: " + std::to_string(classic_dtw ? m_Context->matching_algorithms[CDTW]->alignmentCost
-                                                               : m_Context->matching_algorithms[WEIGHTDTW]->alignmentCost)).c_str());
+            ImGui::Text(("Cost: " + std::to_string(
+                    data->bestMatch->matching_algorithms[data->mainLayerContext->dtwVariant]->alignmentCost)).c_str());
             ImGui::PopStyleColor();
         }
         ImGui::Checkbox("Show Heatmap", &showDiagram);
         if (showDiagram) {
-            m_Context->aligned = true;
+            data->mainLayerContext->aligned = true;
             drawDTWDiagram();
         }
     }
@@ -408,7 +303,8 @@ void ImGuiLayer::onRender() {
         ImGui::Begin("Visualizer for Motion Data");
 
         showCameraOptions();
-        ImGui::Checkbox("VSync", &m_Context->vsync);
+        ImGui::Checkbox("VSync", &data->mainLayerContext
+                ->vsync);
         ImGui::SameLine();
         ImGui::Text("%.1f FPS", ImGui::GetIO().Framerate);
         if (ImGui::CollapsingHeader("Motion Data Selection", ImGuiTreeNodeFlags_DefaultOpen)) {

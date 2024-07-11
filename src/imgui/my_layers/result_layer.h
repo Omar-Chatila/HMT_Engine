@@ -1,13 +1,13 @@
 #ifndef DISTANCEMEASURES_HMT_RESULT_LAYER_H
 #define DISTANCEMEASURES_HMT_RESULT_LAYER_H
 
-#include "../layer.h"
+#include "layer.h"
 #include "../layer_data.h"
 #include <imgui/imgui.h>
 
 class ResultLayer : public Layer {
 public:
-    explicit ResultLayer(SharedData *data);
+    explicit ResultLayer(Data *p_data);
 
     void onRender() override;
 
@@ -15,6 +15,7 @@ public:
 
 private:
     int currentSortIndex;
+    Data *data;
 };
 
 

@@ -184,7 +184,6 @@ float *Dtw::get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std
             S[CURRENT_INDEX] = func(inp_traj[i - 1], ref_traj[j - 1], AlgoSettings::getInstance().selected_joints);
         }
     }
-    //write_matrix_to_file(S, n + 1, m + 1, "costMatrix.txt");
     return S;
 }
 

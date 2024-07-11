@@ -14,6 +14,8 @@
         <option value="$PROJECT_DIR$/lib" />
         <option value="$PROJECT_DIR$/misc" />
         <option value="$PROJECT_DIR$/resources" />
+        <option value="$PROJECT_DIR$/benchmark-main" />
+        <option value="$PROJECT_DIR$/cmake-build-debug" />
       </list>
     </option>
   </component>

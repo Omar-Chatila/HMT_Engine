@@ -1,8 +1,7 @@
 #include "classifier_layer.h"
 
-ClassifierLayer::ClassifierLayer(SharedData *data) {
-    sharedData = data;
-    this->currentFrame = &DR::getI()->getContext()->c_frame;
+ClassifierLayer::ClassifierLayer(Data *p_data) : data(p_data) {
+    this->currentFrame = data->mainLayerContext->c_frame;
     this->is_continuous = true;
     ImGui::CreateContext();
     ImPlot::CreateContext();
@@ -23,12 +22,11 @@ void ClassifierLayer::onRender() {
 
 void ClassifierLayer::errorPlot() {
     ImGui::Checkbox("Continuous##", &this->is_continuous);
-    this->currentFrame = &DR::getI()->getContext()->c_frame;
-    std::vector<Frame> inp_frames = DR::getI()->getInp_frames();
-    int num_frames = DR::getI()->getContext()->classicDTW
-                     ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath.size() :
-                     DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath.size();
-    int c_t = *this->currentFrame;
+    this->currentFrame = data->mainLayerContext->c_frame;
+    std::vector<Frame> inp_frames = data->bestMatch->getInputFrames();
+    int num_frames = static_cast<int>(data->bestMatch->matching_algorithms[data->mainLayerContext->dtwVariant]->alignmentPath.size());
+
+    int c_t = this->currentFrame;
     static std::vector<float> x_data;
     static std::vector<std::vector<float>> y_data(ERROR_COUNT + 2, std::vector<float>());
 
@@ -37,12 +35,10 @@ void ClassifierLayer::errorPlot() {
         vec.resize(num_frames, 0.0f);
     }
 
-    int m = DR::getI()->getRef_frames().size();
+    int m = data->bestMatch->getRefFrames().size();
 
     for (int frame_idx = 0; frame_idx < num_frames; ++frame_idx) {
-        int align_index = DR::getI()->getContext()->classicDTW
-                          ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath[frame_idx] :
-                          DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath[frame_idx];
+        int align_index = data->bestMatch->matching_algorithms[data->mainLayerContext->dtwVariant]->alignmentPath[frame_idx];;
         int inp_index = align_index / (m + 1) - 1;
         x_data[frame_idx] = static_cast<float>(frame_idx);
         std::array<Vec3D, ERROR_COUNT> errors = inp_frames[inp_index].meta_info.parameters;
@@ -119,8 +115,8 @@ void ClassifierLayer::segmentPlot() {
     }
 
     static const char *politicians[] = {"Input", "Expert"};
-    std::array<int, 10> values = DR::getI()->getContext()->classicDTW ?
-                                 sharedData->alignedSegments : sharedData->wdtw_alignedSegments;
+    int variant = static_cast<int>(data->mainLayerContext->dtwVariant);
+    std::array<int, 10> values = data->bestMatch->matching_algorithms[variant]->squat_segments;
     static int data_reg[10];
     PrepareData(values, data_reg);
     static const char *labels_reg[] = {"Squat preparation", "Squat going down", "Squat is down", "Squat going up",
@@ -128,10 +124,9 @@ void ClassifierLayer::segmentPlot() {
 
     SetupPlot("Movement Segments aligned", politicians, data_reg, labels_reg, Liars);
 
-    int path_size = DR::getI()->getContext()->classicDTW
-                    ? DR::getI()->getContext()->matching_algorithms[CDTW]->alignmentPath.size() :
-                    DR::getI()->getContext()->matching_algorithms[WEIGHTDTW]->alignmentPath.size();
-    float progress = static_cast<float>(DR::getI()->getContext()->c_frame %
+    int path_size = data->bestMatch->matching_algorithms[data->mainLayerContext->dtwVariant]->alignmentPath.size();
+
+    float progress = static_cast<float>(data->mainLayerContext->c_frame %
                                         path_size) / path_size;
     ImGui::Dummy(ImVec2(50, 2));
     ImGui::SameLine();
@@ -146,8 +141,8 @@ void ClassifierLayer::segmentPlotUnAligned() {
     }
 
     static const char *politicians2[] = {"Input", "Expert"};
-    std::array<int, 5> in_values = sharedData->inp_segments;
-    std::array<int, 5> ref_values = sharedData->ref_segments;
+    std::array<int, 5> in_values = data->bestMatch->inpSegments;
+    std::array<int, 5> ref_values = data->bestMatch->refSegments;
     static int data_reg2[10];
     PrepareUnalignedData(in_values, ref_values, data_reg2);
     static const char *labels_reg2[] = {"Squat preparation", "Squat going down", "Squat is down", "Squat going up",
