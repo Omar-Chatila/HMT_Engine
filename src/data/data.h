@@ -95,7 +95,6 @@ public:
     MotionFileProcessor *motionFileProcessor;
     TrajectoryAnalysisManager *bestMatch;
     vector<motion_data> *motionInfo;
-    std::vector<TrajectoryInfo> trajectoryInfos;
 
     MainLayerContext *mainLayerContext;
     VPContext *refView;

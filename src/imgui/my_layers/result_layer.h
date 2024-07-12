@@ -4,6 +4,10 @@
 #include "layer.h"
 #include "../layer_data.h"
 #include <imgui/imgui.h>
+#include <Eigen/Dense>
+#include <cmath>
+#include <algorithm>
+#include <numeric>
 
 class ResultLayer : public Layer {
 public:

@@ -121,10 +121,10 @@ const std::unordered_map<MovementSegment, std::string> movementSegmentMap = {
 
 const std::unordered_map<ErrorPattern, std::string> errorPatternMap = {
         {ErrorPattern::TOO_DEEP,                      "too-deep"},
-        {ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT,  "feet-distance-not-sufficient"},
-        {ErrorPattern::INCORRECT_WEIGHT_DISTRIBUTION, "incorrect-weight-distribution"},
+        {ErrorPattern::FEET_DISTANCE_NOT_SUFFICIENT,  "feet-distance"},
+        {ErrorPattern::INCORRECT_WEIGHT_DISTRIBUTION, "weight-distribution"},
         {ErrorPattern::HIPS_DONT_START,               "hips-do-not-start"},
-        {ErrorPattern::WRONG_MOVEMENT_DYNAMICS,       "wrong-movement-dynamics"},
+        {ErrorPattern::WRONG_MOVEMENT_DYNAMICS,       "movement-dynamics"},
         {ErrorPattern::ARCHED_NECK,                   "arched_neck"},
         {ErrorPattern::HOLLOW_BACK,                   "hollow-back"},
         {ErrorPattern::KNEES_SIDEWAYS,                "knees-sideways"},

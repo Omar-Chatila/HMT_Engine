@@ -14,9 +14,9 @@ ClassifierLayer::~ClassifierLayer() {
 
 void ClassifierLayer::onRender() {
     ImGui::Begin("Errors");
-    errorPlot();
     segmentPlot();
     segmentPlotUnAligned();
+    errorPlot();
     ImGui::End();
 }
 
@@ -55,8 +55,7 @@ void ClassifierLayer::errorPlot() {
         ImPlot::SetupAxes("Time [ms]", "Values", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
         ImPlot::SetupAxisLimits(ImAxis_X1, 0, num_frames - 1, ImGuiCond_Always);
         ImPlot::SetupAxisLimits(ImAxis_Y1, -0.1f, 1.1f);
-        ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
-
+        ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
         for (int i = 0; i < ERROR_COUNT + 2; ++i) {
             std::string label = "";
             if (i < ERROR_COUNT)
@@ -70,7 +69,7 @@ void ClassifierLayer::errorPlot() {
 void SetupPlot(const char *title, const char *const *politicians, int *data_reg, const char *const *labels_reg,
                ImPlotColormap colormap) {
     ImPlot::PushColormap(colormap);
-    if (ImPlot::BeginPlot(title, ImVec2(1670, 200), ImPlotFlags_NoMouseText)) {
+    if (ImPlot::BeginPlot(title, ImVec2(-1, 100), ImPlotFlags_NoMouseText)) {
         ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
         ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_NoDecorations,
                           ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Invert);
@@ -130,7 +129,7 @@ void ClassifierLayer::segmentPlot() {
                                         path_size) / path_size;
     ImGui::Dummy(ImVec2(50, 2));
     ImGui::SameLine();
-    ImGui::ProgressBar(progress, ImVec2(1605, 2));
+    ImGui::ProgressBar(progress, ImVec2(-1, 2));
 }
 
 void ClassifierLayer::segmentPlotUnAligned() {

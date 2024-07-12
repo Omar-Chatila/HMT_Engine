@@ -9,6 +9,7 @@ TrajectoryAnalysisManager::TrajectoryAnalysisManager(std::string inputFile, std:
     this->refFrames = this->refTrajectories->getFrames();
     this->inputFrames = this->inputTrajectories->getFrames();
     analysis = new Trajectoy_analysis(*p_inputTrajectories, *p_refTrajectories);
+    srand(0);
 }
 
 TrajectoryAnalysisManager::~TrajectoryAnalysisManager() {
@@ -44,6 +45,8 @@ void TrajectoryAnalysisManager::performAnalysis() {
             settings.frechet_distance);
     algorithms_results[FRECHET_QUAT] = analysis->perform_FRECHET_Quat(
             settings.frechet_distance);
+    // TODO: Placeholder for LCDFM
+    algorithms_results[LC_FRECHET] = static_cast<float>(rand() % 10);
     algorithms_results[WDDTW] = std::get<float>(wddtw_alignment);
 }
 

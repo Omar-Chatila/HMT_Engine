@@ -76,8 +76,8 @@ void ImGuiLayer::drawDTWDiagram() {
     static ImPlotHeatmapFlags hm_flags = 0;
     ImPlot::PushColormap(map);
     if (ImPlot::BeginPlot("##Heatmap1", ImVec2(-1, -1), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Opposite,
-                          ImPlotAxisFlags_Invert); // No labels and no gridlines
+        ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_Opposite | ImPlotAxisFlags_AutoFit,
+                          ImPlotAxisFlags_Invert | ImPlotAxisFlags_AutoFit); // No labels and no gridlines
         if (selectedArray == 0) {
             ImPlot::PlotHeatmap("heat", values1.get(), n + 1, m + 1, scale_min, scale_max, nullptr, ImPlotPoint(0, 0),
                                 ImPlotPoint(m + 1, n + 1), hm_flags);
@@ -176,7 +176,7 @@ void ImGuiLayer::show_selectionTable() {
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoBordersInBody |
             ImGuiTableFlags_ScrollY;
 
-    if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 10 * 15), 0.0f)) {
+    if (ImGui::BeginTable("table_sorting", 10, flags, ImVec2(0.0f, 12 * 15), 0.0f)) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
         ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, 1);
         ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch, 0.0f,
@@ -233,24 +233,48 @@ void ImGuiLayer::show_DTW_Options() {
     if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("DTW Aligned", &data->mainLayerContext->aligned);
         static int selectedDtw = 0;
+        static const char *dtwOptions[] = {"Classic DTW", "Weighted DTW", "Weighted Derivative DTW"};
         ImGui::SameLine();
-        if (ImGui::RadioButton("Classic", &selectedDtw, 0)) {
-            auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile, DTW);
-            this->data->bestMatch = kNNResults.front();
-            data->bestMatch->setSegmentsAndMatchings();
-            this->data->mainLayerContext->dtwVariant = CLASSIC;
-            data->mainLayerContext->mousePos = {0.0f, 0.0f};
-            precomputePathDeviation();
+        ImGui::PushItemWidth(150.0f);
+        if (ImGui::Combo("##dtwVariant", &selectedDtw, dtwOptions, IM_ARRAYSIZE(dtwOptions))) {
+            switch (selectedDtw) {
+                case 0: // Classic
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    DTW);
+                    this->data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    this->data->mainLayerContext->dtwVariant = CLASSIC;
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    precomputePathDeviation();
+                }
+                    break;
+                case 1: // Weighted
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    WDTW);
+                    this->data->mainLayerContext->dtwVariant = WEIGHTED;
+                    data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    precomputePathDeviation();
+                }
+                    break;
+                case 2: // Weighted Derivative
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    WDDTW);
+                    this->data->mainLayerContext->dtwVariant = WEIGHTED_DERIVATIVE;
+                    data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    precomputePathDeviation();
+                }
+                    break;
+            }
         }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Weighted", &selectedDtw, 1)) {
-            auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile, WDTW);
-            this->data->mainLayerContext->dtwVariant = WEIGHTED;
-            data->bestMatch = kNNResults.front();
-            data->bestMatch->setSegmentsAndMatchings();
-            data->mainLayerContext->mousePos = {0.0f, 0.0f};
-            precomputePathDeviation();
-        }
+        ImGui::PopItemWidth();
+
         if (data->mainLayerContext->aligned) {
             ImGui::SameLine();
             ImGuiStyle *style = &ImGui::GetStyle();

@@ -1,5 +1,5 @@
 #include "result_layer.h"
-#include <algorithm> // For std::min_element and std::max_element
+#include "implot.h"
 
 ResultLayer::ResultLayer(Data *p_data) : data(p_data) {
     currentSortIndex = 0;
@@ -19,6 +19,70 @@ void ResultLayer::sortTrajectoryInfos() {
     }
 }
 
+float pearsonCorrelation(const std::vector<float> &x, const std::vector<float> &y) {
+    float mean_x = std::accumulate(x.begin(), x.end(), 0.0f) / static_cast<float>(x.size());
+    float mean_y = std::accumulate(y.begin(), y.end(), 0.0f) / static_cast<float>(y.size());
+
+    float numerator = 0.0f, denom_x = 0.0f, denom_y = 0.0f;
+    for (size_t i = 0; i < x.size(); ++i) {
+        numerator += (x[i] - mean_x) * (y[i] - mean_y);
+        denom_x += (x[i] - mean_x) * (x[i] - mean_x);
+        denom_y += (y[i] - mean_y) * (y[i] - mean_y);
+    }
+    IM_ASSERT(denom_x != 0.0f);
+    IM_ASSERT(denom_y != 0.0f);
+    return numerator / std::sqrt(denom_x * denom_y);
+}
+
+void calculateCorrelations(const std::vector<std::vector<float>> &costs, Eigen::MatrixXf &correlationMatrix) {
+    int algoCount = costs[0].size();
+    correlationMatrix.resize(algoCount, algoCount);
+
+    for (int i = 0; i < algoCount; ++i) {
+        for (int j = i; j < algoCount; ++j) {
+            std::vector<float> x, y;
+            for (const auto &cost: costs) {
+                x.push_back(cost[i]);
+                y.push_back(cost[j]);
+            }
+            float correlation = pearsonCorrelation(x, y);
+            correlationMatrix(i, j) = correlation;
+            correlationMatrix(j, i) = correlation;
+        }
+    }
+}
+
+void plotCorrelationMatrix(const Eigen::MatrixXf &correlationMatrix) {
+    const char *algorithmNames[] = {"DTW", "WDTW", "WDDTW", "EDR", "TWED", "FRECHET", "FRECHET_QUAT", "LC_FRECHET",
+                                    "LCSS"};
+    // cheap fix for reversed y-Axis...
+    const char *algorithmNames_r[] = {"LCSS", "LC_FRECHET", "FRECHET_QUAT", "FRECHET", "TWED", "EDR", "WDDTW", "WDTW",
+                                      "DTW"};
+
+    int numAlgorithms = correlationMatrix.cols();
+
+    if (ImPlot::BeginPlot("Correlation Matrix", ImVec2(-1, 0), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText)) {
+        ImPlot::SetupAxis(ImAxis_X1, "Algorithms", ImPlotAxisFlags_AutoFit);
+        ImPlot::SetupAxis(ImAxis_Y1, "Algorithms", ImPlotAxisFlags_AutoFit);
+
+        // Create tick positions
+        std::vector<double> positions(numAlgorithms);
+        for (int i = 0; i < numAlgorithms; ++i) {
+            positions[i] = i;
+        }
+
+        // Setup axis ticks with custom labels
+        ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), numAlgorithms, algorithmNames);
+        ImPlot::SetupAxisTicks(ImAxis_Y1, positions.data(), numAlgorithms, algorithmNames_r);
+
+        ImPlot::PushColormap(ImPlotColormap_Jet);
+        ImPlot::PlotHeatmap("Correlation", correlationMatrix.data(), correlationMatrix.rows(), correlationMatrix.cols(),
+                            -1.0f, 1.0f, "%.2f", ImPlotPoint(0, 0), ImPlotPoint(numAlgorithms - 1, numAlgorithms - 1));
+        ImPlot::PopColormap();
+
+        ImPlot::EndPlot();
+    }
+}
 
 void ResultLayer::onRender() {
     ImGui::Begin("Results");
@@ -112,5 +176,15 @@ void ResultLayer::onRender() {
 
         ImGui::EndTable();
     }
+
+    // Plot correlations
+    Eigen::MatrixXf correlationMatrix;
+    std::vector<std::vector<float>> costs;
+    for (const auto &info: data->motionFileProcessor->trajectoryInfos) {
+        costs.push_back(info.costs);
+    }
+    calculateCorrelations(costs, correlationMatrix);
+    plotCorrelationMatrix(correlationMatrix);
+    
     ImGui::End();
 }
