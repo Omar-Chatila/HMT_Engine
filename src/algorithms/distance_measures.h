@@ -5,7 +5,7 @@
 #include "util.h"
 
 enum Distances {
-    EUCLID, SQUARED_EUCLID, MANHATTAN, MINKOWSKI, MAX_NORM, MIN_DISTANCE,
+    QUATERNION, QUATERNION_WEIGHTED, EUCLID, SQUARED_EUCLID, MANHATTAN, MINKOWSKI, MAX_NORM, MIN_DISTANCE,
     CANBERRA_DISTANCE, SCALAR_PRODUCT, COSINE_SIMILARITY, COSINE_DISTANCE1,
     COSINE_DISTANCE2, HAMMING_DISTANCE
 };
@@ -59,7 +59,7 @@ inline float cosine_distance1(const Vec3D &a, const Vec3D &b) {
 }
 
 inline float cosine_distance2(const Vec3D &a, const Vec3D &b) {
-    return acos(cosine_similarity(a, b));
+    return std::acos(cosine_similarity(a, b));
 }
 
 inline float hamming_distance(const Vec3D &a, const Vec3D &b) {
@@ -73,6 +73,16 @@ quat_dist(const Quaternion *first, const Quaternion *second, const std::array<bo
     for (int i = 0; i < JOINT_COUNT; i++) {
         if (selectedJoints[i])
             distance += 1 - std::abs(first[i] * second[i]);
+    }
+    return distance;
+}
+
+inline float
+quat_dist_weighted(const Quaternion *first, const Quaternion *second,
+                   const std::array<float, JOINT_COUNT> joint_weights) {
+    float distance = 0.0f;
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        distance += joint_weights[i] * (1 - std::abs(first[i] * second[i]));
     }
     return distance;
 }

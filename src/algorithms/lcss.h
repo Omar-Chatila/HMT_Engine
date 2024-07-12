@@ -27,6 +27,11 @@ public:
     lcss(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon, float delta,
          std::function<float(const Quaternion *, const Quaternion *,
                              const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
+
+    static float
+    lcss(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon, float delta,
+         std::function<float(const Quaternion *, const Quaternion *,
+                             const std::array<float, JOINT_COUNT> &jWeights)> &func);
 };
 
 

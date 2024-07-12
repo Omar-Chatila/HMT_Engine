@@ -19,7 +19,11 @@ public:
 private:
     static void addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int s_y, bool &val);
 
-    void ShowAlgorithmSettings();
+    static void showAlgorithmSettings();
+
+    void applySettings();
+
+    static void jointParameters();
 
     std::vector<Joint::Type> selectedJoints;
 

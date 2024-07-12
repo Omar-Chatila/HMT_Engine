@@ -33,63 +33,146 @@ void addTooltip(const char *text) {
     }
 }
 
-void SetupLayer::onRender() {
-    ShowAlgorithmSettings();
-    AlgoSettings &settings = AlgoSettings::getInstance();
-    ImGui::Begin("Setup");
-    ImGui::SameLine();
-    // Display the image
-    ImGui::Image((void *) (intptr_t) my_image_texture, ImVec2(my_image_width, my_image_height));
-    // Get the position of the upper-left corner of the image
-    ImVec2 image_pos = ImGui::GetItemRectMin();
-    ImGui::SetCursorScreenPos({image_pos.x, image_pos.y});
-    if (ImGui::Button("All")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), true);
-    ImGui::SetCursorScreenPos({image_pos.x, image_pos.y + 25});
-    if (ImGui::Button("None")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), false);
-    const int midX = 100;
-    addCheckBox(image_pos, "skullbase", midX, 36, settings.selected_joints[Joint::skullbase]);
-    addTooltip("Skull base");
-    addCheckBox(image_pos, "r_shoulder", 56, 90, settings.selected_joints[Joint::r_shoulder]);
-    addTooltip("Right shoulder");
-    addCheckBox(image_pos, "r_sternoclavicular", 80, 80, settings.selected_joints[Joint::r_sternoclavicular]);
-    addTooltip("Right sternoclavicular joint");
-    addCheckBox(image_pos, "vc7", midX, 80, settings.selected_joints[Joint::vc7]);
-    addTooltip("Cervical vertebra 7");
-    addCheckBox(image_pos, "vt10", midX, 130, settings.selected_joints[Joint::vt10]);
-    addTooltip("Thoracic vertebra 10");
-    addCheckBox(image_pos, "vl5", midX, 195, settings.selected_joints[Joint::vl5]);
-    addTooltip("Lumbar vertebra 5");
-    addCheckBox(image_pos, "HumanoidRoot", midX, 220, settings.selected_joints[Joint::HumanoidRoot]);
-    addTooltip("Humanoid root");
-    addCheckBox(image_pos, "l_hip", midX + 30, 220, settings.selected_joints[Joint::l_hip]);
-    addTooltip("Left hip");
-    addCheckBox(image_pos, "r_hip", midX - 30, 220, settings.selected_joints[Joint::r_hip]);
-    addTooltip("Right hip");
-    addCheckBox(image_pos, "l_sternoclavicular", 120, 80, settings.selected_joints[Joint::l_sternoclavicular]);
-    addTooltip("Left sternoclavicular joint");
-    addCheckBox(image_pos, "l_shoulder", 144, 90, settings.selected_joints[Joint::l_shoulder]);
-    addTooltip("Left shoulder");
-    addCheckBox(image_pos, "r_elbow", 46, 161, settings.selected_joints[Joint::r_elbow]);
-    addTooltip("Right elbow");
-    addCheckBox(image_pos, "l_elbow", 154, 161, settings.selected_joints[Joint::l_elbow]);
-    addTooltip("Left elbow");
-    addCheckBox(image_pos, "r_wrist", 28, 215, settings.selected_joints[Joint::r_wrist]);
-    addTooltip("Right wrist");
-    addCheckBox(image_pos, "l_wrist", 172, 215, settings.selected_joints[Joint::l_wrist]);
-    addTooltip("Left wrist");
-    addCheckBox(image_pos, "r_knee", 69, 326, settings.selected_joints[Joint::r_knee]);
-    addTooltip("Right knee");
-    addCheckBox(image_pos, "l_knee", 131, 326, settings.selected_joints[Joint::l_knee]);
-    addTooltip("Left knee");
-    addCheckBox(image_pos, "r_ankle", 66, 430, settings.selected_joints[Joint::r_ankle]);
-    addTooltip("Right ankle");
-    addCheckBox(image_pos, "l_ankle", 134, 430, settings.selected_joints[Joint::l_ankle]);
-    addTooltip("Left ankle");
-    ImGui::End();
+void
+addSlider(const char *label, bool &is_visible, float &weight) {
+    if (is_visible) {
+        ImGui::PushItemWidth(100.0f);
+        ImGui::SliderFloat(label, &weight, 0.0f, 1.0f, "%.1f");
+        ImGui::PopItemWidth();
+    }
 }
 
-void SetupLayer::ShowAlgorithmSettings() {
-    const char *distanceOptions[] = {"EUCLID", "MANHATTAN", "CHEBYSHEV"};
+void SetupLayer::onRender() {
+    if (ImGui::Begin("Settings")) {
+        if (ImGui::BeginTabBar("SettingsTabBar")) {
+
+            if (ImGui::BeginTabItem("Algorithm Settings")) {
+                showAlgorithmSettings();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Joint Parameters")) {
+                jointParameters();
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
+        ImGui::End();
+    }
+    applySettings();
+}
+
+void SetupLayer::jointParameters() {
+    AlgoSettings &settings = AlgoSettings::getInstance();
+    if (ImGui::BeginChild("Joint Parameters Child")) {
+        ImGui::SameLine();
+        // Display the image
+        ImGui::Image((void *) (intptr_t) my_image_texture, ImVec2(my_image_width, my_image_height));
+        // Get the position of the upper-left corner of the image
+        ImVec2 image_pos = ImGui::GetItemRectMin();
+        ImGui::SetCursorScreenPos({image_pos.x, image_pos.y});
+        if (ImGui::Button("All")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), true);
+        ImGui::SetCursorScreenPos({image_pos.x, image_pos.y + 25});
+        if (ImGui::Button("None")) std::fill(settings.selected_joints.begin(), settings.selected_joints.end(), false);
+        const int midX = 100;
+        addCheckBox(image_pos, "skullbase", midX, 36, settings.selected_joints[Joint::skullbase]);
+        addTooltip("Skull base");
+        addCheckBox(image_pos, "r_shoulder", 56, 90, settings.selected_joints[Joint::r_shoulder]);
+        addTooltip("Right shoulder");
+        addCheckBox(image_pos, "r_sternoclavicular", 80, 80, settings.selected_joints[Joint::r_sternoclavicular]);
+        addTooltip("Right sternoclavicular joint");
+        addCheckBox(image_pos, "vc7", midX, 80, settings.selected_joints[Joint::vc7]);
+        addTooltip("Cervical vertebra 7");
+        addCheckBox(image_pos, "vt10", midX, 130, settings.selected_joints[Joint::vt10]);
+        addTooltip("Thoracic vertebra 10");
+        addCheckBox(image_pos, "vl5", midX, 195, settings.selected_joints[Joint::vl5]);
+        addTooltip("Lumbar vertebra 5");
+        addCheckBox(image_pos, "HumanoidRoot", midX, 220, settings.selected_joints[Joint::HumanoidRoot]);
+        addTooltip("Humanoid root");
+        addCheckBox(image_pos, "l_hip", midX + 30, 220, settings.selected_joints[Joint::l_hip]);
+        addTooltip("Left hip");
+        addCheckBox(image_pos, "r_hip", midX - 30, 220, settings.selected_joints[Joint::r_hip]);
+        addTooltip("Right hip");
+        addCheckBox(image_pos, "l_sternoclavicular", 120, 80, settings.selected_joints[Joint::l_sternoclavicular]);
+        addTooltip("Left sternoclavicular joint");
+        addCheckBox(image_pos, "l_shoulder", 144, 90, settings.selected_joints[Joint::l_shoulder]);
+        addTooltip("Left shoulder");
+        addCheckBox(image_pos, "r_elbow", 46, 161, settings.selected_joints[Joint::r_elbow]);
+        addTooltip("Right elbow");
+        addCheckBox(image_pos, "l_elbow", 154, 161, settings.selected_joints[Joint::l_elbow]);
+        addTooltip("Left elbow");
+        addCheckBox(image_pos, "r_wrist", 28, 215, settings.selected_joints[Joint::r_wrist]);
+        addTooltip("Right wrist");
+        addCheckBox(image_pos, "l_wrist", 172, 215, settings.selected_joints[Joint::l_wrist]);
+        addTooltip("Left wrist");
+        addCheckBox(image_pos, "r_knee", 69, 326, settings.selected_joints[Joint::r_knee]);
+        addTooltip("Right knee");
+        addCheckBox(image_pos, "l_knee", 131, 326, settings.selected_joints[Joint::l_knee]);
+        addTooltip("Left knee");
+        addCheckBox(image_pos, "r_ankle", 66, 430, settings.selected_joints[Joint::r_ankle]);
+        addTooltip("Right ankle");
+        addCheckBox(image_pos, "l_ankle", 134, 430, settings.selected_joints[Joint::l_ankle]);
+        addTooltip("Left ankle");
+        ImGui::Dummy({100.0f, 10.0f});
+
+        ImGui::SeparatorText("Spine");
+// Add sliders for spine joints
+        addSlider("Skullbase", settings.selected_joints[Joint::skullbase],
+                  settings.joint_weights[Joint::skullbase]);
+
+        addSlider("VL5", settings.selected_joints[Joint::vl5],
+                  settings.joint_weights[Joint::vl5]);
+        addSlider("VT10", settings.selected_joints[Joint::vt10],
+                  settings.joint_weights[Joint::vt10]);
+        addSlider("VC7", settings.selected_joints[Joint::vc7],
+                  settings.joint_weights[Joint::vc7]);
+
+        ImGui::SeparatorText("Left Arm");
+// Add sliders for left arm joints
+        addSlider("L_Sternoclavicular", settings.selected_joints[Joint::l_sternoclavicular],
+                  settings.joint_weights[Joint::l_sternoclavicular]);
+        addSlider("L_Shoulder", settings.selected_joints[Joint::l_shoulder],
+                  settings.joint_weights[Joint::l_shoulder]);
+        addSlider("L_Elbow", settings.selected_joints[Joint::l_elbow],
+                  settings.joint_weights[Joint::l_elbow]);
+        addSlider("L_Wrist", settings.selected_joints[Joint::l_wrist],
+                  settings.joint_weights[Joint::l_wrist]);
+
+        ImGui::SeparatorText("Right Arm");
+// Add sliders for right arm joints
+        addSlider("R_Sternoclavicular", settings.selected_joints[Joint::r_sternoclavicular],
+                  settings.joint_weights[Joint::r_sternoclavicular]);
+        addSlider("R_Shoulder", settings.selected_joints[Joint::r_shoulder],
+                  settings.joint_weights[Joint::r_shoulder]);
+        addSlider("R_Elbow", settings.selected_joints[Joint::r_elbow],
+                  settings.joint_weights[Joint::r_elbow]);
+        addSlider("R_Wrist", settings.selected_joints[Joint::r_wrist],
+                  settings.joint_weights[Joint::r_wrist]);
+
+        ImGui::SeparatorText("Left Leg");
+// Add sliders for left leg joints
+        addSlider("L_Hip", settings.selected_joints[Joint::l_hip],
+                  settings.joint_weights[Joint::l_hip]);
+        addSlider("L_Knee", settings.selected_joints[Joint::l_knee],
+                  settings.joint_weights[Joint::l_knee]);
+        addSlider("L_Ankle", settings.selected_joints[Joint::l_ankle],
+                  settings.joint_weights[Joint::l_ankle]);
+
+        ImGui::SeparatorText("Right Leg");
+// Add sliders for right leg joints
+        addSlider("R_Hip", settings.selected_joints[Joint::r_hip],
+                  settings.joint_weights[Joint::r_hip]);
+        addSlider("R_Knee", settings.selected_joints[Joint::r_knee],
+                  settings.joint_weights[Joint::r_knee]);
+        addSlider("R_Ankle", settings.selected_joints[Joint::r_ankle],
+                  settings.joint_weights[Joint::r_ankle]);
+    }
+    ImGui::EndChild();
+}
+
+void SetupLayer::showAlgorithmSettings() {
+    const char *distanceOptions[] = {"QUATERNION", "WEIGHTED_QUATERNION", "CHEBYSHEV"};
     static int distanceMetric = 0;
     static int wdtw_distanceMetric = 0;
     static int wddtw_distanceMetric = 0;
@@ -100,7 +183,7 @@ void SetupLayer::ShowAlgorithmSettings() {
 
     AlgoSettings &settings = AlgoSettings::getInstance();
 
-    if (ImGui::Begin("Algorithm Settings")) {
+    if (ImGui::BeginChild("Algorithm Settings Child")) {
         // DTW
         ImGui::Separator();
         ImGui::Text("DTW Settings");
@@ -163,27 +246,37 @@ void SetupLayer::ShowAlgorithmSettings() {
         ImGui::Text("FRECHET Settings");
         ImGui::Combo("##frechet", &frechet_distanceMetric, distanceOptions, IM_ARRAYSIZE(distanceOptions));
         settings.frechet_distance = static_cast<Distances>(frechet_distanceMetric);
-
-        ImGui::Separator();
-        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4) ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4) ImColor::HSV(4 / 7.0f, 0.8f, 0.8f));
-        if (ImGui::Button("Apply Settings")) {
-            auto motionFileProcessor = data->motionFileProcessor;
-            auto currentFile = data->bestMatch->inputFile;
-            data->motionFileProcessor->processInputFile(data->bestMatch->inputFile);
-            auto knnResults = motionFileProcessor->getKClosestMatches(16, currentFile,
-                                                                      data->dtwMap[data->mainLayerContext->dtwVariant]);
-            data->bestMatch = knnResults.front();
-            data->mainLayerContext->reference_file = data->bestMatch->refFile;
-            data->mainLayerContext->input_file = data->bestMatch->inputFile;
-            data->bestMatch->setSegmentsAndMatchings();
-            data->mainLayerContext->mousePos = {0.0f, 0.0f};
-            precomputePathDeviation();
-        }
-        ImGui::PopStyleColor(3);
-        ImGui::End();
+        ImGui::EndChild();
     }
+}
+
+void SetupLayer::applySettings() {
+    ImGui::Begin("Apply");
+    AlgoSettings &settings = AlgoSettings::getInstance();
+    for (int i = 0; i < JOINT_COUNT; i++) {
+        if (!settings.selected_joints[i]) {
+            settings.joint_weights[i] = 0.0f;
+        }
+    }
+    ImGui::Separator();
+    ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4) ImColor::HSV(4 / 7.0f, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4) ImColor::HSV(4 / 7.0f, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4) ImColor::HSV(4 / 7.0f, 0.8f, 0.8f));
+    if (ImGui::Button("Apply Settings")) {
+        auto motionFileProcessor = data->motionFileProcessor;
+        auto currentFile = data->bestMatch->inputFile;
+        data->motionFileProcessor->processInputFile(data->bestMatch->inputFile);
+        auto knnResults = motionFileProcessor->getKClosestMatches(16, currentFile,
+                                                                  data->dtwMap[data->mainLayerContext->dtwVariant]);
+        data->bestMatch = knnResults.front();
+        data->mainLayerContext->reference_file = data->bestMatch->refFile;
+        data->mainLayerContext->input_file = data->bestMatch->inputFile;
+        data->bestMatch->setSegmentsAndMatchings();
+        data->mainLayerContext->mousePos = {0.0f, 0.0f};
+        precomputePathDeviation();
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::End();
 }
 
 void SetupLayer::addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int s_y, bool &checkbox_value) {
@@ -192,5 +285,3 @@ void SetupLayer::addCheckBox(ImVec2 &image_pos, const char *label, int s_x, int 
     std::string checkbox_label = std::string("##box") + label;
     ImGui::Checkbox(checkbox_label.c_str(), &checkbox_value);
 }
-
-

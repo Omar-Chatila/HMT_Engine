@@ -52,8 +52,6 @@ public:
 
     void processInputFile(const std::string &input);
 
-    void updateTrajectoryManagers();
-
     std::vector<TrajectoryAnalysisManager *>
     getKClosestMatches(int k, const std::string &input, enum Algorithm algorithm);
 

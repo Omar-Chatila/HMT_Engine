@@ -16,6 +16,7 @@ public:
     void operator=(const AlgoSettings &) = delete;
 
     std::array<bool, JOINT_COUNT> selected_joints{};
+    std::array<float, JOINT_COUNT> joint_weights{};
 
     Distances dtw_distance;
 
@@ -42,15 +43,15 @@ public:
     Distances frechet_distance;
 
 private:
-    // Private constructor to prevent instantiation
     AlgoSettings()
-            : dtw_distance(Distances::EUCLID), edr_epsilon(0.3f), edr_distance(Distances::EUCLID),
-              wdtw_g(0.005f), wdtw_w_max(1.0f), wdtw_distance(Distances::EUCLID),
-              wddtw_g(0.005f), wddtw_w_max(1.0f), wddtw_distance(Distances::EUCLID),
-              twed_nu(0.3f), twed_lambda(1.0f), twed_distance(Distances::EUCLID),
-              lcss_epsilon(0.3f), lcss_delta(5.0f), lcss_distance(Distances::EUCLID),
-              frechet_distance(Distances::EUCLID) {
+            : dtw_distance(Distances::QUATERNION), edr_epsilon(0.3f), edr_distance(Distances::QUATERNION),
+              wdtw_g(0.005f), wdtw_w_max(1.0f), wdtw_distance(Distances::QUATERNION),
+              wddtw_g(0.005f), wddtw_w_max(1.0f), wddtw_distance(Distances::QUATERNION),
+              twed_nu(0.3f), twed_lambda(1.0f), twed_distance(Distances::QUATERNION),
+              lcss_epsilon(0.3f), lcss_delta(5.0f), lcss_distance(Distances::QUATERNION),
+              frechet_distance(Distances::QUATERNION) {
         std::fill(selected_joints.begin(), selected_joints.end(), true);
+        std::fill(joint_weights.begin(), joint_weights.end(), 1.0f);
     }
 };
 

@@ -18,6 +18,10 @@ public:
     static float frechet(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF,
                          std::function<float(const Quaternion *, const Quaternion *,
                                              const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
+
+    static float frechet(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF,
+                         std::function<float(const Quaternion *, const Quaternion *,
+                                             const std::array<float, JOINT_COUNT> &jWeights)> &func);
 };
 
 

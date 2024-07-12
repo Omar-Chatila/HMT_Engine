@@ -21,14 +21,14 @@ void TrajectoryAnalysisManager::performAnalysis() {
     AlgoSettings &settings = AlgoSettings::getInstance();
     alignment = analysis->perform_DTW(
             inputTrajectories->get_anglesTrajectories(),
-            refTrajectories->get_anglesTrajectories(), EUCLID);
+            refTrajectories->get_anglesTrajectories(), settings.dtw_distance);
     IM_ASSERT(!std::get<1>(alignment).empty());
     wdtw_alignment = analysis->perform_WDTW(inputTrajectories->get_anglesTrajectories(),
                                             refTrajectories->get_anglesTrajectories(), settings.wdtw_g,
-                                            settings.wdtw_w_max, EUCLID);
+                                            settings.wdtw_w_max, settings.wdtw_distance);
     wddtw_alignment = analysis->perform_WDDTW(inputTrajectories->get_anglesTrajectories(),
                                               refTrajectories->get_anglesTrajectories(), settings.wddtw_g,
-                                              settings.wddtw_w_max, EUCLID);
+                                              settings.wddtw_w_max, settings.wddtw_distance);
 
     algorithms_results[DTW] = std::get<0>(alignment);
     algorithms_results[WDTW] = std::get<float>(wdtw_alignment);

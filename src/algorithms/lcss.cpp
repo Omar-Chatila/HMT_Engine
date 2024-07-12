@@ -39,3 +39,25 @@ LCSS::lcss(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *
     delete[] L;
     return result;
 }
+
+float
+LCSS::lcss(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon, float delta,
+           std::function<float(const Quaternion *, const Quaternion *,
+                               const std::array<float, JOINT_COUNT> &jWeights)> &func) {
+    size_t n = inpF.size();
+    size_t m = refF.size();
+    auto *L = new float[(n + 1) * (m + 1)]();
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            if (static_cast<float>(std::abs(i - j)) <= delta &&
+                func(inpF[i - 1], refF[j - 1], AlgoSettings::getInstance().joint_weights) < epsilon) {
+                L[INDEX(i, j)] = 1 + L[INDEX(i - 1, j - 1)];
+            } else {
+                L[INDEX(i, j)] = std::max(L[INDEX(i - 1, j)], L[INDEX(i, j - 1)]);
+            }
+        }
+    }
+    float result = L[INDEX(n, m)];
+    delete[] L;
+    return result;
+}

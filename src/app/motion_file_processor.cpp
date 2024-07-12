@@ -93,13 +93,6 @@ void MotionFileProcessor::processInputFile(const std::string &input) {
     }
 }
 
-void MotionFileProcessor::updateTrajectoryManagers() {
-    for (auto &manager: trajectoryManagers) {
-        manager.second->performAnalysis();
-        manager.second->setSegmentsAndMatchings();
-    }
-}
-
 std::vector<TrajectoryAnalysisManager *>
 MotionFileProcessor::getKClosestMatches(int k, const std::string &input, Algorithm algorithm) {
     std::string inputFile = adjustString(input);

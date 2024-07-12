@@ -12,13 +12,19 @@ using std::pair, std::vector;
 class EditDistance {
 
 private:
-    static bool match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D &, const Vec3D &)> func);
+    static bool
+    match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D &, const Vec3D &)> &func);
 
-    static bool match(Vec3D *vec1, Vec3D *vec2, float epsilon, std::function<float(const Vec3D *, const Vec3D *)> func);
+    static bool
+    match(Vec3D *vec1, Vec3D *vec2, float epsilon, std::function<float(const Vec3D *, const Vec3D *)> &func);
 
     static bool
     match(Quaternion *vec1, Quaternion *vec2, float epsilon, std::function<float(const Quaternion *, const Quaternion *,
                                                                                  const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
+
+    static bool
+    match(Quaternion *vec1, Quaternion *vec2, float epsilon, std::function<float(const Quaternion *, const Quaternion *,
+                                                                                 const std::array<float, JOINT_COUNT> &selectedJ)> &func);
 
 public:
     // Edit distance on real sequences
@@ -32,13 +38,21 @@ public:
                      std::function<float(const Quaternion *, const Quaternion *,
                                          const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
 
+    static float edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon,
+                     std::function<float(const Quaternion *, const Quaternion *,
+                                         const std::array<float, JOINT_COUNT> &selectedJ)> &func);
+
     // lambda := Penalty for deletion operation
     // nu     := Elasticity parameter - nu >=0 needed for distance measure
     static float
     twed(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float nu, float lambda,
          std::function<float(const Quaternion *, const Quaternion *,
                              const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
-    // Time warp edit distance (todo)
+
+    static float
+    twed(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float nu, float lambda,
+         std::function<float(const Quaternion *, const Quaternion *,
+                             const std::array<float, JOINT_COUNT> &selectedJ)> &func);
 };
 
 #endif
