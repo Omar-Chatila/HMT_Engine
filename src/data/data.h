@@ -96,6 +96,11 @@ public:
     TrajectoryAnalysisManager *bestMatch;
     vector<motion_data> *motionInfo;
 
+    int c_ref_frame;
+    int c_inp_frame;
+    int c_ref_frame_aligned;
+    int c_inp_frame_aligned;
+
     MainLayerContext *mainLayerContext;
     VPContext *refView;
     VPContext *inputView;
@@ -104,6 +109,8 @@ private:
     const char *squats_info = R"(..\resources\squats_subject_info.csv)";
 
     Data(MotionFileProcessor *p_mfp, TrajectoryAnalysisManager *p_bm) : motionFileProcessor(p_mfp), bestMatch(p_bm) {
+        c_inp_frame = c_ref_frame = 0;
+        c_ref_frame_aligned = c_inp_frame_aligned = 0;
         mainLayerContext = new MainLayerContext(p_bm->inputFile, p_bm->refFile);
         motionInfo = motion_info(squats_info);
         refView = new VPContext(ImVec4{0.55f, 0.35f, 0.60f, 0.80f}, glm::vec3{-1.1f, 0.8f, 0.0f},

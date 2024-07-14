@@ -135,8 +135,8 @@ int Renderer::display() {
     int lastRefIndex = -1;
 
     while (!glfwWindowShouldClose(window)) {
-        int width = 1600;
-        int height = 900;
+        int width = 1920;
+        int height = 1080;
         glfwGetWindowSize(window, &width, &height);
         glfwSwapInterval(data->mainLayerContext->vsync);
 
@@ -188,6 +188,8 @@ int Renderer::display() {
             int m = ref_frms.size();
             int in = mapping / (m + 1) - 1;
             int ref = mapping % (m + 1) - 1;
+            data->c_ref_frame_aligned = ref;
+            data->c_inp_frame_aligned = in;
             data->mainLayerContext->inpPaused = lastInpIndex == in;
             data->mainLayerContext->refPaused = lastRefIndex == ref;
             lastInpIndex = in;
@@ -202,8 +204,10 @@ int Renderer::display() {
             map_index++;
 
         } else {
-            update_SpherePos_noAlign(ref_frms[current_frame % ref_frms.size()],
-                                     in_frms[current_frame % in_frms.size()]);
+            data->c_ref_frame = static_cast<int>(current_frame % ref_frms.size());
+            data->c_inp_frame = static_cast<int>(current_frame % in_frms.size());
+            update_SpherePos_noAlign(ref_frms[data->c_ref_frame],
+                                     in_frms[data->c_inp_frame]);
         }
         current_frame++;
         //draw_objects(projection, view, sphere, sphereShader);

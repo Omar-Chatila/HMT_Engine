@@ -1,6 +1,9 @@
 #include "imgui_layer.h"
 #include <imgui/implot.h>
 #include <imgui/implot_internal.h>
+#include "imgui/spinner.h"
+#include "imgui/imgui_neo_sequencer.h"
+#include "imgui/imgui_neo_sequencer.h"
 #include "motion_file_processor.h"
 #include <fstream>
 #include <thread>
@@ -12,6 +15,7 @@
 ImGuiLayer::ImGuiLayer(Data *p_data) : data(p_data) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
+    mode = AUTO;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     squat_sampleSize = this->data->motionInfo->size() - 16;
     precomputePathDeviation();
@@ -99,7 +103,6 @@ void ImGuiLayer::drawDTWDiagram() {
         ImVec2 plot_size = ImPlot::GetPlotSize();
         ImVec2 mouse_pos = ImPlot::PlotToPixels(mousePos);
 
-        static int mode = AUTO;
         if (ImGui::RadioButton("Auto", &mode, 0)) {
             mode = AUTO;
         }
@@ -169,6 +172,14 @@ void ImGuiLayer::showCameraOptions() {
 }
 
 void ImGuiLayer::show_selectionTable() {
+/*  Loading spinner example
+    const ImU32 col = ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    const ImU32 bg = ImGui::GetColorU32(ImGuiCol_Button);
+
+    ImGui::Spinner("##spinner", 15, 6, col);
+    ImGui::BufferingBar("##buffer_bar", 0.7f, ImVec2(400, 6), bg, col);
+    */
+
     // Options
     static ImGuiTableFlags flags =
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
@@ -337,4 +348,45 @@ void ImGuiLayer::onRender() {
         show_DTW_Options();
         ImGui::End();
     }
+    inputProcessIndicator();
+    referenceProcessIndicator();
+}
+
+void ImGuiLayer::inputProcessIndicator() {
+    ImGui::Begin("Input Progress Indicator");
+    int32_t currentFrame;
+    if (mode == PICK)
+        currentFrame = data->mainLayerContext->mousePos.second;
+    else if (data->mainLayerContext->aligned)
+        currentFrame = data->c_inp_frame_aligned;
+    else
+        currentFrame = data->c_inp_frame;
+    int32_t startFrame = 0;
+    int32_t endFrame = static_cast<int32_t >(data->bestMatch->getInputFrames().size());
+
+    if (ImGui::BeginNeoSequencer("Sequencer1##324", &currentFrame, &startFrame, &endFrame)) {
+        // Timeline code here
+        ImGui::EndNeoSequencer();
+    }
+    ImGui::End();
+}
+
+void ImGuiLayer::referenceProcessIndicator() {
+    ImGui::Begin("Progress Indicators");
+    int32_t currentFrame;
+    if (mode == PICK)
+        currentFrame = data->mainLayerContext->mousePos.first;
+    else if (data->mainLayerContext->aligned)
+        currentFrame = data->c_ref_frame_aligned;
+    else
+        currentFrame = data->c_ref_frame;
+
+    int32_t startFrame = 0;
+    int32_t endFrame = static_cast<int32_t >(data->bestMatch->getRefFrames().size());
+
+    if (ImGui::BeginNeoSequencer("Sequencer2##34", &currentFrame, &startFrame, &endFrame)) {
+        // Timeline code here
+        ImGui::EndNeoSequencer();
+    }
+    ImGui::End();
 }

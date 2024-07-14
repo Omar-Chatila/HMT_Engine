@@ -26,6 +26,10 @@ public:
 
     void onRender() override;
 
+    void inputProcessIndicator();
+
+    void referenceProcessIndicator();
+
     void changeInputFile(int p_selected_index);
 
 private:
@@ -33,5 +37,6 @@ private:
     bool showDiagram = false;
     size_t squat_sampleSize;
     int selected_index = -1;
+    int mode;
     Data *data;
 };

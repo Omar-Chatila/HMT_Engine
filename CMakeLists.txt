@@ -49,6 +49,8 @@ set(LIBS_SOURCES
         imgui/example_implot.cpp
         imgui/implot_demo.cpp
         misc/cpp/imgui_stdlib.cpp
+        include/imgui/imgui_neo_sequencer.cpp
+        include/imgui/imgui_neo_internal.cpp
 )
 
 # Create the executable target
