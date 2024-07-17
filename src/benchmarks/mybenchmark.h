@@ -8,9 +8,10 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include "distance_functions.h"
 #include "../misc/util.h"
 #include "../parsing/input_parser.h"
-#include "../algorithms/dtw.h"
+#include "../algorithms/dtw/dtw.h"
 #include "../algorithms/lcss.h"
 #include "../algorithms/frechet.h"
 #include "../algorithms/edit_distance.h"

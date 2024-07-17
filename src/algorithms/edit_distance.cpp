@@ -2,6 +2,9 @@
 #include "defines.h"
 #include "algo_settings.h"
 
+#define JOINT_WEIGHTS AlgoSettings::getInstance().joint_weights
+#define JOINT_SELECTION AlgoSettings::getInstance().selected_joints
+
 bool
 EditDistance::match(Vec3D &vec1, Vec3D &vec2, float epsilon, std::function<float(const Vec3D &, const Vec3D &)> &func) {
     return func(vec1, vec2) < epsilon;
@@ -15,17 +18,17 @@ EditDistance::match(Vec3D *vec1, Vec3D *vec2, float epsilon, std::function<float
 bool EditDistance::match(Quaternion *vec1, Quaternion *vec2, float epsilon,
                          std::function<float(const Quaternion *, const Quaternion *,
                                              const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
-    return func(vec1, vec2, AlgoSettings::getInstance().selected_joints) < epsilon;
+    return func(vec1, vec2, JOINT_SELECTION) < epsilon;
 }
 
 bool EditDistance::match(Quaternion *vec1, Quaternion *vec2, float epsilon,
                          std::function<float(const Quaternion *, const Quaternion *,
                                              const std::array<float, JOINT_COUNT> &selectedJ)> &func) {
-    return func(vec1, vec2, AlgoSettings::getInstance().joint_weights) < epsilon;
+    return func(vec1, vec2, JOINT_WEIGHTS) < epsilon;
 }
 
-float EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float epsilon,
-                        std::function<float(const Vec3D &, const Vec3D &)> func) {
+int EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float epsilon,
+                      std::function<float(const Vec3D &, const Vec3D &)> func) {
     const int n = size_v1;
     const int m = size_v2;
 
@@ -48,15 +51,15 @@ float EditDistance::edr(Vec3D *v1, Vec3D *v2, int size_v1, int size_v2, float ep
                          + std::min({S[above], S[left], S[diag_left]});
         }
     }
-    float result = S[(n + 1) * (m + 1) - 1];
+    int result = S[(n + 1) * (m + 1) - 1];
     delete[] S;
     return result;
 }
 
-float EditDistance::edr(const std::vector<Vec3D *> &inpF, const std::vector<Vec3D *> &refF, float epsilon,
-                        std::function<float(const Vec3D *, const Vec3D *)> func) {
-    const int n = inpF.size();
-    const int m = refF.size();
+int EditDistance::edr(const std::vector<Vec3D *> &inpF, const std::vector<Vec3D *> &refF, float epsilon,
+                      std::function<float(const Vec3D *, const Vec3D *)> func) {
+    const size_t n = inpF.size();
+    const size_t m = refF.size();
     auto *S = new int[(n + 1) * (m + 1)];
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
@@ -77,16 +80,16 @@ float EditDistance::edr(const std::vector<Vec3D *> &inpF, const std::vector<Vec3
         }
     }
 
-    float result = S[(n + 1) * (m + 1) - 1];
+    int result = S[(n + 1) * (m + 1) - 1];
     delete[] S;
     return result;
 }
 
-float EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon,
-                        std::function<float(const Quaternion *, const Quaternion *,
-                                            const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
-    const int n = inpF.size();
-    const int m = refF.size();
+int EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon,
+                      std::function<float(const Quaternion *, const Quaternion *,
+                                          const std::array<bool, JOINT_COUNT> &selectedJ)> &func) {
+    const size_t n = inpF.size();
+    const size_t m = refF.size();
     auto *S = new int[(n + 1) * (m + 1)];
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
@@ -107,16 +110,16 @@ float EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector
         }
     }
 
-    float result = S[(n + 1) * (m + 1) - 1];
+    int result = S[(n + 1) * (m + 1) - 1];
     delete[] S;
     return result;
 }
 
-float EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon,
-                        std::function<float(const Quaternion *, const Quaternion *,
-                                            const std::array<float, JOINT_COUNT> &selectedJ)> &func) {
-    const int n = inpF.size();
-    const int m = refF.size();
+int EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector<Quaternion *> &refF, float epsilon,
+                      std::function<float(const Quaternion *, const Quaternion *,
+                                          const std::array<float, JOINT_COUNT> &selectedJ)> &func) {
+    const size_t n = inpF.size();
+    const size_t m = refF.size();
     auto *S = new int[(n + 1) * (m + 1)];
     S[0] = 0;
     for (int i = 1; i <= n; ++i) {
@@ -137,7 +140,7 @@ float EditDistance::edr(const std::vector<Quaternion *> &inpF, const std::vector
         }
     }
 
-    float result = S[(n + 1) * (m + 1) - 1];
+    int result = S[(n + 1) * (m + 1) - 1];
     delete[] S;
     return result;
 }
@@ -182,22 +185,22 @@ float EditDistance::twed(const std::vector<Quaternion *> &inpF, const std::vecto
     for (unsigned int j = 1; j < arr2_lgt; j++) {
         for (unsigned int i = 1; i < arr1_lgt; i++) {
             float del_a = D[INDEX(i - 1, j)]
-                          + func(inpF[i - 1], inpF[i], AlgoSettings::getInstance().selected_joints)
+                          + func(inpF[i - 1], inpF[i], JOINT_SELECTION)
                           + nu
                           + lambda;
             float del_b = D[INDEX(i, j - 1)]
-                          + func(refF[j - 1], refF[j], AlgoSettings::getInstance().selected_joints)
+                          + func(refF[j - 1], refF[j], JOINT_SELECTION)
                           + nu
                           + lambda;
             float match = D[INDEX(i - 1, j - 1)]
-                          + func(inpF[i], refF[j], AlgoSettings::getInstance().selected_joints)
-                          + func(inpF[i - 1], refF[j - 1], AlgoSettings::getInstance().selected_joints)
+                          + func(inpF[i], refF[j], JOINT_SELECTION)
+                          + func(inpF[i - 1], refF[j - 1], JOINT_SELECTION)
                           + nu * (std::fabs(i - j) + std::fabs(i - 1 - (j - 1)));
 
-            D[INDEX(i, j)] = fmin(match, fmin(del_a, del_b));
+            D[INDEX(i, j)] = std::min({match, del_a, del_b});
         }
     }
-    double ret = D[INDEX(arr1_lgt - 1, arr2_lgt - 1)];
+    float ret = D[INDEX(arr1_lgt - 1, arr2_lgt - 1)];
     free(D);
     return ret;
 }
@@ -218,22 +221,22 @@ float EditDistance::twed(const std::vector<Quaternion *> &inpF, const std::vecto
     for (unsigned int j = 1; j < arr2_lgt; j++) {
         for (unsigned int i = 1; i < arr1_lgt; i++) {
             float del_a = D[INDEX(i - 1, j)]
-                          + func(inpF[i - 1], inpF[i], AlgoSettings::getInstance().joint_weights)
+                          + func(inpF[i - 1], inpF[i], JOINT_WEIGHTS)
                           + nu
                           + lambda;
             float del_b = D[INDEX(i, j - 1)]
-                          + func(refF[j - 1], refF[j], AlgoSettings::getInstance().joint_weights)
+                          + func(refF[j - 1], refF[j], JOINT_WEIGHTS)
                           + nu
                           + lambda;
             float match = D[INDEX(i - 1, j - 1)]
-                          + func(inpF[i], refF[j], AlgoSettings::getInstance().joint_weights)
-                          + func(inpF[i - 1], refF[j - 1], AlgoSettings::getInstance().joint_weights)
+                          + func(inpF[i], refF[j], JOINT_WEIGHTS)
+                          + func(inpF[i - 1], refF[j - 1], JOINT_WEIGHTS)
                           + nu * (std::fabs(i - j) + std::fabs(i - 1 - (j - 1)));
 
-            D[INDEX(i, j)] = fmin(match, fmin(del_a, del_b));
+            D[INDEX(i, j)] = std::min({match, del_a, del_b});
         }
     }
-    double ret = D[INDEX(arr1_lgt - 1, arr2_lgt - 1)];
+    float ret = D[INDEX(arr1_lgt - 1, arr2_lgt - 1)];
     free(D);
     return ret;
 }

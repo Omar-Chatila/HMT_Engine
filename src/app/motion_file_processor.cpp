@@ -1,4 +1,5 @@
 #include "motion_file_processor.h"
+#include <imgui.h>
 
 MotionFileProcessor::MotionFileProcessor(Activity p_activity) : activity(p_activity) {
     initFileLocations();

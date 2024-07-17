@@ -1,6 +1,6 @@
 SRCS := $(shell find ../parsing ../misc ../algorithms -name '*.cpp')
 OBJS := $(SRCS:.cpp=.o)
-INCLUDES := -I../parsing -I../misc -I../app -I../algorithms
+INCLUDES := -I../parsing -I../misc -I../app -I../algorithms -I../algorithms/dtw -I../data
 
 CXXFLAGS = -O3 -DNDEBUG -std=c++23
 LDFLAGS = -isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread

@@ -1,5 +1,5 @@
 #include "trajectory_analysis_manager.h"
-
+#include <imgui.h>
 #include <utility>
 
 TrajectoryAnalysisManager::TrajectoryAnalysisManager(std::string inputFile, std::string refFile,

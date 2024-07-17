@@ -7,7 +7,6 @@
 #include <functional>
 #include "distance_measures.h"
 #include "algo_settings.h"
-#include "imgui.h"
 
 #define INDEX(x, y) ((x)* (m + 1) + (y))
 #define INDEX2(x, y, M) ((x) * (M + 3) + (y))

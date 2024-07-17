@@ -7,8 +7,8 @@
 #define STEP1 500
 #define STEP2 500
 
-#define END1 7000
-#define END2 7000
+#define END1 3000
+#define END2 3000
 #define ITERATIONS 10
 
 class MotionFileFixture : public benchmark::Fixture {
@@ -52,7 +52,7 @@ BENCHMARK_DEFINE_F(MotionFileFixture, DTW_Execution)(benchmark::State &state) {
     std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
 
     for (auto _: state) {
-        float *res = Dtw::dtw(v1, v2, quat_dist);
+        float *res = Dtw::dtw(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
         free(res);
     }
@@ -76,7 +76,7 @@ BENCHMARK_DEFINE_F(MotionFileFixture, LCSS_Execution)(benchmark::State &state) {
     std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
 
     for (const auto _: state) {
-        float res = LCSS::lcss(v1, v2, 0.3f, 5.0f, quat_dist);
+        float res = LCSS::lcss(v1, v2, 0.3f, 5.0f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
 }
@@ -99,7 +99,7 @@ BENCHMARK_DEFINE_F(MotionFileFixture, FRECHET_Execution)(benchmark::State &state
     std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
 
     for (const auto _: state) {
-        float res = Frechet::frechet(v1, v2, quat_dist);
+        float res = Frechet::frechet(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
 }
@@ -122,7 +122,7 @@ BENCHMARK_DEFINE_F(MotionFileFixture, EDR_Execution)(benchmark::State &state) {
     std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
 
     for (const auto _: state) {
-        float res = EditDistance::edr(v1, v2, 0.3f, quat_dist);
+        float res = EditDistance::edr(v1, v2, 0.3f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
 }
@@ -145,7 +145,7 @@ BENCHMARK_DEFINE_F(MotionFileFixture, TWED_Execution)(benchmark::State &state) {
     std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
 
     for (const auto _: state) {
-        float res = EditDistance::twed(v1, v2, 0.3f, 1.0f, quat_dist);
+        float res = EditDistance::twed(v1, v2, 0.3f, 1.0f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
 }

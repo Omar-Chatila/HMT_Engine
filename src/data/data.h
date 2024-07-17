@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <utility>
+#include <imgui.h>
 #include "motion_file_processor.h"
 #include "motion_data.h"
 

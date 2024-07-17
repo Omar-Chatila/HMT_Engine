@@ -2,7 +2,6 @@
 #include <algorithm>
 #include "dtw.h"
 #include "trajectories.h"
-#include <imgui.h>
 
 float *Dtw::dtw(const Vec3D *v1, const Vec3D *v2, int size_v1, int size_v2,
                 std::function<float(const Vec3D &, const Vec3D &)> &func) {
