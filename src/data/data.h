@@ -6,6 +6,10 @@
 #include "motion_file_processor.h"
 #include "motion_data.h"
 
+#define PLAY data->inputView->is_playing
+#define PAUSE !data->inputView->is_playing
+
+
 enum DTW_Variant {
     CLASSIC,
     WEIGHTED,
@@ -46,6 +50,8 @@ struct VPContext {
     float aspectRatio;
     float fov;
     float projection_angle;
+
+    bool is_playing;
 
     int windowWidth;
     int windowHeight;
