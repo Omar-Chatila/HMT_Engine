@@ -75,7 +75,7 @@ void plotCorrelationMatrix(const Eigen::MatrixXf &correlationMatrix) {
         ImPlot::SetupAxisTicks(ImAxis_X1, positions.data(), numAlgorithms, algorithmNames);
         ImPlot::SetupAxisTicks(ImAxis_Y1, positions.data(), numAlgorithms, algorithmNames_r);
 
-        ImPlot::PushColormap(ImPlotColormap_Jet);
+        ImPlot::PushColormap(ImPlotColormap_Greys);
         ImPlot::PlotHeatmap("Correlation", correlationMatrix.data(), correlationMatrix.rows(), correlationMatrix.cols(),
                             -1.0f, 1.0f, "%.2f", ImPlotPoint(0, 0), ImPlotPoint(numAlgorithms - 1, numAlgorithms - 1));
         ImPlot::PopColormap();
@@ -185,6 +185,6 @@ void ResultLayer::onRender() {
     }
     calculateCorrelations(costs, correlationMatrix);
     plotCorrelationMatrix(correlationMatrix);
-    
+
     ImGui::End();
 }

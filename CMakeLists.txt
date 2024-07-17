@@ -18,7 +18,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Define your project sources, excluding src/benchmarks
 set(PROJ_SOURCES
-        src/algorithms/dtw.cpp
+        src/algorithms/dtw/dtw.cpp
+        src/algorithms/dtw/ssc_dtw.cpp
+        src/algorithms/dtw/wdtw.cpp
+        src/algorithms/dtw/local_weights_dtw.cpp
         src/algorithms/edit_distance.cpp
         src/algorithms/frechet.cpp
         src/algorithms/lcss.cpp
@@ -68,6 +71,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         src/app/
         src/data/
         src/algorithms/
+        src/algorithms/dtw/
         src/app/engine/
         src/imgui/
         src/opengl/

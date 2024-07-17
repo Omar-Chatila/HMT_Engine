@@ -1,13 +1,7 @@
 #include "imgui_layer.h"
 #include <imgui/implot.h>
-#include <imgui/implot_internal.h>
-#include "imgui/spinner.h"
-#include "imgui/imgui_neo_sequencer.h"
-#include "imgui/imgui_neo_sequencer.h"
-#include "motion_file_processor.h"
+#include <imgui/imgui_neo_sequencer.h>
 #include <fstream>
-#include <thread>
-#include <atomic>
 
 #define AUTO 0
 #define PICK 1
@@ -68,7 +62,7 @@ void ImGuiLayer::drawDTWDiagram() {
     ImGui::SameLine();
     ImGui::RadioButton("Costs", &selectedArray, 1);
 
-    static ImPlotColormap map = ImPlotColormap_Viridis;
+    static ImPlotColormap map = ImPlotColormap_RdBu;
     static float scale_min = s_min;
     static float scale_max = s_max;
     ImGui::SameLine();
@@ -351,6 +345,15 @@ void ImGuiLayer::onRender() {
         show_DTW_Options();
         ImGui::End();
     }
+    ImGui::Begin("##Master Dream", nullptr,
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoCollapse |
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
+                 ImGuiWindowFlags_NoScrollbar);
+
+    auto draw = ImGui::GetBackgroundDrawList();
+    draw->AddCircle(ImVec2(1920 / 2, 1080 / 2), 100, 1.0f);
+
+    ImGui::End();
     inputProcessIndicator();
     referenceProcessIndicator();
 }
