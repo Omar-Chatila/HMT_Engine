@@ -209,7 +209,8 @@ int Renderer::display() {
             update_SpherePos_noAlign(ref_frms[data->c_ref_frame],
                                      in_frms[data->c_inp_frame]);
         }
-        current_frame++;
+        if (PLAY)
+            current_frame++;
         //draw_objects(projection, view, sphere, sphereShader);
         glUseProgram(0);
 

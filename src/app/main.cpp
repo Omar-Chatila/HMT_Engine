@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
 
     // Start engine
     std::cout << "Start GUI" << std::endl;
+    PLAY = true;
     auto *rend = new Renderer(data);
     rend->display();
 
