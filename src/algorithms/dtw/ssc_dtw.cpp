@@ -65,6 +65,29 @@ float *Dtw::ss1_dtw(const std::vector<Quaternion *> &inp_traj, const std::vector
     return S;
 }
 
+std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment_ss1(float *cost_matrix, int n, int m) {
+    int index = INDEX(n, m);
+    std::vector<int> alignment;
+    const float cost = cost_matrix[index];
+
+    while (index > 0) {
+        alignment.push_back(index);
+        int next_index;
+        if (cost_matrix[index - 1 - (m + 1)] < cost_matrix[index - 2 - (m + 1)] &&
+            cost_matrix[index - (m + 2)] < cost_matrix[index - 1 - 2 * (m + 1)]) {
+            next_index = index - 1 - (m + 1);
+        } else if (cost_matrix[index - 2 - (m + 1)] < cost_matrix[index - 2 * (m + 1) - 1]) {
+            next_index = index - 2 - (m + 1);
+        } else {
+            next_index = index - 2 * (m + 1) - 1;
+        }
+        index = next_index; // Move to the next index
+    }
+    std::reverse(alignment.begin(), alignment.end());
+    free(cost_matrix);
+    return {cost, alignment};
+}
+
 float *Dtw::ssc2_dtw(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
                      std::function<float(const Quaternion *, const Quaternion *,
                                          const std::array<float, JOINT_COUNT> &)> &func) {
@@ -133,25 +156,56 @@ float *Dtw::ssc2_dtw(const vector<Quaternion *> &inp_traj, const vector<Quaterni
         D[INDEX2(-1 + 2, m + 2, M)] = std::numeric_limits<float>::infinity();
         D[INDEX2(0 + 2, m + 2, M)] = std::numeric_limits<float>::infinity();
     }
-
     D[INDEX2(3, 3, M)] = SELECT_F(0, 0);
-
-    for (int n = 1; n <= N; ++n) {
-        for (int m = 1; m <= M; ++m) {
-            float cost = SELECT_F(n - 1, m - 1);
+    for (int n = 1; n <= N - 2; ++n) {
+        for (int m = 1; m <= M - 2; ++m) {
+            float cost = SELECT_F(n - 1 + 2, m - 1 + 2);
+            //std::cout << n << "," << m << std::endl;
             D[INDEX2(n + 2, m + 2, M)] = std::min({
                                                           D[INDEX2(n - 1 + 2, m - 1 + 2, M)] + cost,
-                                                          D[INDEX2(n - 2 + 2, m - 1 + 2, M)] + SELECT_F(n - 2, m - 1) +
+                                                          D[INDEX2(n - 2 + 2, m - 1 + 2, M)] +
+                                                          SELECT_F(n - 2 + 2, m - 1 + 2) +
                                                           cost,
-                                                          D[INDEX2(n - 1 + 2, m - 2 + 2, M)] + SELECT_F(n - 1, m - 2) +
+                                                          D[INDEX2(n - 1 + 2, m - 2 + 2, M)] +
+                                                          SELECT_F(n - 1 + 2, m - 2 + 2) +
                                                           cost,
-                                                          D[INDEX2(n - 3 + 2, m - 1 + 2, M)] + SELECT_F(n - 3, m - 1) +
-                                                          SELECT_F(n - 2, m - 1) + cost,
-                                                          D[INDEX2(n - 1 + 2, m - 3 + 2, M)] + SELECT_F(n - 1, m - 3) +
-                                                          SELECT_F(n - 1, m - 2) + cost
+                                                          D[INDEX2(n - 3 + 2, m - 1 + 2, M)] +
+                                                          SELECT_F(n - 3 + 2, m - 1 + 2) +
+                                                          SELECT_F(n - 2 + 2, m - 1 + 2) + cost,
+                                                          D[INDEX2(n - 1 + 2, m - 3 + 2, M)] +
+                                                          SELECT_F(n - 1 + 2, m - 3 + 2) +
+                                                          SELECT_F(n - 1 + 2, m - 2 + 2) + cost
                                                   });
         }
     }
     return D;
 }
 
+std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment_ss2(float *D, int N, int M) {
+    int index = (N + 3) * (M + 3) - 1;
+    std::vector<int> alignment;
+    const float cost = D[index];
+    const int ROW = M + 3;
+    while (index > 0) {
+        alignment.push_back(index);
+        int i1 = index - 3 * (ROW) - 1;
+        int i2 = index - 2 * (ROW) - 1;
+        int i3 = index - 1 * (ROW) - 1;
+        int i4 = index - 1 * (ROW) - 2;
+        int i5 = index - 1 * (ROW) - 3;
+        if (D[i1] < D[i2] && D[i1] < D[i3] && D[i1] < D[i4] && D[i1] < D[i5]) {
+            index = i1;
+        } else if (D[i2] < D[i3] && D[i2] < D[i4] && D[i2] < D[i5]) {
+            index = i2;
+        } else if (D[i3] < D[i4] && D[i3] < D[i5]) {
+            index = i3;
+        } else if (D[i4] < D[i5]) {
+            index = i4;
+        } else {
+            index = i5;
+        }
+    }
+    std::reverse(alignment.begin(), alignment.end());
+    free(D);
+    return {cost, alignment};
+}

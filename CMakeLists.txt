@@ -37,6 +37,7 @@ set(PROJ_SOURCES
         src/imgui/my_layers/classifier_layer.cpp
         src/imgui/my_layers/result_layer.cpp
         src/imgui/my_layers/setup_layer.cpp
+        src/imgui/my_layers/benchmark_layer.cpp
         src/misc/enums.cpp
         src/opengl/shader.cpp
         src/opengl/sphere.cpp
@@ -67,6 +68,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         include/
         include/Eigen/
         lib/
+        src/benchmarks
         src/
         src/app/
         src/data/

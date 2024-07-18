@@ -218,6 +218,24 @@ public:
                                                       const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
 
     /**
+     * @brief Computes the cost matrix for DTW between two trajectories of Quaternion pointers using a selection function with step-size condition 2
+     * @param inp_traj Input trajectory.
+     * @param ref_traj Reference trajectory.
+     * @param func Distance function to use.
+     * @return A pointer to the cost matrix.
+     */
+    static std::pair<float, std::vector<int>> get_cost_and_alignment_ss2(float *cost_matrix, int n, int m);
+
+    /**
+     * @brief Computes the cost matrix for DTW between two trajectories of Quaternion pointers using a selection function with step-size condition 2
+     * @param inp_traj Input trajectory.
+     * @param ref_traj Reference trajectory.
+     * @param func Distance function to use.
+     * @return A pointer to the cost matrix.
+     */
+    static std::pair<float, std::vector<int>> get_cost_and_alignment_ss1(float *cost_matrix, int n, int m);
+
+    /**
      * @brief Retrieves the cost and alignment from the cost matrix.
      * @param cost_matrix The cost matrix.
      * @param n Number of rows.
@@ -225,6 +243,32 @@ public:
      * @return A pair containing the final cost and the alignment path.
      */
     static std::pair<float, std::vector<int>> get_cost_and_alignment(float *cost_matrix, int n, int m);
+
+    /**
+     * @brief Computes the DTW distance between two trajectories of Quaternion pointers using a joint weighing function while applying 3 local weight parameters w_d, w_h, w_v to the respective indices
+     * @param inp_traj Input trajectory.
+     * @param ref_traj Reference trajectory.
+     * @param func Distance function to use.
+     * @param weights Vector containing the local weights in order of diagonal, horizontal and vertical
+     * @return A pointer to the cost matrix.
+     */
+    static float *
+    local_weights_dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                      std::function<float(const Quaternion *, const Quaternion *,
+                                          const std::array<float, JOINT_COUNT> &jWeights)> &func, const Vec3D &weights);
+
+    /**
+     * @brief Computes the DTW distance between two trajectories of Quaternion pointers using a joint selection function while applying 3 local weight parameters w_d, w_h, w_v to the respective indices
+     * @param inp_traj Input trajectory.
+     * @param ref_traj Reference trajectory.
+     * @param func Distance function to use.
+     * @param weights Vector containing the local weights in order of diagonal, horizontal and vertical
+     * @return A pointer to the cost matrix.
+     */
+    static float *
+    local_weights_dtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                      std::function<float(const Quaternion *, const Quaternion *,
+                                          const std::array<bool, JOINT_COUNT> &selectedJ)> &func, const Vec3D &weights);
 
     /**
      * @brief Normalizes a trajectory based on given max rotations.
@@ -235,6 +279,7 @@ public:
     static std::vector<Quaternion *>
     normalize_trajectory(const std::vector<Quaternion *> &trajectory,
                          const std::vector<std::pair<Quaternion, Quaternion>> &max_rotations);
+
 
 private:
 

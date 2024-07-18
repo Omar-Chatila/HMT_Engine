@@ -131,6 +131,7 @@ int Renderer::display() {
     app->push_layer<ResultLayer>(data);
     app->push_layer<ClassifierLayer>(data);
     app->push_layer<SetupLayer>(data);
+    app->push_layer<BenchmarkLayer>();
     int lastInpIndex = -1;
     int lastRefIndex = -1;
 

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <array>
+#include <iterator>
 
 const int JOINT_COUNT = 19;
 const int ERROR_COUNT = 9;
@@ -108,7 +109,6 @@ enum class ErrorPattern {
     HOLLOW_BACK,
     KNEES_SIDEWAYS,
     SYMMETRY,
-    COUNT
 };
 
 const std::unordered_map<MovementSegment, std::string> movementSegmentMap = {
@@ -268,6 +268,13 @@ inline std::vector<std::string> split(const std::string &str, char delimiter) {
         tokens.push_back(token);
     }
     return tokens;
+}
+
+inline std::vector<std::string> splitBySpaces(const std::string &str) {
+    std::istringstream iss(str);
+    std::vector<std::string> result((std::istream_iterator<std::string>(iss)),
+                                    std::istream_iterator<std::string>());
+    return result;
 }
 
 #endif

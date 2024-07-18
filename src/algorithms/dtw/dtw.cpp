@@ -89,7 +89,7 @@ float *Dtw::standardized_dtw(const vector<Quaternion *> &inp_traj, const vector<
 }
 
 std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment(float *cost_matrix, int n, int m) {
-    int index = (m + 1) * (n + 1) - 1;
+    int index = INDEX(n, m);
     std::vector<int> alignment;
     const float cost = cost_matrix[index];
 
