@@ -71,6 +71,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         src/benchmarks
         src/
         src/app/
+        src/tests/
         src/data/
         src/algorithms/
         src/algorithms/dtw/

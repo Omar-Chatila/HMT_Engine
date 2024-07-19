@@ -1,14 +1,199 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "distance_measures.h"
-#include "trajectory_analysis.h"
-#include "dtw.h"
+#include <iostream>
+#include <array>
+#include <cassert>
+
+using namespace std;
 
 void test1();
 
 void test2();
 
+void write_matrix_to_file(int *S, size_t rows, size_t cols, const std::string &filename) {
+    std::ofstream file(filename);
+    if (file.is_open()) {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                file << S[i * cols + j] << " ";
+            }
+            file << std::endl;
+        }
+        file.close();
+    } else {
+        std::cerr << "Unable to open file " << filename << std::endl;
+    }
+}
+
+#define INFTY 1000
+
+int SELECT(const vector<int> &inp_traj, const vector<int> &ref_traj, int n, int m) {
+    assert(n >= 0 && m >= 0);
+    assert(n < inp_traj.size());
+    assert(m < ref_traj.size());
+    auto res = std::abs(inp_traj[n] - ref_traj[m]);
+    return res;
+}
+
+#define INDEX4(n, m) ((n) * (M + 2) + (m))
+
+int *ss1_dtw(const std::vector<int> &inp_traj, const std::vector<int> &ref_traj) {
+    const int N = inp_traj.size();
+    const int M = ref_traj.size();
+
+    auto *S = (int *) malloc((N + 2) * (M + 2) * sizeof(int));
+    const int INF = 1000;
+
+    for (int n = 0; n < N + 2; ++n) {
+        S[INDEX4(n, 0)] = INF;
+        S[INDEX4(n, 1)] = INF;
+    }
+    for (int m = 0; m < M + 2; ++m) {
+        S[INDEX4(0, m)] = INF;
+        S[INDEX4(1, m)] = INF;
+    }
+
+    S[INDEX4(0, 0)] = 0;
+    S[INDEX4(1, 1)] = SELECT(inp_traj, ref_traj, 0, 0);
+
+    for (int n = 2; n < N + 2; ++n) {
+        for (int m = 2; m < M + 2; ++m) {
+            S[INDEX4(n, m)] = std::min({
+                                               S[INDEX4(n - 1, m - 1)],
+                                               S[INDEX4(n - 2, m - 1)],
+                                               S[INDEX4(n - 1, m - 2)]
+                                       }) + SELECT(inp_traj, ref_traj, n - 2, m - 2);
+        }
+    }
+
+    write_matrix_to_file(S, N + 2, M + 2, "SSC1.txt");
+    return S;
+}
+
+std::pair<int, std::vector<int>> get_cost_and_alignment_ss1(int *D, int N, int M) {
+    int index = (N + 2) * (M + 2) - 1;
+    std::cout << "I: " << index << std::endl;
+    std::vector<int> alignment;
+    const int cost = D[index];
+    const int ROW = M + 2;
+    while (index / (M + 2) >= 2 && index % (M + 2) >= 2) {
+        alignment.push_back(index);
+        int i1 = index - 1 * (ROW) - 1;
+        int i2 = index - 2 * (ROW) - 1;
+        int i3 = index - 1 * (ROW) - 2;
+
+        if (D[i1] < D[i2] && D[i1] < D[i3]) {
+            index = i1;
+        } else if (D[i2] < D[i3]) {
+            index = i2;
+        } else {
+            index = i3;
+        }
+    }
+    std::reverse(alignment.begin(), alignment.end());
+    free(D);
+    return {cost, alignment};
+}
+
+
+int *ssc2_dtw(const vector<int> &inp_traj, const vector<int> &ref_traj) {
+    const size_t N = inp_traj.size();
+    const size_t M = ref_traj.size();
+    int *D = new int[(N + 3) * (M + 3)];
+
+    // Initial values
+    for (int n = 0; n < N + 3; ++n) {
+        D[INDEX2(n, 0, M)] = INFTY;
+        D[INDEX2(n, 1, M)] = INFTY;
+        D[INDEX2(n, 2, M)] = INFTY;
+    }
+    for (int m = 0; m < M + 3; ++m) {
+        D[INDEX2(0, m, M)] = INFTY;
+        D[INDEX2(1, m, M)] = INFTY;
+        D[INDEX2(2, m, M)] = INFTY;
+    }
+
+    D[INDEX2(3, 3, M)] = SELECT(inp_traj, ref_traj, 0, 0);
+
+    for (int n = 3; n < N + 3; ++n) {
+        for (int m = 3; m < M + 3; ++m) {
+            if (n == 3 && m == 3) continue;
+            int cost_n_m = SELECT(inp_traj, ref_traj, n - 3, m - 3);
+            int cost_n_1_m = n > 3 ? SELECT(inp_traj, ref_traj, n - 4, m - 3) : INFTY;
+            int cost_n_m_1 = m > 3 ? SELECT(inp_traj, ref_traj, n - 3, m - 4) : INFTY;
+            int cost_n_2_m = n > 4 ? SELECT(inp_traj, ref_traj, n - 5, m - 3) : INFTY;
+            int cost_n_m_2 = m > 4 ? SELECT(inp_traj, ref_traj, n - 3, m - 5) : INFTY;
+            D[INDEX2(n, m, M)] = std::min({
+                                                  D[INDEX2(n - 1, m - 1, M)] + cost_n_m,
+                                                  D[INDEX2(n - 2, m - 1, M)] + cost_n_1_m + cost_n_m,
+                                                  D[INDEX2(n - 1, m - 2, M)] + cost_n_m_1 + cost_n_m,
+                                                  D[INDEX2(n - 3, m - 1, M)] + cost_n_2_m + cost_n_1_m + cost_n_m,
+                                                  D[INDEX2(n - 1, m - 3, M)] + cost_n_m_2 + cost_n_m_1 + cost_n_m
+                                          });
+            std::cout << "(" << n - 3 << ": " << m - 3 << ") " << D[INDEX2(n, m, M)] << "|";
+        }
+        std::cout << "\n";
+    }
+    write_matrix_to_file(D, N + 3, M + 3, "SSC2");
+    return D;
+}
+
+std::pair<int, std::vector<int>> get_cost_and_alignment_ss2(int *D, int N, int M) {
+    int index = (N + 3) * (M + 3) - 1;
+    std::vector<int> alignment;
+    const int cost = D[index];
+    const int ROW = M + 3;
+    while (index / (M + 3) >= 3 && index % (M + 3) >= 3) {
+        alignment.push_back(index);
+        int i1 = index - 3 * (ROW) - 1;
+        int i2 = index - 2 * (ROW) - 1;
+        int i3 = index - 1 * (ROW) - 1;
+        int i4 = index - 1 * (ROW) - 2;
+        int i5 = index - 1 * (ROW) - 3;
+        if (D[i1] < D[i2] && D[i1] < D[i3] && D[i1] < D[i4] && D[i1] < D[i5]) {
+            index = i1;
+        } else if (D[i2] < D[i3] && D[i2] < D[i4] && D[i2] < D[i5]) {
+            index = i2;
+        } else if (D[i3] < D[i4] && D[i3] < D[i5]) {
+            index = i3;
+        } else if (D[i4] < D[i5]) {
+            index = i4;
+        } else {
+            index = i5;
+        }
+    }
+    std::reverse(alignment.begin(), alignment.end());
+    free(D);
+    return {cost, alignment};
+}
+
+void test_DTW_SSC2() {
+    vector<int> in = {2, 4, 1, 5, 4, 2, 7};
+    vector<int> re = {4, 2, 1, 8, 5, 2, 8};
+    auto matrix = ssc2_dtw(in, re);
+    int N = static_cast<int>(in.size());
+    int M = static_cast<int>(re.size());
+    auto res = get_cost_and_alignment_ss2(matrix, N, M);
+    std::cout << res.first << std::endl;
+    for (auto i: res.second) {
+        std::cout << i / (N + 3) << ":" << i % (M + 3) << std::endl;
+    }
+}
+
+void test_DTW_SSC1() {
+    vector<int> in = {2, 4, 1, 5, 4, 2, 5, 1};
+    vector<int> re = {4, 2, 1, 8, 3, 5, 2, 2};
+    auto matrix = ss1_dtw(in, re);
+    int N = static_cast<int>(in.size());
+    int M = static_cast<int>(re.size());
+    auto res = get_cost_and_alignment_ss1(matrix, N, M);
+    std::cout << res.first << std::endl;
+    for (auto i: res.second) {
+        std::cout << i / (N + 2) << ":" << i % (M + 2) << std::endl;
+    }
+}
+
+
 void test() {
+
     // Parse input trajectory
     /*
     SharedData *sharedData = new SharedData();
@@ -157,6 +342,7 @@ void test1() {
 }
     */
 
+/*
 void test2() {
     Vec3D *joint_rotations1 = new Vec3D[JOINT_COUNT];
     Vec3D *joint_rotations2 = new Vec3D[JOINT_COUNT];
@@ -244,3 +430,4 @@ void test2() {
     delete[] joint_rotations5;
     delete[] joint_rotations6;
 }
+*/
