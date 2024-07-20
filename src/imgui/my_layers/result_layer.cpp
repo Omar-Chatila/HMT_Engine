@@ -29,6 +29,9 @@ float pearsonCorrelation(const std::vector<float> &x, const std::vector<float> &
         denom_x += (x[i] - mean_x) * (x[i] - mean_x);
         denom_y += (y[i] - mean_y) * (y[i] - mean_y);
     }
+    if (denom_x == 0) denom_x = 0.1f;
+    if (denom_y == 0) denom_y = 0.1f;
+
     IM_ASSERT(denom_x != 0.0f);
     IM_ASSERT(denom_y != 0.0f);
     return numerator / std::sqrt(denom_x * denom_y);
@@ -53,11 +56,14 @@ void calculateCorrelations(const std::vector<std::vector<float>> &costs, Eigen::
 }
 
 void plotCorrelationMatrix(const Eigen::MatrixXf &correlationMatrix) {
-    const char *algorithmNames[] = {"DTW", "WDTW", "WDDTW", "EDR", "TWED", "FRECHET", "FRECHET_QUAT", "LC_FRECHET",
+    const char *algorithmNames[] = {"DTW", "WDTW", "WDDTW", "SSC1 DTW", "SSC2 DTW", "LW DTW", "EDR", "TWED", "FRECHET",
+                                    "FRECHET_QUAT", "LC_FRECHET",
                                     "LCSS"};
     // cheap fix for reversed y-Axis...
-    const char *algorithmNames_r[] = {"LCSS", "LC_FRECHET", "FRECHET_QUAT", "FRECHET", "TWED", "EDR", "WDDTW", "WDTW",
-                                      "DTW"};
+    const char *algorithmNames_r[] = {"LCSS", "LC_FRECHET", "FRECHET_QUAT", "FRECHET", "TWED", "EDR", "LW DTW",
+                                      "SSC2 DTW",
+                                      "SSC1 DTW",
+                                      "WDDTW", "WDTW", "DTW"};
 
     int numAlgorithms = correlationMatrix.cols();
 
@@ -86,11 +92,15 @@ void plotCorrelationMatrix(const Eigen::MatrixXf &correlationMatrix) {
 
 void ResultLayer::onRender() {
     ImGui::Begin("Results");
-    if (ImGui::BeginTable("TrajectoryCosts", 10, ImGuiTableFlags_Borders)) {
+    if (ImGui::BeginTable("TrajectoryCosts", 13, ImGuiTableFlags_Borders)) {
         ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("DTW", ImGuiTableColumnFlags_None);
+        // ImGui::TableSetupColumn("STAND. DTW", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("WDTW", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("WDDTW", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("SSC1 DTW", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("SSC2 DTW", ImGuiTableColumnFlags_None);
+        ImGui::TableSetupColumn("LW DTW", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("EDR", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("TWED", ImGuiTableColumnFlags_None);
         ImGui::TableSetupColumn("FRECHET", ImGuiTableColumnFlags_None);

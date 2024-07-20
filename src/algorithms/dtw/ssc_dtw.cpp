@@ -69,7 +69,6 @@ float *Dtw::ss1_dtw(const std::vector<Quaternion *> &inp_traj, const std::vector
 
 std::pair<float, std::vector<int>> Dtw::get_cost_and_alignment_ss1(float *D, int N, int M) {
     int index = (N + 2) * (M + 2) - 1;
-    std::cout << "I: " << index << std::endl;
     std::vector<int> alignment;
     const float cost = D[index];
     const int ROW = M + 2;

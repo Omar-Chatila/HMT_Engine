@@ -27,6 +27,7 @@ public:
     float edr_epsilon;
     Distances edr_distance;
 
+    Vec3D localWeights;
 
     float wddtw_g;
     float wddtw_w_max;
@@ -49,7 +50,7 @@ private:
               wddtw_g(0.005f), wddtw_w_max(1.0f), wddtw_distance(Distances::QUATERNION),
               twed_nu(0.3f), twed_lambda(1.0f), twed_distance(Distances::QUATERNION),
               lcss_epsilon(0.3f), lcss_delta(5.0f), lcss_distance(Distances::QUATERNION),
-              frechet_distance(Distances::QUATERNION) {
+              frechet_distance(Distances::QUATERNION), localWeights(Vec3D(2.0f, 1.0f, 1.0f)) {
         std::fill(selected_joints.begin(), selected_joints.end(), true);
         std::fill(joint_weights.begin(), joint_weights.end(), 1.0f);
     }

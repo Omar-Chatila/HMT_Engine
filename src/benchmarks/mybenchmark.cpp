@@ -1,8 +1,8 @@
 #include <benchmark/benchmark.h>
 #include "mybenchmark.h"
 
-#define START1 100
-#define START2 100
+#define START1 200
+//#define START1 100
 
 #define STEP1 200
 #define STEP2 200
@@ -46,190 +46,191 @@ BENCHMARK_REGISTER_F(MotionFileFixture, MotionFile_Parsing)
 
 // Benchmark Dynamic Time Warping
 BENCHMARK_DEFINE_F(MotionFileFixture, DTW_Execution)(benchmark::State &state) {
-    int i_index = state.range(0);
-    int r_index = state.range(1);
+    size_t i_index = state.range(0);
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
-
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
     for (auto _: state) {
         float *res = Dtw::dtw(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
-        free(res);
+        auto alignment = Dtw::get_cost_and_alignment(res, v1.size(), v2.size());
+        benchmark::DoNotOptimize(alignment);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, DTW_Execution)
         ->Name("Dynamic Time Warping")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark Dynamic Time Warping SSC1
 BENCHMARK_DEFINE_F(MotionFileFixture, DTW_SSC1_Execution)(benchmark::State &state) {
     int i_index = state.range(0);
-    int r_index = state.range(1);
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (auto _: state) {
         float *res = Dtw::ss1_dtw(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
-        free(res);
+        auto alignment = Dtw::get_cost_and_alignment_ss1(res, v1.size(), v2.size());
+        benchmark::DoNotOptimize(alignment);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, DTW_SSC1_Execution)
         ->Name("DTW - Step-size-condition 1")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark Dynamic Time Warping SSC2
 BENCHMARK_DEFINE_F(MotionFileFixture, DTW_SSC2_Execution)(benchmark::State &state) {
     int i_index = state.range(0);
-    int r_index = state.range(1);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (auto _: state) {
         float *res = Dtw::ssc2_dtw(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
-        free(res);
+        auto alignment = Dtw::get_cost_and_alignment_ss2(res, v1.size(), v2.size());
+        benchmark::DoNotOptimize(alignment);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, DTW_SSC2_Execution)
         ->Name("DTW - Step-size-condition 2")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark Dynamic Time Warping with local weights
 BENCHMARK_DEFINE_F(MotionFileFixture, DTW_Local_Weights_Execution)(benchmark::State &state) {
-    int i_index = state.range(0);
-    int r_index = state.range(1);
+    size_t i_index = state.range(0);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (auto _: state) {
         float *res = Dtw::local_weights_dtw(v1, v2, quaternion_dist, {2.0, 1.0, 1.0});
         benchmark::DoNotOptimize(res);
         free(res);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, DTW_Local_Weights_Execution)
         ->Name("DTW_Local-Weights (2, 1, 1)")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark LCSS
 BENCHMARK_DEFINE_F(MotionFileFixture, LCSS_Execution)(benchmark::State &state) {
-    int i_index = state.range(0);
-    int r_index = state.range(1);
+    size_t i_index = state.range(0);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (const auto _: state) {
         float res = LCSS::lcss(v1, v2, 0.3f, 5.0f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, LCSS_Execution)
         ->Name("LCSS")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark Frechet
 BENCHMARK_DEFINE_F(MotionFileFixture, FRECHET_Execution)(benchmark::State &state) {
     int i_index = state.range(0);
-    int r_index = state.range(1);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (const auto _: state) {
         float res = Frechet::frechet(v1, v2, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, FRECHET_Execution)
         ->Name("Frechet")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark EDR
 BENCHMARK_DEFINE_F(MotionFileFixture, EDR_Execution)(benchmark::State &state) {
     int i_index = state.range(0);
-    int r_index = state.range(1);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (const auto _: state) {
         float res = EditDistance::edr(v1, v2, 0.3f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
+    state.SetComplexityN(state.range(0));
+
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, EDR_Execution)
         ->Name("EDR")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 // Benchmark TWED
 BENCHMARK_DEFINE_F(MotionFileFixture, TWED_Execution)(benchmark::State &state) {
     int i_index = state.range(0);
-    int r_index = state.range(1);
+
     size_t i_size = in_quat_frames.size();
     size_t r_size = ref_quat_frames.size();
     std::vector<Quaternion *> v1(in_quat_frames.begin(), in_quat_frames.end() - i_size + i_index);
-    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + r_index);
+    std::vector<Quaternion *> v2(ref_quat_frames.begin(), ref_quat_frames.end() - r_size + i_index);
 
     for (const auto _: state) {
         float res = EditDistance::twed(v1, v2, 0.3f, 1.0f, quaternion_dist);
         benchmark::DoNotOptimize(res);
     }
+    state.SetComplexityN(state.range(0));
 }
 
 BENCHMARK_REGISTER_F(MotionFileFixture, TWED_Execution)
         ->Name("TWED")
-        ->ArgsProduct({benchmark::CreateDenseRange(START1, END1, STEP1),
-                       benchmark::CreateDenseRange(START2, END2, STEP2)})
+        ->DenseRange(START1, END1, STEP1)
         ->Unit(benchmark::kMillisecond)
-        ->Complexity(benchmark::oAuto)
+        ->Complexity(benchmark::oNSquared)
         ->Iterations(ITERATIONS);
 
 

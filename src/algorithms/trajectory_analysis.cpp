@@ -118,6 +118,45 @@ float Trajectoy_analysis::perform_FRECHET_Pos(Distances type) {
                             reference_trajectories.get_positions_trajectories(), vector_dist);
 }
 
+std::tuple<float, std::vector<int>, float *>
+Trajectoy_analysis::perform_SSC1_DTW(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
+                                     Distances dist) {
+    float *c_matrix;
+    if (dist == QUATERNION)
+        c_matrix = Dtw::ss1_dtw(inp_traj, ref_traj, quaternion_dist);
+    else if (dist == QUATERNION_WEIGHTED)
+        c_matrix = Dtw::ss1_dtw(inp_traj, ref_traj, quaternion_dist_weighted);
+
+    auto pair = Dtw::get_cost_and_alignment_ss1(c_matrix, inp_traj.size(), ref_traj.size());
+    return {pair.first, pair.second, c_matrix};
+}
+
+std::tuple<float, std::vector<int>, float *>
+Trajectoy_analysis::perform_SSC2_DTW(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
+                                     Distances dist) {
+    float *c_matrix;
+    if (dist == QUATERNION)
+        c_matrix = Dtw::ssc2_dtw(inp_traj, ref_traj, quaternion_dist);
+    else if (dist == QUATERNION_WEIGHTED)
+        c_matrix = Dtw::ssc2_dtw(inp_traj, ref_traj, quaternion_dist_weighted);
+
+    auto pair = Dtw::get_cost_and_alignment_ss2(c_matrix, inp_traj.size(), ref_traj.size());
+    return {pair.first, pair.second, c_matrix};
+}
+
+std::tuple<float, std::vector<int>, float *>
+Trajectoy_analysis::perform_LW_DTW(const vector<Quaternion *> &inp_traj, const vector<Quaternion *> &ref_traj,
+                                   Distances dist, Vec3D &localWeights) {
+    float *c_matrix;
+    if (dist == QUATERNION)
+        c_matrix = Dtw::local_weights_dtw(inp_traj, ref_traj, quaternion_dist, localWeights);
+    else if (dist == QUATERNION_WEIGHTED)
+        c_matrix = Dtw::local_weights_dtw(inp_traj, ref_traj, quaternion_dist_weighted, localWeights);
+
+    auto pair = Dtw::get_cost_and_alignment(c_matrix, inp_traj.size(), ref_traj.size());
+    return {pair.first, pair.second, c_matrix};
+}
+
 
 
 

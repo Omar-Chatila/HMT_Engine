@@ -28,6 +28,18 @@ public:
     perform_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj, Distances dist);
 
     std::tuple<float, std::vector<int>, float *>
+    perform_SSC1_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                     Distances dist);
+
+    std::tuple<float, std::vector<int>, float *>
+    perform_SSC2_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                     Distances dist);
+
+    std::tuple<float, std::vector<int>, float *>
+    perform_LW_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                   Distances dist, Vec3D &localWeights);
+
+    std::tuple<float, std::vector<int>, float *>
     perform_standardized_DTW(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
                              Distances dist);
 

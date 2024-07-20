@@ -14,7 +14,10 @@
 enum DTW_Variant {
     CLASSIC,
     WEIGHTED,
-    WEIGHTED_DERIVATIVE
+    WEIGHTED_DERIVATIVE,
+    SSC1DTW,
+    SSC2DTW,
+    LWDTW,
 };
 
 struct MainLayerContext {

@@ -241,9 +241,12 @@ void ImGuiLayer::show_DTW_Options() {
     if (ImGui::CollapsingHeader("Dynamic Time Warping", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Checkbox("DTW Aligned", &data->mainLayerContext->aligned);
         static int selectedDtw = 0;
-        static const char *dtwOptions[] = {"Classic DTW", "Weighted DTW", "Weighted Derivative DTW"};
+        static const char *dtwOptions[] = {"Classic DTW", "Weighted DTW", "Weighted Derivative DTW", "SSC1 DTW",
+                                           "SSC2 DTW",
+                                           "LW_DTW"};
         ImGui::SameLine();
         ImGui::PushItemWidth(150.0f);
+        static float cost = 0.0f;
         if (ImGui::Combo("##dtwVariant", &selectedDtw, dtwOptions, IM_ARRAYSIZE(dtwOptions))) {
             switch (selectedDtw) {
                 case 0: // Classic
@@ -254,6 +257,43 @@ void ImGuiLayer::show_DTW_Options() {
                     data->bestMatch->setSegmentsAndMatchings();
                     this->data->mainLayerContext->dtwVariant = CLASSIC;
                     data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[DTW];
+                    precomputePathDeviation();
+                }
+                    break;
+                case 3: // SSC1_DTW
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    SSC1_DTW);
+                    this->data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    this->data->mainLayerContext->dtwVariant = SSC1DTW;
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[SSC1_DTW];
+                    precomputePathDeviation();
+                }
+                    break;
+                case 4: // SSC2_DTW
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    SSC2_DTW);
+                    this->data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    this->data->mainLayerContext->dtwVariant = SSC2DTW;
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[SSC2DTW];
+                    precomputePathDeviation();
+                }
+                    break;
+                case 5: // LW_DTW
+                {
+                    auto kNNResults = data->motionFileProcessor->getKClosestMatches(16, data->bestMatch->inputFile,
+                                                                                    LW_DTW);
+                    this->data->bestMatch = kNNResults.front();
+                    data->bestMatch->setSegmentsAndMatchings();
+                    this->data->mainLayerContext->dtwVariant = LWDTW;
+                    data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[LWDTW];
                     precomputePathDeviation();
                 }
                     break;
@@ -265,6 +305,7 @@ void ImGuiLayer::show_DTW_Options() {
                     data->bestMatch = kNNResults.front();
                     data->bestMatch->setSegmentsAndMatchings();
                     data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[WEIGHTED];
                     precomputePathDeviation();
                 }
                     break;
@@ -276,6 +317,7 @@ void ImGuiLayer::show_DTW_Options() {
                     data->bestMatch = kNNResults.front();
                     data->bestMatch->setSegmentsAndMatchings();
                     data->mainLayerContext->mousePos = {0.0f, 0.0f};
+                    cost = data->bestMatch->algorithms_results[WEIGHTED_DERIVATIVE];
                     precomputePathDeviation();
                 }
                     break;
@@ -288,8 +330,8 @@ void ImGuiLayer::show_DTW_Options() {
             ImGuiStyle *style = &ImGui::GetStyle();
             style->Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
             ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
-            ImGui::Text(("Cost: " + std::to_string(
-                    data->bestMatch->matching_algorithms[data->mainLayerContext->dtwVariant]->alignmentCost)).c_str());
+            int i = 0;
+            ImGui::Text(("Cost: " + std::to_string(cost)).c_str());
             ImGui::PopStyleColor();
         }
         ImGui::Checkbox("Show Heatmap", &showDiagram);

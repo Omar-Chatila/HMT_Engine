@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
     std::chrono::time_point<std::chrono::system_clock> cpu_end = std::chrono::system_clock::now();
     auto cpu_total_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(cpu_end - cpu_start).count();
     std::cout << cpu_total_time_ms << " ms" << std::endl;
-
     // Create objects for algorithms executions
     motionFileProcessor->createTrajectoryAnalysisManagers();
     std::cout << "All files processed." << std::endl;

@@ -11,12 +11,16 @@
 #include <tuple>
 #include <iostream>
 
-static constexpr int ALGO_COUNT = 9;
+static constexpr int ALGO_COUNT = 12;
 
 enum Algorithm {
     DTW,
+    //STANDARDIZED_DTW,
     WDTW,
     WDDTW,
+    SSC1_DTW,
+    SSC2_DTW,
+    LW_DTW,
     EDR,
     TWED,
     FRECHET,
@@ -30,9 +34,9 @@ enum MatchingType {
     CDTW,
     WEIGHTDTW,
     WEIGHTDDTW,
-    SWDTW,
-    LCFM,
-    LEXFM
+    SS_CONDITION1DTW,
+    SS_CONDITION2DTW,
+    LOCAL_WEIGHTS_DTW,
 };
 
 struct Matching {
@@ -85,7 +89,11 @@ private:
     std::vector<Frame> inputFrames;
     std::vector<Frame> refFrames;
     std::tuple<float, std::vector<int>, float *> alignment;
+    std::tuple<float, std::vector<int>, float *> ssc1_alignment;
+    std::tuple<float, std::vector<int>, float *> ssc2_alignment;
+    std::tuple<float, std::vector<int>, float *> lw_alignment;
     std::tuple<float, std::vector<int>, float *> wdtw_alignment;
     std::tuple<float, std::vector<int>, float *> wddtw_alignment;
+    std::tuple<float, std::vector<int>, float *> standard_DTW_alignment;
     Trajectoy_analysis *analysis;
 };

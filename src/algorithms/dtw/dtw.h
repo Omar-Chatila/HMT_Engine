@@ -218,6 +218,17 @@ public:
                                                       const std::array<bool, JOINT_COUNT> &selectedJ)> &func);
 
     /**
+     * @brief Computes the cost matrix for DTW between two trajectories of Quaternion pointers using a selection function.
+     * @param inp_traj Input trajectory.
+     * @param ref_traj Reference trajectory.
+     * @param func Distance function to use.
+     * @return A pointer to the cost matrix.
+     */
+    static float *get_cost_matrix(const std::vector<Quaternion *> &inp_traj, const std::vector<Quaternion *> &ref_traj,
+                                  std::function<float(const Quaternion *, const Quaternion *,
+                                                      const std::array<float, JOINT_COUNT> &selectedJ)> &func);
+
+    /**
      * @brief Computes the cost matrix for DTW between two trajectories of Quaternion pointers using a selection function with step-size condition 2
      * @param inp_traj Input trajectory.
      * @param ref_traj Reference trajectory.

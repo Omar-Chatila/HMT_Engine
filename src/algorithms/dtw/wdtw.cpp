@@ -141,7 +141,7 @@ float *Dtw::wddtw(const std::vector<Quaternion *> &inp_traj, const std::vector<Q
 
 std::vector<Quaternion *> Dtw::normalize_trajectory(const std::vector<Quaternion *> &trajectory,
                                                     const std::vector<std::pair<Quaternion, Quaternion>> &max_rotations) {
-    std::vector<Quaternion *> normalized_trajectory = trajectory;
+    std::vector<Quaternion *> normalized_trajectory = deep_copy(trajectory);
     for (auto &quats: normalized_trajectory) {
         for (int i = 0; i < JOINT_COUNT; ++i) {
             quats[i].w =
